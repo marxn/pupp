@@ -1,0 +1,11 @@
+def x,y,z,i as integer;
+
+while(i<10)
+{
+	i=i+1;
+	z=i*2;
+	if(z>i)
+	{
+		print z;
+	}
+}
