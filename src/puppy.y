@@ -6,6 +6,8 @@
     #include "expression.h"
     #include "variable.h"
     #include "node.h"
+    #include "statement.h"
+    #include "container.h"
     
     using namespace std;
     
@@ -16,20 +18,24 @@
 
 %union
 {
-	ConstValue        * puppy_const;
-	Expression        * puppy_expr;
-	Node              * puppy_node;
-	Identifier        * puppy_ident;
-	list<Node*>       * puppy_nodelist;
-	list<Identifier*> * puppy_identlist;
-	AssignStatement   * puppy_assignstatement;
-	BreakStatement    * puppy_breakstatement;
-	ContinueStatement * puppy_continuestatement;
-	Variable          * puppy_variable;
-	VarDefinitionStatement * puppy_vardef;
-	string            * puppy_variable_ref;
-	PrintStatement    * puppy_printstatement;
-	ConstValue::ValueType puppy_datatype;
+	DataType                      puppy_datatype;
+	IntegerValue                * puppy_const_integer;
+	FloatValue                  * puppy_const_float;
+	BooleanValue                * puppy_const_boolean;
+	StringValue                 * puppy_const_string;
+	ConstValue                  * puppy_const;
+	Expression                  * puppy_expr;
+	Node                        * puppy_node;
+	Identifier                  * puppy_ident;
+	list<Node*>                 * puppy_nodelist;
+	list<Identifier*>           * puppy_identlist;
+	AssignStatement             * puppy_assignstatement;
+	BreakStatement              * puppy_breakstatement;
+	ContinueStatement           * puppy_continuestatement;
+	Variable                    * puppy_variable;
+	VarDefinitionStatement      * puppy_vardef;
+	string                      * puppy_variable_ref;
+	PrintStatement              * puppy_printstatement;
 }
 
 %nonassoc '='
@@ -38,7 +44,11 @@
 %left '*' '/'
 %left UMINUS
 
-%token <puppy_const> INTEGER FLOAT STRING BOOLEAN
+%token <puppy_const_integer> INTEGER 
+%token <puppy_const_float> FLOAT
+%token <puppy_const_boolean> BOOLEAN
+%token <puppy_const_string> STRING
+
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN
 %token DEF IF WHILE BREAK CONTINUE AS PRINT
@@ -167,28 +177,26 @@ continue_statement:
 def_data_type:
 	TYPE_INTEGER
 		{
-			$$ = ConstValue::Integer;
+			$$ = Integer;
 		}
 	| TYPE_FLOAT
 		{
-			$$ = ConstValue::Float;
+			$$ = Float;
 		}
 	| TYPE_STRING
 		{
-			$$ = ConstValue::String;
+			$$ = String;
 		}
 	| TYPE_BOOLEAN
 		{
-			$$ = ConstValue::Boolean;
+			$$ = Boolean;
 		}
 	;
 	
 vardefstatement:
 	DEF identifier_list AS def_data_type
 		{
-			$$ = new VarDefinitionStatement;
-			$$->SetVarList($2);
-			$$->SetVarType($4);
+			$$ = new VarDefinitionStatement($2, $4);
 		}
 	;
 	
@@ -242,11 +250,11 @@ const_value:
 expr:
     const_value
 		{
-			$$ = new FinalExpression($1);
+			$$ = new ConstValueExpression($1);
 		}
     | variable_ref
 		{
-			$$ = new FinalExpression($1);
+			$$ = new VarExpression($1);
 		}
     | expr '+' expr            
 		{ 

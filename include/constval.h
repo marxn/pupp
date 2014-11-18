@@ -1,266 +1,245 @@
 #ifndef _CONSTVAL_H_
 #define _CONSTVAL_H_
 
-#include <map>
-#include <iostream>
-#include <sstream>
-#include <list>
 #include <string>
+#include <stdio.h>
 
 using namespace std;
+
+enum DataType
+{
+        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize
+};
 
 class ConstValue
 {
 public:
-	enum ValueType{Unknown = 0, Integer, Float, String, Boolean};
-	ConstValue():Type(Unknown)
-	{
-	}
-	
-	ConstValue(int value)
-	{
-		this->Type = Integer;
-		this->IntegerValue = value;
-	}
-	ConstValue(float value)
-	{
-		this->Type = Float;
-		this->FloatValue = value;
-	}
-	ConstValue(string value)
-	{
-		this->Type = String;
-		this->StringValue = value;
-	}
-	ConstValue(bool value)
-	{
-		this->Type = Boolean;
-		this->StringValue = value;
-	}
-
-	void Set(int value)
-	{
-		this->Type = Integer;
-		this->IntegerValue = value;
-	}
-	void Set(float value)
-	{
-		this->Type = Float;
-		this->FloatValue = value;
-	}
-	void Set(string value)
-	{
-		this->Type = String;
-		this->StringValue = value;
-	}
-	void Set(bool value)
-	{
-		this->Type = Boolean;
-		this->BoolValue = value;
-	}
-
-	ValueType GetType()
-	{
-		return this->Type;
-	}
-	int GetInteger()
-	{
-		return this->IntegerValue;
-	}
-	float GetFloat()
-	{
-		return this->FloatValue;
-	}
-	string GetString()
-	{
-		return this->StringValue;
-	}
-	bool GetBoolean()
-	{
-		return this->BoolValue;
-	}
-
-	string toString()
-	{
-		if(this->Type == Integer)
-			return IntegerToString();
-		
-		else if(this->Type == Float)
-			return FloatToString();
-		
-		else if(this->Type == String)
-			return this->StringValue;
-		
-		else if(this->Type == Boolean)
-			return BooleanToString();
-
-		return "Unknown";
-	}
-	
-	ConstValue operator + (ConstValue value)
-	{
-		ConstValue temp;
-
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue + value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue + value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue + value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue + value.FloatValue);
-
-		else if(this->Type == String && value.Type == String)
-			temp.Set(this->StringValue + value.StringValue);
-
-		return temp;
-	}
-
-	ConstValue operator - (ConstValue value)
-	{
-		ConstValue temp;
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue - value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue - value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue - value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue - value.FloatValue);
-
-		return temp;
-	}
-
-	ConstValue operator * (ConstValue value)
-	{
-		ConstValue temp;
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue * value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue * value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue * value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue * value.FloatValue);
-
-		return temp;
-	}
-
-	ConstValue operator / (ConstValue value)
-	{
-		ConstValue temp;
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue / value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue / value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue / value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue / value.FloatValue);
-
-		return temp;
-	}
-
-	ConstValue operator > (ConstValue value)
-	{
-		ConstValue temp;
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue > value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue > value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue > value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue > value.FloatValue);
-
-		return temp;
-	}
-
-	ConstValue operator < (ConstValue value)
-	{
-		ConstValue temp;
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue < value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue < value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue < value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue < value.FloatValue);
-
-		return temp;
-	}
-
-	ConstValue operator == (ConstValue value)
-	{
-		ConstValue temp;
-		if(this->Type == Integer && value.Type == Integer)
-			temp.Set(this->IntegerValue == value.IntegerValue);
-
-		else if(this->Type == Integer && value.Type == Float)
-			temp.Set(this->IntegerValue == value.FloatValue);
-
-		else if(this->Type == Float && value.Type == Integer)
-			temp.Set(this->FloatValue == value.IntegerValue);
-
-		else if(this->Type == Float && value.Type == Float)
-			temp.Set(this->FloatValue == value.FloatValue);
-
-		return temp;
-	}
-
-
-private:
-	ValueType Type;
-	
-	union
-	{
-		int IntegerValue;
-		float FloatValue;
-		bool BoolValue;
-	};
-
-	string StringValue;
-
-	string IntegerToString()
-	{
-		ostringstream rtn;
-		rtn<<this->IntegerValue;
-		return rtn.str(); 
-	}
-
-	string FloatToString()
-	{
-		ostringstream rtn;
-		rtn<<this->FloatValue;
-		return rtn.str(); 
-	}
-
-	string BooleanToString()
-	{
-		ostringstream rtn;
-		rtn<<this->BoolValue;
-		return rtn.str(); 
-	}
-
+	ConstValue():Type(UnknownDataType){}
+	ConstValue(DataType type):Type(type){}
+	DataType GetType() {return this->Type;}
+	virtual string toString() = 0;
+protected:
+	DataType Type;
 };
 
+class IntegerValue: public ConstValue
+{
+public:
+	IntegerValue():Value(0), ConstValue(Integer){}
+	IntegerValue(long value):Value(value), ConstValue(Integer){}
+	long GetValue() {return this->Value;}
+	string toString()
+	{
+		char buf[128] = "0";
+		snprintf(buf, sizeof(buf), "%ld", this->Value);
+		return string(buf);
+	}
+protected:
+	long Value;
+};
+
+class FloatValue: public ConstValue
+{
+public:
+	FloatValue():Value(0.0f), ConstValue(Float){}
+	FloatValue(double value):Value(value), ConstValue(Float){}
+	double GetValue() {return this->Value;}
+        string toString()
+        {
+                //char buf[128] = "0";
+                //snprintf(buf, sizeof(buf), "%lf", this->Value);
+                return string("456");
+        }
+
+protected:
+	double Value;
+};
+
+class BooleanValue: public ConstValue
+{
+public:
+	BooleanValue():Value(false), ConstValue(Boolean){}
+	BooleanValue(bool value):Value(value), ConstValue(Boolean){}
+	bool GetValue() {return this->Value;}
+        string toString()
+        {
+                if(this->Value) return "true";
+		return "false";
+        }
+
+protected:
+	bool Value;
+};
+
+class StringValue: public ConstValue
+{
+public:
+	StringValue():ConstValue(String){}
+	StringValue(string value):Value(value), ConstValue(String){}
+	string GetValue() {return this->Value;}
+        string toString()
+        {
+                return this->Value;
+        }
+
+protected:
+	string Value;
+};
+
+class Operation
+{
+public:
+	static ConstValue * AddOperation(ConstValue * left, ConstValue * right)
+	{
+		ConstValue * result = NULL;
+		if(left->GetType()==Integer && right->GetType()==Integer)
+		{
+			result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() + static_cast<IntegerValue*>(right)->GetValue());
+		}
+		if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() + static_cast<FloatValue*>(right)->GetValue());
+                }
+		if(left->GetType()==Float && right->GetType()==Integer)
+		{
+			result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() + static_cast<IntegerValue*>(right)->GetValue());
+		}
+		if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() + static_cast<FloatValue*>(right)->GetValue());
+                }
+		return result;
+	}
+
+	static ConstValue * SubOperation(ConstValue * left, ConstValue * right)
+	{
+	        ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() - static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() - static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() - static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() - static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+	}
+
+	static ConstValue * MulOperation(ConstValue * left, ConstValue * right)
+	{
+	        ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() * static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() * static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() * static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() * static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+
+	}
+
+	static ConstValue * DivOperation(ConstValue * left, ConstValue * right)
+	{
+	        ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() / static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() / static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() / static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() / static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+	}
+	
+	static ConstValue * GTOperation(ConstValue * left, ConstValue * right)
+	{
+		ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() > static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() > static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() > static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() > static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+	}
+	static ConstValue * LTOperation(ConstValue * left, ConstValue * right)
+	{
+        	ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() < static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() < static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() < static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() < static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+	}
+	static ConstValue * EQOperation(ConstValue * left, ConstValue * right)
+	{
+        	ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() == static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() == static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() == static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() == static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+	}
+};
 #endif

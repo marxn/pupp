@@ -10,7 +10,7 @@ using namespace std;
 class Variable
 {
 public:
-	Variable(Identifier * ident)
+	Variable(Identifier * ident):value(NULL)
 	{
 		this->VarName = ident->GetName();
 	}
@@ -18,11 +18,11 @@ public:
 	{
 		this->VarName = VarName;
 	}
-	void SetValue(ConstValue value)
+	void SetValue(ConstValue * value)
 	{
 		this->value = value;
 	}
-	ConstValue GetValue()
+	ConstValue * GetValue()
 	{
 		return value;
 	}
@@ -32,7 +32,7 @@ public:
 	}
 private:
 	string VarName;
-	ConstValue value;
+	ConstValue * value;
 };
 
 #endif

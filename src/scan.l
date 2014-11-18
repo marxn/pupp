@@ -5,6 +5,8 @@
     #include "identifier.h"
     #include "variable.h"
     #include "node.h"
+    #include "statement.h"
+    #include "container.h"
     #include "puppy.hpp"
     
     int yyerror(char *);
@@ -14,7 +16,7 @@ equal    "=="
 digit    [0-9]
 integer  {digit}+
 float    (({digit}*\.{digit}+)|({digit}+\.{digit}*))
-boolean  "true"|"false"
+boolean  "true"|"TRUE"|"false"|"FALSE"
 self     [-+\*\/();\:\=\#\&\{\}\<\>,]
 space    [ \t\r\f\n]
 identifier [a-zA-Z]+[0-9]*
@@ -29,18 +31,18 @@ identifier [a-zA-Z]+[0-9]*
 			}
 		
 {integer}	{
-				yylval.puppy_const = new ConstValue(atoi(yytext));
+				yylval.puppy_const_integer = new IntegerValue(atoi(yytext));
 				return INTEGER;
 			}
 {float}		{
-				yylval.puppy_const = new ConstValue((float)atof(yytext));
+				yylval.puppy_const_float = new FloatValue(atof(yytext));
 				return FLOAT;
 			}
 {boolean}   {
-				if(strcmp(yytext, "true") == 0)
-					yylval.puppy_const = new ConstValue(true);
+				if(strcasecmp(yytext, "true") == 0)
+					yylval.puppy_const_boolean = new BooleanValue(true);
 				else
-					yylval.puppy_const = new ConstValue(false);
+					yylval.puppy_const_boolean = new BooleanValue(false);
 				return BOOLEAN;
 			}
 {identifier} {

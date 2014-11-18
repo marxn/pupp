@@ -16,4 +16,4 @@ main.o: main.cpp
 	g++ -g -c -I../include -o main.o main.cpp
 
 clean:
-	rm *.o scan.cpp puppy.cpp puppy puppy.hpp
+	rm -rf *.o scan.cpp puppy.cpp puppy puppy.hpp
