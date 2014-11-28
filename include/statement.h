@@ -15,8 +15,9 @@ public:
         void Invoke()
         {
         }
-        void TransformAll()
+        bool Transform(ErrorStack * errstack)
         {
+		return true;
         }
 };
 
@@ -31,8 +32,9 @@ public:
                         node->SetNeedBreak(true);
                 }
         }
-        void TransformAll()
-        {
+        bool Transform(ErrorStack * errstack)
+	{
+		return true;
         }
 };
 
@@ -45,8 +47,9 @@ public:
                 if(node)
                         node->SetNeedContinue(true);
         }
-        void TransformAll()
+        bool Transform(ErrorStack * errstack)
         {
+		return true;
         }
 };
 
@@ -57,6 +60,11 @@ public:
         {
                 if(this->Var)
                 {
+			ConstValue * value = this->Var->GetValue();
+			if(value)
+			{
+				delete value;
+			}
                         this->Var->SetValue(Expr->GetValue());
                 }
         }
@@ -72,21 +80,33 @@ public:
         {
                 this->Expr = expr;
         }
-        void TransformAll()
+        bool Transform(ErrorStack * errstack)
         {
                 this->Var = this->FindVariable(VarName);
                 if(this->Var==NULL)
                 {
-                        cout<<"variable "<<this->VarName<<" not defined"<<endl;
-                        return;
+                        errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
+                        return false;
                 }
                 if(this->Expr==NULL)
                 {
-                        cout<<"Illeagle Expression"<<endl;
+                        errstack->PushFrame(0,"Illeagle Expression");
+			return false;
                 }
 
 		this->Expr->SetParentNode(this->GetParentNode());
-                this->Expr->TransformExpr();
+                if(this->Expr->Transform(errstack)==false)
+		{
+			errstack->PushFrame(0, "Transform expression falied.");
+			return false;
+		}
+		/*
+		if(this->Expr->GetDataType()!=this->Var->GetType())
+		{
+			errstack->PushFrame(0,"Datatype mismatch for "+this->VarName);
+			return false;
+		}*/
+		return true;
         }
 private:
         string VarName;
@@ -103,8 +123,8 @@ public:
         void Invoke()
         {
         }
-        void TransformAll()
-        {
+        bool Transform(ErrorStack * errstack)        
+	{
                 list<Identifier*>::iterator i;
                 Node * parent = GetParentNode();
 
@@ -112,7 +132,15 @@ public:
                 {
                         for(i = IdentList->begin(); i != IdentList->end(); i++)
                         {
+				if(parent->FindVariable((*i)->GetName()))
+				{
+					errstack->PushFrame(0, "Duplicated variable: "+(*i)->GetName());
+        		                return false;
+				}
+
                                 Variable * var = new Variable((*i)->GetName());
+				var->SetType(this->VarType);
+
 				switch(this->VarType)
 				{
 					case Integer:
@@ -131,6 +159,7 @@ public:
                                 parent->AddVariable(var);
                         }
                 }
+		return true;
         }
 private:
         list<Identifier*> * IdentList;
@@ -148,10 +177,15 @@ public:
         {
                 this->Expr = expr;
         }
-        void TransformAll()
+        bool Transform(ErrorStack * errstack)
         {
                 this->Expr->SetParentNode(this->GetParentNode());
-                this->Expr->TransformExpr();
+                if(this->Expr->Transform(errstack)==false)
+		{
+			errstack->PushFrame(0, "PRINT Statement failed in transforming expression ");
+                        return false;
+		}
+		return true;
         }
 private:
         Expression * Expr;

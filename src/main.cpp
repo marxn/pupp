@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include "errstack.h"
 #include "node.h"
 #include "constval.h"
 #include "expression.h"
@@ -48,12 +49,16 @@ int main(int argc, char * argv[])
 
 	yyin = fp;
 
+	ErrorStack errstack;
 	Node * tree = parse();
 
-	if(tree)
+	if(tree && tree->Transform(&errstack))
 	{
-		tree->TransformAll();
 		tree->Invoke();
+	}
+	else if(tree)
+	{
+		errstack.PrintStack();
 	}
 		
 	fclose(fp);

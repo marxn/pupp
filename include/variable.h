@@ -10,13 +10,21 @@ using namespace std;
 class Variable
 {
 public:
-	Variable(Identifier * ident):value(NULL)
+	Variable(Identifier * ident):value(NULL), VarType(UnknownDataType)
 	{
 		this->VarName = ident->GetName();
 	}
-	Variable(string VarName)
+	Variable(string VarName):value(NULL), VarType(UnknownDataType)
 	{
 		this->VarName = VarName;
+	}
+	void SetType(DataType type)
+	{
+		this->VarType = type;
+	}
+	DataType GetType()
+	{
+		return this->VarType;
 	}
 	void SetValue(ConstValue * value)
 	{
@@ -32,6 +40,7 @@ public:
 	}
 private:
 	string VarName;
+	DataType VarType;
 	ConstValue * value;
 };
 

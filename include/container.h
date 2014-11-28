@@ -19,14 +19,19 @@ class ContainerNode :public Node
                 {
                         subnodelist = nodelist;
                 }
-                void TransformAll()
+                bool Transform(ErrorStack * errstack)
                 {
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                         {
                                 (*i)->SetParentNode(this);
-                                (*i)->TransformAll();
+                                if((*i)->Transform(errstack)!=true)
+				{
+					errstack->PushFrame(0, "ContainerNode transform failed.");
+					return false;
+				}
                         }
+			return true;
                 }
         protected:
                 list<Node*> * subnodelist;
@@ -62,11 +67,20 @@ class LoopNode :public ContainerNode
                 {
                         this->condition = condition;
                 }
-                void TransformAll()
+                bool Transform(ErrorStack * errstack)
                 {
-                        ContainerNode::TransformAll();
+                        if(ContainerNode::Transform(errstack)==false)
+			{
+				errstack->PushFrame(0, "LoopNode transform failed - step 1");
+				return false;
+			}
                         condition->SetParentNode(this->GetParentNode());
-                        condition->TransformExpr();
+                        if(condition->Transform(errstack)==false)
+			{
+				errstack->PushFrame(0, "LoopNode transform failed - step 2");
+                                return false;
+			}
+			return true;
                 }
         private:
                 bool Evaluate()
@@ -97,11 +111,20 @@ class BranchNode :public ContainerNode
                 {
                         this->condition = condition;
                 }
-                void TransformAll()
+                bool Transform(ErrorStack * errstack)
                 {
-                        ContainerNode::TransformAll();
+                        if(ContainerNode::Transform(errstack)==false)
+                        {
+                                errstack->PushFrame(0, "BranchNode transform failed - step 1");
+                                return false;
+                        }
                         condition->SetParentNode(this->GetParentNode());
-                        condition->TransformExpr();
+                        if(condition->Transform(errstack)==false)
+                        {
+                                errstack->PushFrame(0, "BranchNode transform failed - step 2");
+                                return false;
+                        }
+			return true;
                 }
         private:
                 bool Evaluate()

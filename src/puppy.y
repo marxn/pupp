@@ -25,21 +25,21 @@
 	StringValue                 * puppy_const_string;
 	ConstValue                  * puppy_const;
 	Expression                  * puppy_expr;
+        Identifier                  * puppy_ident;
+        Variable                    * puppy_variable;
 	Node                        * puppy_node;
-	Identifier                  * puppy_ident;
 	list<Node*>                 * puppy_nodelist;
 	list<Identifier*>           * puppy_identlist;
 	AssignStatement             * puppy_assignstatement;
 	BreakStatement              * puppy_breakstatement;
 	ContinueStatement           * puppy_continuestatement;
-	Variable                    * puppy_variable;
 	VarDefinitionStatement      * puppy_vardef;
 	string                      * puppy_variable_ref;
 	PrintStatement              * puppy_printstatement;
 }
 
 %nonassoc '='
-%nonassoc  '<' '>' EQUAL_OP
+%nonassoc  '<' '>' EQUAL_OP GE_OP LE_OP NOT_EQUAL_OP
 %left '+' '-'
 %left '*' '/'
 %left UMINUS
@@ -283,6 +283,18 @@ expr:
     | expr EQUAL_OP expr
 		{
 			$$ = new EQExpression($1, $3);
+		}
+    | expr NOT_EQUAL_OP expr
+		{
+			$$ = new NEQExpression($1, $3);
+		}
+    | expr GE_OP expr
+		{
+			$$ = new GEExpression($1, $3);
+		}
+    | expr LE_OP expr
+		{
+			$$ = new LEExpression($1, $3);
 		}
     | '(' expr ')'             
 		{

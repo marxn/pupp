@@ -12,66 +12,93 @@
     int yyerror(char *);
 %}
 
-equal    "=="
-digit    [0-9]
-integer  {digit}+
-float    (({digit}*\.{digit}+)|({digit}+\.{digit}*))
-boolean  "true"|"TRUE"|"false"|"FALSE"
-self     [-+\*\/();\:\=\#\&\{\}\<\>,]
-space    [ \t\r\f\n]
+equal      "=="
+not_equal  "!="|"<>"
+ge_op      ">="
+le_op      "<="
+digit      [0-9]
+integer    -?{digit}+
+float      -?(({digit}*\.{digit}+)|({digit}+\.{digit}*))
+string     '(\\.|''|[^'\n])*'
+self       [-+\*\/();\:\=\#\&\{\}\<\>,]
+space      [ \t\r\f\n]
 identifier [a-zA-Z]+[0-9]*
 
 %%
 
-{equal}     {
+{equal}     	{
 				return EQUAL_OP;
-			}
+		}
+
+{not_equal}	{
+				return NOT_EQUAL_OP;
+		}
+{ge_op}		{
+				return GE_OP;
+		}
+
+{le_op}		{
+				return LE_OP;
+		}
+
 {self}		{
 				return yytext[0];
-			}
+		}
+
+{string}	{
+				yytext[strlen(yytext)-1] = '\0';
+				yylval.puppy_const_string = new StringValue(yytext+1);
+				return STRING;
+		}
 		
 {integer}	{
 				yylval.puppy_const_integer = new IntegerValue(atoi(yytext));
 				return INTEGER;
-			}
+		}
 {float}		{
 				yylval.puppy_const_float = new FloatValue(atof(yytext));
 				return FLOAT;
-			}
-{boolean}   {
+		}
+{identifier}	{
+				//Boolean constant value
 				if(strcasecmp(yytext, "true") == 0)
-					yylval.puppy_const_boolean = new BooleanValue(true);
-				else
-					yylval.puppy_const_boolean = new BooleanValue(false);
-				return BOOLEAN;
-			}
-{identifier} {
-				if(strcmp(yytext,"if")==0)
+				{
+                                        yylval.puppy_const_boolean = new BooleanValue(true);
+					return BOOLEAN;
+				}
+                                if(strcasecmp(yytext, "false") == 0)
+				{
+                                        yylval.puppy_const_boolean = new BooleanValue(false);
+                                	return BOOLEAN;
+				}
+				//Key words
+				if(strcasecmp(yytext,"if")==0)
 					return IF;
-				if(strcmp(yytext,"while")==0)
+				if(strcasecmp(yytext,"while")==0)
 					return WHILE;
-				if(strcmp(yytext,"break")==0)
+				if(strcasecmp(yytext,"break")==0)
 					return BREAK;
-				if(strcmp(yytext,"continue")==0)
+				if(strcasecmp(yytext,"continue")==0)
 					return CONTINUE;
-				if(strcmp(yytext,"def")==0)
+				if(strcasecmp(yytext,"def")==0)
 					return DEF;
-				if(strcmp(yytext,"as")==0)
+				if(strcasecmp(yytext,"as")==0)
 					return AS;
-				if(strcmp(yytext,"integer")==0)
+				if(strcasecmp(yytext,"integer")==0)
 					return TYPE_INTEGER;
-				if(strcmp(yytext,"float")==0)
+				if(strcasecmp(yytext,"float")==0)
 					return TYPE_FLOAT;
-				if(strcmp(yytext,"string")==0)
+				if(strcasecmp(yytext,"string")==0)
 					return TYPE_STRING;
-				if(strcmp(yytext,"boolean")==0)
+				if(strcasecmp(yytext,"boolean")==0)
 					return TYPE_BOOLEAN;
-				if(strcmp(yytext,"print")==0)
+				if(strcasecmp(yytext,"print")==0)
 					return PRINT;
 				
+				//Common identifiers
 				yylval.puppy_ident = new Identifier(yytext);
 				return IDENTIFIER;
-			}
+		}
 {space}		{}
 
 %%

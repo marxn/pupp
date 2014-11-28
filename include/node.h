@@ -7,7 +7,7 @@
 #include <list>
 #include <string>
 #include "variable.h"
-//#include "expression.h"
+#include "errstack.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ public:
 		Node():ParentNode(NULL),NeedBreak(false),NeedContinue(false){}
 		virtual ~Node(){}
 		virtual void Invoke() = 0;
-		virtual void TransformAll() = 0;
+		virtual bool Transform(ErrorStack * errstack) = 0;
 
 		void SetParentNode(Node * node)
 		{
@@ -51,8 +51,13 @@ public:
                 void AddVariable(Variable * var)
                 {
                         // need optimize
-                        if(Variables[var->GetName()] == NULL)
-                                Variables[var->GetName()] = var;
+			Variable * thevar = Variables[var->GetName()];
+                        if(thevar != NULL)
+			{	
+				delete thevar;
+				Variables.erase(var->GetName());
+			}
+			Variables[var->GetName()] = var;
                 }
                 Variable * FindVariable(string varname)
                 {

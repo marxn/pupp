@@ -46,8 +46,8 @@ public:
 	double GetValue() {return this->Value;}
         string toString()
         {
-                //char buf[128] = "0";
-                //snprintf(buf, sizeof(buf), "%lf", this->Value);
+                char buf[128] = "0";
+                snprintf(buf, sizeof(buf), "%lf", this->Value);
                 return string("456");
         }
 
@@ -241,5 +241,69 @@ public:
                 }
                 return result;
 	}
+	static ConstValue * NEQOperation(ConstValue * left, ConstValue * right)
+        {
+                ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() != static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() != static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() != static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() != static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+        }
+        static ConstValue * GEOperation(ConstValue * left, ConstValue * right)
+        {
+                ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() >= static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() >= static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() >= static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() >= static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+        }
+        static ConstValue * LEOperation(ConstValue * left, ConstValue * right)
+        {
+                ConstValue * result = NULL;
+                if(left->GetType()==Integer && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() <= static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Integer && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() <= static_cast<FloatValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Integer)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() <= static_cast<IntegerValue*>(right)->GetValue());
+                }
+                if(left->GetType()==Float && right->GetType()==Float)
+                {
+                        result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() <= static_cast<FloatValue*>(right)->GetValue());
+                }
+                return result;
+        }
+
 };
 #endif

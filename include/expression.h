@@ -10,6 +10,7 @@
 #include "constval.h"
 #include "variable.h"
 #include "node.h"
+#include "errstack.h"
 
 using namespace std;
 
@@ -18,8 +19,12 @@ enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};
 class Expression
 {
 public:
-	Expression():ExpressType(UnknownExpType){}
-	Expression(ExpType type):ExpressType(type){}
+	Expression():ExpressType(UnknownExpType), ExpDataType(UnknownDataType)
+	{
+	}
+	Expression(ExpType type):ExpressType(type), ExpDataType(UnknownDataType)
+	{
+	}
 	virtual ~Expression(){}
 	virtual ConstValue * GetValue() = 0;
 
@@ -31,14 +36,24 @@ public:
 	{
 		return this->ExpressType;
 	}
+	void SetDataType(DataType type)
+	{
+		this->ExpDataType = type;
+	}
+	DataType GetDataType()
+	{
+		return this->ExpDataType;
+	}
 	void SetParentNode(Node * node)
 	{
 		this->ParentNode = node;
 	}
 
-	virtual void TransformExpr() = 0;
+	virtual bool Transform(ErrorStack * errstack) = 0;
+
 protected:
 	Node * ParentNode;
+	DataType ExpDataType;
 	ExpType ExpressType;
 };
 /*
@@ -65,13 +80,22 @@ public:
 	~BinaryExpression()
 	{
 	}
-	void TransformExpr()
+
+	bool Transform(ErrorStack * errstack)
 	{
 		left->SetParentNode(this->ParentNode);
 		right->SetParentNode(this->ParentNode);
 
-		left->TransformExpr();
-		right->TransformExpr();
+		if(left->Transform(errstack)==false)
+		{
+			errstack->PushFrame(0, "Transform left failed.");
+			return false;
+		}
+		if(right->Transform(errstack)==false)
+		{
+			errstack->PushFrame(0, "Transform right failed.");
+                        return false;
+		}
 
 		if(left->GetExpType()==VarExp || left->GetExpType()==MixedExp || right->GetExpType()==VarExp || right->GetExpType()==MixedExp)
                 {
@@ -82,6 +106,7 @@ public:
 			this->SetExpType(ConstExp);
 		}
 
+		return true;
 	}
 
 protected:
@@ -101,8 +126,10 @@ public:
 	{
 		return Value;
 	}
-	void TransformExpr()
+	bool Transform(ErrorStack * errstack)
 	{
+		this->SetDataType(this->Value->GetType());
+		return true;
 	}
 private:
 	ConstValue * Value;
@@ -124,13 +151,16 @@ public:
 		}
 		return NULL;
 	}
-	void TransformExpr()
+	bool Transform(ErrorStack * errstack)
 	{
 		this->Var = this->ParentNode->FindVariable(*VarName);
 		if(this->Var==NULL)
 		{
-			cout<<"VarExpression::Variable "<<*VarName<<" not defined."<<endl;
+			errstack->PushFrame(0, "Variable "+*VarName+" not defined");
+                        return false;
 		}
+		this->SetDataType(this->Var->GetType());
+		return true;
 	}
 private:
 	string * VarName;
@@ -144,12 +174,7 @@ public:
 	~PlusExpression(){}
 	ConstValue * GetValue()
 	{
-		if(this->Result)
-		{
-			delete this->Result;
-		}
-		Result = Operation::AddOperation(left->GetValue(), right->GetValue());
-		return this->Result;
+		return Operation::AddOperation(left->GetValue(), right->GetValue());
 	}
 private:
 	ConstValue * Result;
@@ -220,4 +245,38 @@ public:
 		return Operation::EQOperation(left->GetValue(), right->GetValue());
 	}
 };
+
+class NEQExpression: public BinaryExpression
+{
+public:
+        NEQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        ~NEQExpression(){}
+        ConstValue * GetValue()
+        {
+                return Operation::NEQOperation(left->GetValue(), right->GetValue());
+        }
+};
+
+class GEExpression: public BinaryExpression
+{
+public:
+        GEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        ~GEExpression(){}
+        ConstValue * GetValue()
+        {
+                return Operation::GEOperation(left->GetValue(), right->GetValue());
+        }
+};
+
+class LEExpression: public BinaryExpression
+{
+public:
+        LEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        ~LEExpression(){}
+        ConstValue * GetValue()
+        {
+                return Operation::LEOperation(left->GetValue(), right->GetValue());
+        }
+};
+
 #endif

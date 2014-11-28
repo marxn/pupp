@@ -1,0 +1,6 @@
+def x,y,z,i as integer;
+
+if(2>1)
+{
+	print 'xxx';
+}

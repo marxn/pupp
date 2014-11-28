@@ -1,0 +1,11 @@
+def a as string;
+def b as boolean;
+def c as integer;
+a='x123';
+b=false;
+c=-456;
+print a;
+print b;
+print c;
+
+
