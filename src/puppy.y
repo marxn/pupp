@@ -36,6 +36,7 @@
 	VarDefinitionStatement      * puppy_vardef;
 	string                      * puppy_variable_ref;
 	PrintStatement              * puppy_printstatement;
+	SleepStatement              * puppy_sleepstatement;
 }
 
 %nonassoc '='
@@ -51,7 +52,7 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN
-%token DEF IF WHILE BREAK CONTINUE AS PRINT
+%token DEF IF WHILE BREAK CONTINUE AS PRINT SLEEP
 
 %type  <puppy_const> const_value
 %type  <puppy_expr>  expr
@@ -65,6 +66,7 @@
 %type  <puppy_variable_ref>  variable_ref
 %type  <puppy_vardef>    vardefstatement
 %type  <puppy_datatype>  def_data_type
+%type  <puppy_sleepstatement> sleep_statement
 
 %%
 
@@ -118,6 +120,10 @@ simple_node:
 			$$ = $1;
 		}
 	| vardefstatement
+		{
+			$$ = $1;
+		}
+	| sleep_statement
 		{
 			$$ = $1;
 		}
@@ -212,7 +218,13 @@ identifier_list:
 			$$->push_back($1);
 		}
 	;
-	
+
+sleep_statement:
+	SLEEP expr
+		{
+			$$ = new SleepStatement;
+			$$->SetExpression($2);
+		}
 print_statement:
 	PRINT expr
 		{

@@ -1,6 +1,14 @@
-def x,y,z,i as integer;
+def i,c as integer;
 
-if(2>1)
+i=1;
+c=1;
+
+while(c<=10)
 {
-	print 'xxx';
+	i=i+c;
+	print i;
+	print ' ';
+	c=c+1;
+	sleep 1;
 }
+

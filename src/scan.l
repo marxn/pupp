@@ -94,7 +94,9 @@ identifier [a-zA-Z]+[0-9]*
 					return TYPE_BOOLEAN;
 				if(strcasecmp(yytext,"print")==0)
 					return PRINT;
-				
+				if(strcasecmp(yytext, "sleep")==0)
+					return SLEEP;
+	
 				//Common identifiers
 				yylval.puppy_ident = new Identifier(yytext);
 				return IDENTIFIER;
