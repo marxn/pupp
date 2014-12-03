@@ -1,0 +1,246 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AddOperation	include/constval.h	/^	static ConstValue * AddOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+AddVariable	include/node.h	/^                void AddVariable(Variable * var)$/;"	f	class:Node
+AssignStatement	include/statement.h	/^class AssignStatement: public StatementNode$/;"	c
+BinaryExpression	include/expression.h	/^	BinaryExpression(Expression * arg1, Expression * arg2):left(arg1),right(arg2){}$/;"	f	class:BinaryExpression
+BinaryExpression	include/expression.h	/^class BinaryExpression: public Expression$/;"	c
+Boolean	include/constval.h	/^        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize$/;"	e	enum:DataType
+BooleanValue	include/constval.h	/^	BooleanValue():Value(false), ConstValue(Boolean){}$/;"	f	class:BooleanValue
+BooleanValue	include/constval.h	/^	BooleanValue(bool value):Value(value), ConstValue(Boolean){}$/;"	f	class:BooleanValue
+BooleanValue	include/constval.h	/^class BooleanValue: public ConstValue$/;"	c
+BranchNode	include/container.h	/^class BranchNode :public ContainerNode$/;"	c
+BreakStatement	include/statement.h	/^class BreakStatement: public StatementNode$/;"	c
+ConstExp	include/expression.h	/^enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};$/;"	e	enum:ExpType
+ConstValue	include/constval.h	/^	ConstValue():Type(UnknownDataType){}$/;"	f	class:ConstValue
+ConstValue	include/constval.h	/^	ConstValue(DataType type):Type(type){}$/;"	f	class:ConstValue
+ConstValue	include/constval.h	/^class ConstValue$/;"	c
+ConstValueExpression	include/expression.h	/^	ConstValueExpression():Value(NULL),Expression(ConstExp){}$/;"	f	class:ConstValueExpression
+ConstValueExpression	include/expression.h	/^	ConstValueExpression(ConstValue * value):Value(value),Expression(ConstExp){}$/;"	f	class:ConstValueExpression
+ConstValueExpression	include/expression.h	/^class ConstValueExpression: public Expression$/;"	c
+ContainerNode	include/container.h	/^class ContainerNode :public Node$/;"	c
+ContinueStatement	include/statement.h	/^class ContinueStatement: public StatementNode$/;"	c
+DataType	include/constval.h	/^enum DataType$/;"	g
+DataTypeSize	include/constval.h	/^        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize$/;"	e	enum:DataType
+DivOperation	include/constval.h	/^	static ConstValue * DivOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+DivisionExpression	include/expression.h	/^	DivisionExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:DivisionExpression
+DivisionExpression	include/expression.h	/^class DivisionExpression: public BinaryExpression$/;"	c
+EQExpression	include/expression.h	/^	EQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:EQExpression
+EQExpression	include/expression.h	/^class EQExpression: public BinaryExpression$/;"	c
+EQOperation	include/constval.h	/^	static ConstValue * EQOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+ErrMsg	include/errstack.h	/^	string ErrMsg;$/;"	m	class:ErrorFrame
+ErrNo	include/errstack.h	/^	int ErrNo;$/;"	m	class:ErrorFrame
+ErrorFrame	include/errstack.h	/^	ErrorFrame(int err, string errmsg):ErrNo(err), ErrMsg(errmsg){}$/;"	f	class:ErrorFrame
+ErrorFrame	include/errstack.h	/^class ErrorFrame$/;"	c
+ErrorList	include/errstack.h	/^	list<ErrorFrame> ErrorList;$/;"	m	class:ErrorStack
+ErrorStack	include/errstack.h	/^class ErrorStack$/;"	c
+Evaluate	include/container.h	/^                bool Evaluate()$/;"	f	class:BranchNode
+Evaluate	include/container.h	/^                bool Evaluate()$/;"	f	class:LoopNode
+ExpDataType	include/expression.h	/^	DataType ExpDataType;$/;"	m	class:Expression
+ExpType	include/expression.h	/^enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};$/;"	g
+Expr	include/statement.h	/^        Expression * Expr;$/;"	m	class:AssignStatement
+Expr	include/statement.h	/^        Expression * Expr;$/;"	m	class:PrintStatement
+ExpressType	include/expression.h	/^	ExpType ExpressType;$/;"	m	class:Expression
+Expression	include/expression.h	/^	Expression():ExpressType(UnknownExpType), ExpDataType(UnknownDataType)$/;"	f	class:Expression
+Expression	include/expression.h	/^	Expression(ExpType type):ExpressType(type), ExpDataType(UnknownDataType)$/;"	f	class:Expression
+Expression	include/expression.h	/^class Expression$/;"	c
+FindVariable	include/node.h	/^                Variable * FindVariable(string varname)$/;"	f	class:Node
+Float	include/constval.h	/^        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize$/;"	e	enum:DataType
+FloatValue	include/constval.h	/^	FloatValue():Value(0.0f), ConstValue(Float){}$/;"	f	class:FloatValue
+FloatValue	include/constval.h	/^	FloatValue(double value):Value(value), ConstValue(Float){}$/;"	f	class:FloatValue
+FloatValue	include/constval.h	/^class FloatValue: public ConstValue$/;"	c
+GEExpression	include/expression.h	/^        GEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:GEExpression
+GEExpression	include/expression.h	/^class GEExpression: public BinaryExpression$/;"	c
+GEOperation	include/constval.h	/^        static ConstValue * GEOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+GTExpression	include/expression.h	/^	GTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:GTExpression
+GTExpression	include/expression.h	/^class GTExpression: public BinaryExpression$/;"	c
+GTOperation	include/constval.h	/^	static ConstValue * GTOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+GetDataType	include/expression.h	/^	DataType GetDataType()$/;"	f	class:Expression
+GetErrorList	include/errstack.h	/^	list<ErrorFrame>& GetErrorList()$/;"	f	class:ErrorStack
+GetExpType	include/expression.h	/^	ExpType GetExpType()$/;"	f	class:Expression
+GetName	include/identifier.h	/^	string GetName()$/;"	f	class:Identifier
+GetName	include/variable.h	/^	string GetName()$/;"	f	class:Variable
+GetNeedBreak	include/node.h	/^                bool GetNeedBreak()$/;"	f	class:Node
+GetNeedContinue	include/node.h	/^                bool GetNeedContinue()$/;"	f	class:Node
+GetParentNode	include/node.h	/^		Node * GetParentNode()$/;"	f	class:Node
+GetType	include/constval.h	/^	DataType GetType() {return this->Type;}$/;"	f	class:ConstValue
+GetType	include/variable.h	/^	DataType GetType()$/;"	f	class:Variable
+GetValue	include/constval.h	/^	bool GetValue() {return this->Value;}$/;"	f	class:BooleanValue
+GetValue	include/constval.h	/^	double GetValue() {return this->Value;}$/;"	f	class:FloatValue
+GetValue	include/constval.h	/^	long GetValue() {return this->Value;}$/;"	f	class:IntegerValue
+GetValue	include/constval.h	/^	string GetValue() {return this->Value;}$/;"	f	class:StringValue
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:ConstValueExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:DivisionExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:EQExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:GTExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:LTExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:MultiplicationExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:PlusExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:SubtractExpression
+GetValue	include/expression.h	/^	ConstValue * GetValue()$/;"	f	class:VarExpression
+GetValue	include/expression.h	/^        ConstValue * GetValue()$/;"	f	class:GEExpression
+GetValue	include/expression.h	/^        ConstValue * GetValue()$/;"	f	class:LEExpression
+GetValue	include/expression.h	/^        ConstValue * GetValue()$/;"	f	class:NEQExpression
+GetValue	include/variable.h	/^	ConstValue * GetValue()$/;"	f	class:Variable
+GetVariable	include/node.h	/^                Variable * GetVariable(string name)$/;"	f	class:Node
+GetVariableName	include/statement.h	/^        string GetVariableName()$/;"	f	class:AssignStatement
+IdentList	include/statement.h	/^        list<Identifier*> * IdentList;$/;"	m	class:VarDefinitionStatement
+Identifier	include/identifier.h	/^	Identifier(string name)$/;"	f	class:Identifier
+Identifier	include/identifier.h	/^class Identifier$/;"	c
+Integer	include/constval.h	/^        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize$/;"	e	enum:DataType
+IntegerValue	include/constval.h	/^	IntegerValue():Value(0), ConstValue(Integer){}$/;"	f	class:IntegerValue
+IntegerValue	include/constval.h	/^	IntegerValue(long value):Value(value), ConstValue(Integer){}$/;"	f	class:IntegerValue
+IntegerValue	include/constval.h	/^class IntegerValue: public ConstValue$/;"	c
+Invoke	include/container.h	/^                void Invoke()$/;"	f	class:BranchNode
+Invoke	include/container.h	/^                void Invoke()$/;"	f	class:ContainerNode
+Invoke	include/container.h	/^                void Invoke()$/;"	f	class:LoopNode
+Invoke	include/statement.h	/^        void Invoke()$/;"	f	class:AssignStatement
+Invoke	include/statement.h	/^        void Invoke()$/;"	f	class:BreakStatement
+Invoke	include/statement.h	/^        void Invoke()$/;"	f	class:ContinueStatement
+Invoke	include/statement.h	/^        void Invoke()$/;"	f	class:PrintStatement
+Invoke	include/statement.h	/^        void Invoke()$/;"	f	class:StatementNode
+Invoke	include/statement.h	/^        void Invoke()$/;"	f	class:VarDefinitionStatement
+LEExpression	include/expression.h	/^        LEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:LEExpression
+LEExpression	include/expression.h	/^class LEExpression: public BinaryExpression$/;"	c
+LEOperation	include/constval.h	/^        static ConstValue * LEOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+LTExpression	include/expression.h	/^	LTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:LTExpression
+LTExpression	include/expression.h	/^class LTExpression: public BinaryExpression$/;"	c
+LTOperation	include/constval.h	/^	static ConstValue * LTOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+LoopNode	include/container.h	/^class LoopNode :public ContainerNode$/;"	c
+MixedExp	include/expression.h	/^enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};$/;"	e	enum:ExpType
+MulOperation	include/constval.h	/^	static ConstValue * MulOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+MultiplicationExpression	include/expression.h	/^	MultiplicationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:MultiplicationExpression
+MultiplicationExpression	include/expression.h	/^class MultiplicationExpression: public BinaryExpression$/;"	c
+NEQExpression	include/expression.h	/^        NEQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:NEQExpression
+NEQExpression	include/expression.h	/^class NEQExpression: public BinaryExpression$/;"	c
+NEQOperation	include/constval.h	/^	static ConstValue * NEQOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+Name	include/identifier.h	/^	string Name;$/;"	m	class:Identifier
+NeedBreak	include/node.h	/^                bool NeedBreak;$/;"	m	class:Node
+NeedContinue	include/node.h	/^                bool NeedContinue;$/;"	m	class:Node
+Node	include/node.h	/^		Node():ParentNode(NULL),NeedBreak(false),NeedContinue(false){}$/;"	f	class:Node
+Node	include/node.h	/^class Node$/;"	c
+Operation	include/constval.h	/^class Operation$/;"	c
+ParentNode	include/expression.h	/^	Node * ParentNode;$/;"	m	class:Expression
+ParentNode	include/node.h	/^		Node * ParentNode;$/;"	m	class:Node
+PlusExpression	include/expression.h	/^	PlusExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:PlusExpression
+PlusExpression	include/expression.h	/^class PlusExpression: public BinaryExpression$/;"	c
+PrintStack	include/errstack.h	/^	void PrintStack()$/;"	f	class:ErrorStack
+PrintStatement	include/statement.h	/^class PrintStatement: public StatementNode$/;"	c
+PushFrame	include/errstack.h	/^	void PushFrame(int err, string errmsg)$/;"	f	class:ErrorStack
+Result	include/expression.h	/^	ConstValue * Result;$/;"	m	class:PlusExpression
+SetCondition	include/container.h	/^                void SetCondition(Expression * condition)$/;"	f	class:BranchNode
+SetCondition	include/container.h	/^                void SetCondition(Expression * condition)$/;"	f	class:LoopNode
+SetDataType	include/expression.h	/^	void SetDataType(DataType type)$/;"	f	class:Expression
+SetExpType	include/expression.h	/^	void SetExpType(ExpType type)$/;"	f	class:Expression
+SetExpression	include/statement.h	/^        void SetExpression(Expression * expr)$/;"	f	class:AssignStatement
+SetExpression	include/statement.h	/^        void SetExpression(Expression * expr)$/;"	f	class:PrintStatement
+SetName	include/identifier.h	/^	void SetName(string name)$/;"	f	class:Identifier
+SetNeedBreak	include/node.h	/^                void SetNeedBreak(bool val)$/;"	f	class:Node
+SetNeedContinue	include/node.h	/^                void SetNeedContinue(bool val)$/;"	f	class:Node
+SetNodeList	include/container.h	/^                void SetNodeList(list<Node*> * nodelist)$/;"	f	class:ContainerNode
+SetParentNode	include/expression.h	/^	void SetParentNode(Node * node)$/;"	f	class:Expression
+SetParentNode	include/node.h	/^		void SetParentNode(Node * node)$/;"	f	class:Node
+SetType	include/variable.h	/^	void SetType(DataType type)$/;"	f	class:Variable
+SetValue	include/variable.h	/^	void SetValue(ConstValue * value)$/;"	f	class:Variable
+SetVariableName	include/statement.h	/^        void SetVariableName(string name)$/;"	f	class:AssignStatement
+StatementNode	include/statement.h	/^	StatementNode(){}$/;"	f	class:StatementNode
+StatementNode	include/statement.h	/^class StatementNode :public Node$/;"	c
+String	include/constval.h	/^        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize$/;"	e	enum:DataType
+StringValue	include/constval.h	/^	StringValue():ConstValue(String){}$/;"	f	class:StringValue
+StringValue	include/constval.h	/^	StringValue(string value):Value(value), ConstValue(String){}$/;"	f	class:StringValue
+StringValue	include/constval.h	/^class StringValue: public ConstValue$/;"	c
+SubOperation	include/constval.h	/^	static ConstValue * SubOperation(ConstValue * left, ConstValue * right)$/;"	f	class:Operation
+SubtractExpression	include/expression.h	/^	SubtractExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}$/;"	f	class:SubtractExpression
+SubtractExpression	include/expression.h	/^class SubtractExpression: public BinaryExpression$/;"	c
+Transform	include/container.h	/^                bool Transform(ErrorStack * errstack)$/;"	f	class:BranchNode
+Transform	include/container.h	/^                bool Transform(ErrorStack * errstack)$/;"	f	class:ContainerNode
+Transform	include/container.h	/^                bool Transform(ErrorStack * errstack)$/;"	f	class:LoopNode
+Transform	include/expression.h	/^	bool Transform(ErrorStack * errstack)$/;"	f	class:BinaryExpression
+Transform	include/expression.h	/^	bool Transform(ErrorStack * errstack)$/;"	f	class:ConstValueExpression
+Transform	include/expression.h	/^	bool Transform(ErrorStack * errstack)$/;"	f	class:VarExpression
+Transform	include/statement.h	/^        bool Transform(ErrorStack * errstack)        $/;"	f	class:VarDefinitionStatement
+Transform	include/statement.h	/^        bool Transform(ErrorStack * errstack)$/;"	f	class:AssignStatement
+Transform	include/statement.h	/^        bool Transform(ErrorStack * errstack)$/;"	f	class:BreakStatement
+Transform	include/statement.h	/^        bool Transform(ErrorStack * errstack)$/;"	f	class:ContinueStatement
+Transform	include/statement.h	/^        bool Transform(ErrorStack * errstack)$/;"	f	class:PrintStatement
+Transform	include/statement.h	/^        bool Transform(ErrorStack * errstack)$/;"	f	class:StatementNode
+Type	include/constval.h	/^	DataType Type;$/;"	m	class:ConstValue
+UnknownDataType	include/constval.h	/^        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize$/;"	e	enum:DataType
+UnknownExpType	include/expression.h	/^enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};$/;"	e	enum:ExpType
+Value	include/constval.h	/^	bool Value;$/;"	m	class:BooleanValue
+Value	include/constval.h	/^	double Value;$/;"	m	class:FloatValue
+Value	include/constval.h	/^	long Value;$/;"	m	class:IntegerValue
+Value	include/constval.h	/^	string Value;$/;"	m	class:StringValue
+Value	include/expression.h	/^	ConstValue * Value;$/;"	m	class:ConstValueExpression
+Var	include/expression.h	/^	Variable * Var;$/;"	m	class:VarExpression
+Var	include/statement.h	/^        Variable * Var;$/;"	m	class:AssignStatement
+VarDefinitionStatement	include/statement.h	/^	VarDefinitionStatement(list<Identifier*> * list, DataType vartype):IdentList(list), VarType(vartype)$/;"	f	class:VarDefinitionStatement
+VarDefinitionStatement	include/statement.h	/^class VarDefinitionStatement: public StatementNode$/;"	c
+VarExp	include/expression.h	/^enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};$/;"	e	enum:ExpType
+VarExpression	include/expression.h	/^	VarExpression():Var(NULL),Expression(VarExp){}$/;"	f	class:VarExpression
+VarExpression	include/expression.h	/^	VarExpression(string * varname):VarName(varname),Expression(VarExp){}$/;"	f	class:VarExpression
+VarExpression	include/expression.h	/^class VarExpression: public Expression$/;"	c
+VarName	include/expression.h	/^	string * VarName;$/;"	m	class:VarExpression
+VarName	include/statement.h	/^        string VarName;$/;"	m	class:AssignStatement
+VarName	include/variable.h	/^	string VarName;$/;"	m	class:Variable
+VarType	include/statement.h	/^        DataType VarType;$/;"	m	class:VarDefinitionStatement
+VarType	include/variable.h	/^	DataType VarType;$/;"	m	class:Variable
+Variable	include/variable.h	/^	Variable(Identifier * ident):value(NULL), VarType(UnknownDataType)$/;"	f	class:Variable
+Variable	include/variable.h	/^	Variable(string VarName):value(NULL), VarType(UnknownDataType)$/;"	f	class:Variable
+Variable	include/variable.h	/^class Variable$/;"	c
+Variables	include/node.h	/^                map<string, Variable*> Variables;$/;"	m	class:Node
+_CONSTVAL_H_	include/constval.h	2;"	d
+_CONTAINER_H_	include/container.h	2;"	d
+_ERR_STACK_H_	include/errstack.h	2;"	d
+_EXPRESSION_H_	include/expression.h	2;"	d
+_IDENTIFIER_H_	include/identifier.h	2;"	d
+_NODE_H_	include/node.h	2;"	d
+_STATEMENT_H_	include/statement.h	2;"	d
+_VARIABLE_H_	include/variable.h	2;"	d
+assign_statement	src/puppy.y	/^assign_statement:$/;"	l
+branch_node	src/puppy.y	/^branch_node:$/;"	l
+break_statement	src/puppy.y	/^break_statement:$/;"	l
+condition	include/container.h	/^                Expression * condition;$/;"	m	class:BranchNode
+condition	include/container.h	/^                Expression * condition;$/;"	m	class:LoopNode
+const_value	src/puppy.y	/^const_value:$/;"	l
+continue_statement	src/puppy.y	/^continue_statement:$/;"	l
+def_data_type	src/puppy.y	/^def_data_type:$/;"	l
+expr	src/puppy.y	/^expr:$/;"	l
+identifier_list	src/puppy.y	/^identifier_list:$/;"	l
+left	include/expression.h	/^	Expression * left;$/;"	m	class:BinaryExpression
+loop_node	src/puppy.y	/^loop_node:$/;"	l
+main	src/main.cpp	/^int main(int argc, char * argv[])$/;"	f
+node_block	src/puppy.y	/^node_block: $/;"	l
+node_list	src/puppy.y	/^node_list: $/;"	l
+print_statement	src/puppy.y	/^print_statement:$/;"	l
+program_node	src/puppy.y	/^program_node:$/;"	l
+right	include/expression.h	/^	Expression * right;$/;"	m	class:BinaryExpression
+simple_node	src/puppy.y	/^simple_node:$/;"	l
+subnodelist	include/container.h	/^                list<Node*> * subnodelist;$/;"	m	class:ContainerNode
+toString	include/constval.h	/^	string toString()$/;"	f	class:IntegerValue
+toString	include/constval.h	/^        string toString()$/;"	f	class:BooleanValue
+toString	include/constval.h	/^        string toString()$/;"	f	class:FloatValue
+toString	include/constval.h	/^        string toString()$/;"	f	class:StringValue
+value	include/variable.h	/^	ConstValue * value;$/;"	m	class:Variable
+vardefstatement	src/puppy.y	/^vardefstatement:$/;"	l
+variable_ref	src/puppy.y	/^variable_ref:$/;"	l
+~BinaryExpression	include/expression.h	/^	~BinaryExpression()$/;"	f	class:BinaryExpression
+~ConstValueExpression	include/expression.h	/^	~ConstValueExpression()$/;"	f	class:ConstValueExpression
+~DivisionExpression	include/expression.h	/^	~DivisionExpression(){}$/;"	f	class:DivisionExpression
+~EQExpression	include/expression.h	/^	~EQExpression(){}$/;"	f	class:EQExpression
+~Expression	include/expression.h	/^	virtual ~Expression(){}$/;"	f	class:Expression
+~GEExpression	include/expression.h	/^        ~GEExpression(){}$/;"	f	class:GEExpression
+~GTExpression	include/expression.h	/^	~GTExpression(){}$/;"	f	class:GTExpression
+~LEExpression	include/expression.h	/^        ~LEExpression(){}$/;"	f	class:LEExpression
+~LTExpression	include/expression.h	/^	~LTExpression(){}$/;"	f	class:LTExpression
+~MultiplicationExpression	include/expression.h	/^	~MultiplicationExpression(){}$/;"	f	class:MultiplicationExpression
+~NEQExpression	include/expression.h	/^        ~NEQExpression(){}$/;"	f	class:NEQExpression
+~Node	include/node.h	/^		virtual ~Node(){}$/;"	f	class:Node
+~PlusExpression	include/expression.h	/^	~PlusExpression(){}$/;"	f	class:PlusExpression
+~StatementNode	include/statement.h	/^	~StatementNode(){}$/;"	f	class:StatementNode
+~SubtractExpression	include/expression.h	/^	~SubtractExpression(){}$/;"	f	class:SubtractExpression
+~VarExpression	include/expression.h	/^	~VarExpression()$/;"	f	class:VarExpression

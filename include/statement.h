@@ -65,7 +65,7 @@ public:
 			{
 				delete value;
 			}
-                        this->Var->SetValue(Expr->GetValue());
+                        this->Var->SetValue(Expr->GetValue()->DupValue());
                 }
         }
         void SetVariableName(string name)
@@ -171,7 +171,7 @@ class PrintStatement: public StatementNode
 public:
         void Invoke()
         {
-                cout<<this->Expr->GetValue()->toString();
+                cerr<<this->Expr->GetValue()->toString();
         }
         void SetExpression(Expression * expr)
         {
@@ -189,6 +189,37 @@ public:
         }
 private:
         Expression * Expr;
+};
+
+class SleepStatement: public StatementNode
+{
+public:
+        void Invoke()
+        {
+		IntegerValue * value = static_cast<IntegerValue*>(this->Expr->GetValue());
+		sleep(value->GetValue());
+        }
+	void SetExpression(Expression * expr)
+        {
+                this->Expr = expr;
+        }
+        bool Transform(ErrorStack * errstack)
+        {
+		this->Expr->SetParentNode(this->GetParentNode());
+                if(this->Expr->Transform(errstack)==false)
+                {
+                        errstack->PushFrame(0, "SLEEP Statement failed in transforming expression ");
+                        return false;
+                }
+		if(this->Expr->GetDataType()!=Integer)
+		{
+			errstack->PushFrame(0, "SLEEP Statement MUST have a Integer parameter ");
+                        return false;
+		}
+                return true;
+        }
+private:
+	Expression * Expr;
 };
 
 #endif

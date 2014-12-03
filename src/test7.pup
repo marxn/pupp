@@ -1,8 +1,10 @@
 def a as integer;
 def b as float;
+def c as integer;
 
 a=10;
 b=0.123;
+c=1;
 
-print a*b;
+print a*(b+c);
 

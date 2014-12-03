@@ -24,17 +24,16 @@
 	BooleanValue                * puppy_const_boolean;
 	StringValue                 * puppy_const_string;
 	ConstValue                  * puppy_const;
+	string                      * puppy_variable;
 	Expression                  * puppy_expr;
         Identifier                  * puppy_ident;
-        Variable                    * puppy_variable;
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
 	list<Identifier*>           * puppy_identlist;
 	AssignStatement             * puppy_assignstatement;
 	BreakStatement              * puppy_breakstatement;
 	ContinueStatement           * puppy_continuestatement;
-	VarDefinitionStatement      * puppy_vardef;
-	string                      * puppy_variable_ref;
+	VarDefinitionStatement      * puppy_vardefstatement;
 	PrintStatement              * puppy_printstatement;
 	SleepStatement              * puppy_sleepstatement;
 }
@@ -63,8 +62,8 @@
 %type  <puppy_continuestatement> continue_statement
 %type  <puppy_nodelist>  node_list node_block
 %type  <puppy_identlist> identifier_list
-%type  <puppy_variable_ref>  variable_ref
-%type  <puppy_vardef>    vardefstatement
+%type  <puppy_variable>  variable
+%type  <puppy_vardefstatement>  vardefstatement
 %type  <puppy_datatype>  def_data_type
 %type  <puppy_sleepstatement> sleep_statement
 
@@ -233,7 +232,7 @@ print_statement:
 		}
 	;
 	
-variable_ref:
+variable:
 	IDENTIFIER
 		{
 			$$ = new string($1->GetName());
@@ -264,7 +263,7 @@ expr:
 		{
 			$$ = new ConstValueExpression($1);
 		}
-    | variable_ref
+    | variable
 		{
 			$$ = new VarExpression($1);
 		}

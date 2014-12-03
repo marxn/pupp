@@ -16,8 +16,10 @@ class ConstValue
 public:
 	ConstValue():Type(UnknownDataType){}
 	ConstValue(DataType type):Type(type){}
+	virtual ConstValue * DupValue() = 0;
 	DataType GetType() {return this->Type;}
 	virtual string toString() = 0;
+
 protected:
 	DataType Type;
 };
@@ -27,6 +29,10 @@ class IntegerValue: public ConstValue
 public:
 	IntegerValue():Value(0), ConstValue(Integer){}
 	IntegerValue(long value):Value(value), ConstValue(Integer){}
+	ConstValue * DupValue()
+	{
+		return new IntegerValue(this->Value);
+	}
 	long GetValue() {return this->Value;}
 	string toString()
 	{
@@ -43,12 +49,17 @@ class FloatValue: public ConstValue
 public:
 	FloatValue():Value(0.0f), ConstValue(Float){}
 	FloatValue(double value):Value(value), ConstValue(Float){}
+        ConstValue * DupValue()
+        {
+                return new FloatValue(this->Value);
+        }
+
 	double GetValue() {return this->Value;}
         string toString()
         {
                 char buf[128] = "0";
                 snprintf(buf, sizeof(buf), "%lf", this->Value);
-                return string("456");
+                return string(buf);
         }
 
 protected:
@@ -60,6 +71,11 @@ class BooleanValue: public ConstValue
 public:
 	BooleanValue():Value(false), ConstValue(Boolean){}
 	BooleanValue(bool value):Value(value), ConstValue(Boolean){}
+        ConstValue * DupValue()
+        {
+                return new BooleanValue(this->Value);
+        }
+
 	bool GetValue() {return this->Value;}
         string toString()
         {
@@ -76,6 +92,11 @@ class StringValue: public ConstValue
 public:
 	StringValue():ConstValue(String){}
 	StringValue(string value):Value(value), ConstValue(String){}
+        ConstValue * DupValue()
+        {
+                return new StringValue(this->Value);
+        }
+
 	string GetValue() {return this->Value;}
         string toString()
         {
@@ -89,6 +110,18 @@ protected:
 class Operation
 {
 public:
+	static DataType GetOperationRetType(DataType left, DataType right)
+	{
+		if(left==Integer && right==Integer)
+		{
+			return Integer;
+		}
+		if(left==Float && right==Integer || left==Integer && right==Float || left==Float && right==Float)
+		{
+			return Float;
+		}
+		return UnknownDataType;
+	}
 	static ConstValue * AddOperation(ConstValue * left, ConstValue * right)
 	{
 		ConstValue * result = NULL;

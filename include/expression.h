@@ -106,6 +106,13 @@ public:
 			this->SetExpType(ConstExp);
 		}
 
+		DataType type = Operation::GetOperationRetType(left->GetDataType(), right->GetDataType());
+		if(type==UnknownDataType)
+		{
+			errstack->PushFrame(0, "value type of expression is undeterminated.");
+			return false;
+		}
+		this->SetDataType(type);
 		return true;
 	}
 

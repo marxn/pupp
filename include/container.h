@@ -27,7 +27,7 @@ class ContainerNode :public Node
                                 (*i)->SetParentNode(this);
                                 if((*i)->Transform(errstack)!=true)
 				{
-					errstack->PushFrame(0, "ContainerNode transform failed.");
+					//errstack->PushFrame(0, "ContainerNode transform failed.");
 					return false;
 				}
                         }
@@ -37,6 +37,21 @@ class ContainerNode :public Node
                 list<Node*> * subnodelist;
 };
 
+class ProcNode: public ContainerNode
+{
+public:
+	void Invoke()
+	{
+		list<Node*>::iterator i;
+
+		for(i = subnodelist->begin(); i != subnodelist->end(); i++)
+                {
+			(*i)->Invoke();
+		}
+	}
+private:
+	
+};
 class LoopNode :public ContainerNode
 {
         public:
@@ -71,13 +86,13 @@ class LoopNode :public ContainerNode
                 {
                         if(ContainerNode::Transform(errstack)==false)
 			{
-				errstack->PushFrame(0, "LoopNode transform failed - step 1");
+				//errstack->PushFrame(0, "LoopNode transform failed - step 1");
 				return false;
 			}
                         condition->SetParentNode(this->GetParentNode());
                         if(condition->Transform(errstack)==false)
 			{
-				errstack->PushFrame(0, "LoopNode transform failed - step 2");
+				//errstack->PushFrame(0, "LoopNode transform failed - step 2");
                                 return false;
 			}
 			return true;
@@ -115,13 +130,13 @@ class BranchNode :public ContainerNode
                 {
                         if(ContainerNode::Transform(errstack)==false)
                         {
-                                errstack->PushFrame(0, "BranchNode transform failed - step 1");
+                                //errstack->PushFrame(0, "BranchNode transform failed - step 1");
                                 return false;
                         }
                         condition->SetParentNode(this->GetParentNode());
                         if(condition->Transform(errstack)==false)
                         {
-                                errstack->PushFrame(0, "BranchNode transform failed - step 2");
+                                //errstack->PushFrame(0, "BranchNode transform failed - step 2");
                                 return false;
                         }
 			return true;
