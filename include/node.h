@@ -6,18 +6,27 @@
 #include <sstream>
 #include <list>
 #include <string>
+#include "memorymgr.h"
+#include "puppybase.h"
 #include "variable.h"
 #include "errstack.h"
 
 using namespace std;
 
 
-class Node
+class Node: public PuppyObject
 {
 public:
 		Node():ParentNode(NULL),NeedBreak(false),NeedContinue(false){}
 		virtual ~Node(){}
+		void Execute()
+		{
+			this->Invoke();
+			this->Swipe();
+		}
 		virtual void Invoke() = 0;
+		virtual void Swipe() = 0;
+
 		virtual bool Transform(ErrorStack * errstack) = 0;
 
 		void SetParentNode(Node * node)

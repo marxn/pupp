@@ -16,7 +16,7 @@ using namespace std;
 
 enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};
 
-class Expression
+class Expression: public PuppyObject
 {
 public:
 	Expression():ExpressType(UnknownExpType), ExpDataType(UnknownDataType)
@@ -27,6 +27,7 @@ public:
 	}
 	virtual ~Expression(){}
 	virtual ConstValue * GetValue() = 0;
+	virtual void Swipe(){}
 
 	void SetExpType(ExpType type)
 	{
@@ -77,10 +78,18 @@ class BinaryExpression: public Expression
 {
 public:
 	BinaryExpression(Expression * arg1, Expression * arg2):left(arg1),right(arg2){}
-	~BinaryExpression()
+	~BinaryExpression(){}
+	
+	void Swipe()
 	{
+		left->Swipe();
+		right->Swipe();
+		if(this->intermediate)
+		{
+			delete this->intermediate;
+			this->intermediate = NULL;
+		}
 	}
-
 	bool Transform(ErrorStack * errstack)
 	{
 		left->SetParentNode(this->ParentNode);
@@ -106,20 +115,53 @@ public:
 			this->SetExpType(ConstExp);
 		}
 
-		DataType type = Operation::GetOperationRetType(left->GetDataType(), right->GetDataType());
-		if(type==UnknownDataType)
-		{
-			errstack->PushFrame(0, "value type of expression is undeterminated.");
-			return false;
-		}
-		this->SetDataType(type);
 		return true;
 	}
 
 protected:
 	Expression * left;
 	Expression * right;
+	ConstValue * intermediate;
 };
+
+class ArithmeticExpression: public BinaryExpression
+{
+public:
+	ArithmeticExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	bool Transform(ErrorStack * errstack)
+	{
+		if(BinaryExpression::Transform(errstack)==false)
+		{
+			return false;
+		}
+
+		DataType type = Operation::GetOperationRetType(left->GetDataType(), right->GetDataType());
+                if(type==UnknownDataType)
+                {
+                        errstack->PushFrame(0, "value type of expression is undeterminated.");
+                        return false;
+                }
+		this->SetDataType(type);
+		return true;
+	}
+};
+
+class RelationExpression: public BinaryExpression
+{
+public:
+	RelationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        bool Transform(ErrorStack * errstack)
+        {
+                if(BinaryExpression::Transform(errstack)==false)
+                {
+                        return false;
+                }
+
+                this->SetDataType(Boolean);
+                return true;
+        }
+};
+
 
 class ConstValueExpression: public Expression
 {
@@ -147,9 +189,7 @@ class VarExpression: public Expression
 public:
 	VarExpression():Var(NULL),Expression(VarExp){}
 	VarExpression(string * varname):VarName(varname),Expression(VarExp){}
-	~VarExpression()
-	{
-	}
+	~VarExpression(){}
 	ConstValue * GetValue()
 	{
 		if(this->Var) 
@@ -174,115 +214,125 @@ private:
 	Variable * Var;
 };
 
-class PlusExpression: public BinaryExpression
+class PlusExpression: public ArithmeticExpression 
 {
 public:
-	PlusExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	PlusExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~PlusExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::AddOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::AddOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 private:
 	ConstValue * Result;
 };
 
-class SubtractExpression: public BinaryExpression
+class SubtractExpression: public ArithmeticExpression
 {
 public:
-	SubtractExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	SubtractExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~SubtractExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::SubOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::SubOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 };
 
-class MultiplicationExpression: public BinaryExpression
+class MultiplicationExpression: public ArithmeticExpression
 {
 public:
-	MultiplicationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	MultiplicationExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~MultiplicationExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::MulOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::MulOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 };
 
-class DivisionExpression: public BinaryExpression
+class DivisionExpression: public ArithmeticExpression
 {
 public:
-	DivisionExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	DivisionExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~DivisionExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::DivOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::DivOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 };
 
-class GTExpression: public BinaryExpression
+class GTExpression: public RelationExpression
 {
 public:
-	GTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	GTExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
 	~GTExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::GTOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::GTOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 };
 
-class LTExpression: public BinaryExpression
+class LTExpression: public RelationExpression
 {
 public:
-	LTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	LTExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
 	~LTExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::LTOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::LTOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 };
 
-class EQExpression: public BinaryExpression
+class EQExpression: public RelationExpression
 {
 public:
-	EQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	EQExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
 	~EQExpression(){}
 	ConstValue * GetValue()
 	{
-		return Operation::EQOperation(left->GetValue(), right->GetValue());
+		this->intermediate = Operation::EQOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
 	}
 };
 
-class NEQExpression: public BinaryExpression
+class NEQExpression: public RelationExpression
 {
 public:
-        NEQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        NEQExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
         ~NEQExpression(){}
         ConstValue * GetValue()
         {
-                return Operation::NEQOperation(left->GetValue(), right->GetValue());
+                this->intermediate = Operation::NEQOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
         }
 };
 
-class GEExpression: public BinaryExpression
+class GEExpression: public RelationExpression
 {
 public:
-        GEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        GEExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
         ~GEExpression(){}
         ConstValue * GetValue()
         {
-                return Operation::GEOperation(left->GetValue(), right->GetValue());
+                this->intermediate = Operation::GEOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
         }
 };
 
-class LEExpression: public BinaryExpression
+class LEExpression: public RelationExpression
 {
 public:
-        LEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        LEExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
         ~LEExpression(){}
         ConstValue * GetValue()
         {
-                return Operation::LEOperation(left->GetValue(), right->GetValue());
+                this->intermediate = Operation::LEOperation(left->GetValue(), right->GetValue());
+		return this->intermediate;
         }
 };
 

@@ -3,10 +3,11 @@
 
 #include <iostream>
 #include <string>
+#include "puppybase.h"
 
 using namespace std;
 
-class Identifier
+class Identifier:public PuppyObject
 {
 public:
 	Identifier(string name)

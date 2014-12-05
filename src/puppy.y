@@ -2,6 +2,7 @@
     #include <iostream>
     #include <stdio.h>
     #include <list>
+    #include "memorymgr.h"
     #include "constval.h"
     #include "expression.h"
     #include "variable.h"
@@ -30,12 +31,7 @@
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
 	list<Identifier*>           * puppy_identlist;
-	AssignStatement             * puppy_assignstatement;
-	BreakStatement              * puppy_breakstatement;
-	ContinueStatement           * puppy_continuestatement;
-	VarDefinitionStatement      * puppy_vardefstatement;
-	PrintStatement              * puppy_printstatement;
-	SleepStatement              * puppy_sleepstatement;
+	StatementNode               * puppy_statement;
 }
 
 %nonassoc '='
@@ -56,20 +52,15 @@
 %type  <puppy_const> const_value
 %type  <puppy_expr>  expr
 %type  <puppy_node>  program_node simple_node loop_node branch_node
-%type  <puppy_assignstatement> assign_statement
-%type  <puppy_printstatement> print_statement
-%type  <puppy_breakstatement> break_statement
-%type  <puppy_continuestatement> continue_statement
-%type  <puppy_nodelist>  node_list node_block
+%type  <puppy_nodelist>  node_list final_block
 %type  <puppy_identlist> identifier_list
 %type  <puppy_variable>  variable
-%type  <puppy_vardefstatement>  vardefstatement
 %type  <puppy_datatype>  def_data_type
-%type  <puppy_sleepstatement> sleep_statement
+%type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
 
 %%
 
-node_block: 
+final_block: 
 	node_list 
 		{
 			final_node = new ContainerNode;
@@ -159,9 +150,10 @@ branch_node:
 assign_statement:
 	IDENTIFIER '=' expr
 		{
-			$$ = new AssignStatement;
-			$$->SetVariableName($1->GetName());
-			$$->SetExpression($3);
+			AssignStatement * stmt = new AssignStatement;
+			stmt->SetVariableName($1->GetName());
+			stmt->SetExpression($3);
+			$$ = stmt;
 		}
 	;
 
@@ -201,7 +193,8 @@ def_data_type:
 vardefstatement:
 	DEF identifier_list AS def_data_type
 		{
-			$$ = new VarDefinitionStatement($2, $4);
+			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, $4);
+			$$ = stmt;
 		}
 	;
 	
@@ -221,14 +214,16 @@ identifier_list:
 sleep_statement:
 	SLEEP expr
 		{
-			$$ = new SleepStatement;
-			$$->SetExpression($2);
+			SleepStatement * stmt = new SleepStatement;
+			stmt->SetExpression($2);
+			$$ = stmt;
 		}
 print_statement:
 	PRINT expr
 		{
-			$$ = new PrintStatement;
-			$$->SetExpression($2);
+			PrintStatement * stmt = new PrintStatement;
+			stmt->SetExpression($2);
+			$$ = stmt;
 		}
 	;
 	

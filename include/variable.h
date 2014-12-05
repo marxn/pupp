@@ -4,10 +4,11 @@
 #include <string>
 #include "constval.h"
 #include "identifier.h"
+#include "puppybase.h"
 
 using namespace std;
 
-class Variable
+class Variable: public PuppyObject
 {
 public:
 	Variable(Identifier * ident):value(NULL), VarType(UnknownDataType)

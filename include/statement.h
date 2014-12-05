@@ -12,13 +12,7 @@ class StatementNode :public Node
 public:
 	StatementNode(){}
 	~StatementNode(){}
-        void Invoke()
-        {
-        }
-        bool Transform(ErrorStack * errstack)
-        {
-		return true;
-        }
+	void Swipe(){}
 };
 
 class BreakStatement: public StatementNode
@@ -65,9 +59,14 @@ public:
 			{
 				delete value;
 			}
+
                         this->Var->SetValue(Expr->GetValue()->DupValue());
                 }
         }
+	void Swipe()
+	{
+		this->Expr->Swipe();
+	}
         void SetVariableName(string name)
         {
                 this->VarName = name;
@@ -173,6 +172,10 @@ public:
         {
                 cerr<<this->Expr->GetValue()->toString();
         }
+	void Swipe()
+	{
+		this->Expr->Swipe();
+	}
         void SetExpression(Expression * expr)
         {
                 this->Expr = expr;
@@ -199,6 +202,10 @@ public:
 		IntegerValue * value = static_cast<IntegerValue*>(this->Expr->GetValue());
 		sleep(value->GetValue());
         }
+	void Swipe()
+	{
+		this->Expr->Swipe();
+	}
 	void SetExpression(Expression * expr)
         {
                 this->Expr = expr;

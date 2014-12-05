@@ -13,8 +13,12 @@ class ContainerNode :public Node
                 {
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-                                (*i)->Invoke();
+                                (*i)->Execute();
                 }
+		void Swipe()
+		{
+		}
+
                 void SetNodeList(list<Node*> * nodelist)
                 {
                         subnodelist = nodelist;
@@ -37,21 +41,6 @@ class ContainerNode :public Node
                 list<Node*> * subnodelist;
 };
 
-class ProcNode: public ContainerNode
-{
-public:
-	void Invoke()
-	{
-		list<Node*>::iterator i;
-
-		for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-                {
-			(*i)->Invoke();
-		}
-	}
-private:
-	
-};
 class LoopNode :public ContainerNode
 {
         public:
@@ -67,7 +56,7 @@ class LoopNode :public ContainerNode
 
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                 {
-                                        (*i)->Invoke();
+                                        (*i)->Execute();
                                          if(this->GetNeedBreak())
                                          {
                                                  localctl = false;
@@ -86,25 +75,28 @@ class LoopNode :public ContainerNode
                 {
                         if(ContainerNode::Transform(errstack)==false)
 			{
-				//errstack->PushFrame(0, "LoopNode transform failed - step 1");
+				errstack->PushFrame(0, "LoopNode transform failed - step 1");
 				return false;
 			}
                         condition->SetParentNode(this->GetParentNode());
                         if(condition->Transform(errstack)==false)
 			{
-				//errstack->PushFrame(0, "LoopNode transform failed - step 2");
+				errstack->PushFrame(0, "LoopNode transform failed - step 2");
                                 return false;
+			}
+			if(condition->GetDataType()!=Boolean)
+			{
+				errstack->PushFrame(0, "LoopNode transform failed - step 3");
+				return false;
 			}
 			return true;
                 }
         private:
                 bool Evaluate()
                 {
-                        ConstValue * temp = condition->GetValue();
-                        if(temp->GetType() == Boolean)
-                                return static_cast<BooleanValue*>(temp)->GetValue();
-
-                        return false;
+			bool ret = static_cast<BooleanValue*>(condition->GetValue())->GetValue();
+			condition->Swipe();
+                        return ret;;
                 }
                 Expression * condition;
 };
@@ -119,7 +111,7 @@ class BranchNode :public ContainerNode
                         {
                                 list<Node*>::iterator i;
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-                                        (*i)->Invoke();
+                                        (*i)->Execute();
                         }
                 }
                 void SetCondition(Expression * condition)
@@ -144,11 +136,9 @@ class BranchNode :public ContainerNode
         private:
                 bool Evaluate()
                 {
-                        ConstValue * temp = condition->GetValue();
-                        if(temp->GetType() == Boolean)
-                                return static_cast<BooleanValue*>(temp)->GetValue();
-
-                        return false;
+			bool ret = static_cast<BooleanValue*>(condition->GetValue())->GetValue();
+                        condition->Swipe();
+                        return ret;;
                 }
 
                 Expression * condition;

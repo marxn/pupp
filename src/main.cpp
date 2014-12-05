@@ -2,36 +2,23 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include "memorymgr.h"
+#include "puppybase.h"
 #include "errstack.h"
 #include "node.h"
 #include "constval.h"
 #include "expression.h"
 
 extern Node * parse();
-
 extern FILE * yyin;
 
 using namespace std;
-/*
-int main()
-{
-	ConstValue * a = new ConstValue("12");
-	ConstValue * b = new ConstValue(3.1f);
-	FinalExpression *f1 = new FinalExpression(a);
-	FinalExpression *f2 = new FinalExpression(b);
-
-	DivisionExpression * e = new DivisionExpression(f1,f2);
-
-	cout<<e->GetValue().toString()<<endl;
-	delete e;
-	getchar();
-	return 0;
-}
-*/
 
 int main(int argc, char * argv[])
 {
+	__MMgr = new PMemoryMgr;
 	FILE * fp = NULL;
+
 	if(argc!=2)
 	{
 		fp = stdin;
@@ -50,11 +37,13 @@ int main(int argc, char * argv[])
 	yyin = fp;
 
 	ErrorStack errstack;
+
+	SwitchMemoryContext(Session);
 	Node * tree = parse();
 
 	if(tree && tree->Transform(&errstack))
 	{
-		tree->Invoke();
+		tree->Execute();
 	}
 	else if(tree)
 	{

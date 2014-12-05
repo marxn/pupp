@@ -3,6 +3,7 @@
 
 #include <string>
 #include <stdio.h>
+#include "puppybase.h"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ enum DataType
         UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize
 };
 
-class ConstValue
+class ConstValue: public PuppyObject
 {
 public:
 	ConstValue():Type(UnknownDataType){}

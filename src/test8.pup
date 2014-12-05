@@ -1,0 +1,7 @@
+def a as integer;
+
+while(a<10)
+{
+	a=a+1;
+	sleep 1;
+}
