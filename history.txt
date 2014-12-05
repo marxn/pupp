@@ -1,0 +1,11 @@
+Dec 5th 2014
+----------------------------
+1. Add Swipe function to node and expression in order to 
+   avoid memory leak during running.
+2. Implement a protype of memory pool to manage the life-cycle
+   of all the objects.
+3. Implement a common base class PuppyObject to handle
+   the public operation of any puppy object including most 
+   of the gramma factors.
+4. New test cases.
+
