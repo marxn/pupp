@@ -48,13 +48,13 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN
-%token DEF IF WHILE BREAK CONTINUE AS PRINT SLEEP
-%token NL
+%token DEF IF ELSE WHILE BREAK CONTINUE AS PRINT SLEEP
+%token NL PI
 
 %type  <puppy_const> const_value symbolic_constant
 %type  <puppy_expr>  expr
 %type  <puppy_node>  program_node simple_node loop_node branch_node
-%type  <puppy_nodelist>  node_list final_block
+%type  <puppy_nodelist>  optional_else_list node_list final_block
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
@@ -138,14 +138,24 @@ loop_node:
 		}
 	;
 
+optional_else_list:
+	ELSE '{' node_list '}'
+		{
+			$$ = $3;
+		}
+	| /*empty*/
+		{
+			$$ = NULL;
+		};
+
 branch_node:
-	IF '(' expr ')' '{' node_list '}'
+	IF '(' expr ')' '{' node_list '}' optional_else_list
 		{
 			BranchNode * node = new BranchNode;
 			
 			node->SetCondition($3);
 			node->SetNodeList($6);
-			
+			node->SetElseNodeList($8);
 			$$ = (Node *)node;
 		}
 	;
@@ -242,15 +252,6 @@ print_statement:
 			$$ = stmt;
 		}
 	;
-/*
-	PRINT expr
-		{
-			PrintStatement * stmt = new PrintStatement;
-			stmt->SetExpression($2);
-			$$ = stmt;
-		}
-	;
-*/
 	
 variable:
 	IDENTIFIER
@@ -262,6 +263,10 @@ symbolic_constant:
 	NL
 		{
 			$$ = new StringValue("\n");
+		}
+	| PI
+		{
+			$$ = new FloatValue(3.1415926);
 		}
 	;
 const_value:

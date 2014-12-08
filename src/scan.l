@@ -75,6 +75,8 @@ identifier [a-zA-Z]+[0-9]*
 				//Key words
 				if(strcasecmp(yytext,"if")==0)
 					return IF;
+				if(strcasecmp(yytext,"else")==0)
+					return ELSE;
 				if(strcasecmp(yytext,"while")==0)
 					return WHILE;
 				if(strcasecmp(yytext,"break")==0)
@@ -103,6 +105,9 @@ identifier [a-zA-Z]+[0-9]*
 				//new line
 				if(strcmp(yytext, "NL")==0)
 					return NL;
+
+				if(strcmp(yytext, "PI")==0)
+					return PI;
 
 				//Common identifiers
 				yylval.puppy_ident = new Identifier(yytext);

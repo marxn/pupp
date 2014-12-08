@@ -6,6 +6,9 @@ b=false;
 c=-456;
 print a;
 print b;
-print c;
+print c,NL;
 
-
+if(c<1)
+{
+	print c;
+}

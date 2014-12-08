@@ -1,4 +1,16 @@
-def a as string;
+def a as integer;
 a=2;
-print a;
+if(a<1)
+{
+	print 'xxx',NL;
+}
+else
+{
+	print 'yyy',NL;
+}
+print 'end',NL;
 
+if(a>1)
+{
+	print 'a>1',NL;
+}

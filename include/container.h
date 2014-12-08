@@ -113,24 +113,56 @@ class BranchNode :public ContainerNode
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                         (*i)->Execute();
                         }
+			else
+			{
+				list<Node*>::iterator i;
+                                for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
+                                        (*i)->Execute();
+			}
                 }
+		void SetElseNodeList(list<Node*> * nodelist)
+                {
+                        elsenodelist = nodelist;
+                }
+
                 void SetCondition(Expression * condition)
                 {
                         this->condition = condition;
                 }
+		bool TransformElseStmt(ErrorStack * errstack)
+		{
+			list<Node*>::iterator i;
+                        for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
+                        {
+                                (*i)->SetParentNode(this);
+                                if((*i)->Transform(errstack)!=true)
+                                {
+                                        //errstack->PushFrame(0, "BranchNode transform failed.");
+                                        return false;
+                                }
+                        }
+                        return true;
+
+		}
                 bool Transform(ErrorStack * errstack)
                 {
-                        if(ContainerNode::Transform(errstack)==false)
-                        {
-                                //errstack->PushFrame(0, "BranchNode transform failed - step 1");
-                                return false;
-                        }
-                        condition->SetParentNode(this->GetParentNode());
+			condition->SetParentNode(this->GetParentNode());
                         if(condition->Transform(errstack)==false)
                         {
                                 //errstack->PushFrame(0, "BranchNode transform failed - step 2");
                                 return false;
                         }
+
+                        if(ContainerNode::Transform(errstack)==false)
+                        {
+                                //errstack->PushFrame(0, "BranchNode transform failed - step 1");
+                                return false;
+                        }
+			if(this->elsenodelist!=NULL && TransformElseStmt(errstack)==false)
+			{
+				return false;
+			}
+
 			return true;
                 }
         private:
@@ -142,6 +174,7 @@ class BranchNode :public ContainerNode
                 }
 
                 Expression * condition;
+		list<Node*> * elsenodelist;
 };
 
 
