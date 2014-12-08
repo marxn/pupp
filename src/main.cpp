@@ -38,7 +38,6 @@ int main(int argc, char * argv[])
 
 	ErrorStack errstack;
 
-	SwitchMemoryContext(Session);
 	Node * tree = parse();
 
 	if(tree && tree->Transform(&errstack))

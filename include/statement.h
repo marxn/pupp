@@ -170,28 +170,41 @@ class PrintStatement: public StatementNode
 public:
         void Invoke()
         {
-                cerr<<this->Expr->GetValue()->toString();
+		list<Expression*>::iterator i;
+		for(i = ExprList->begin(); i!= ExprList->end(); i++)
+		{
+	                printf("%s",(*i)->GetValue()->toString().c_str());
+			fflush(stdout);
+		}
         }
 	void Swipe()
 	{
-		this->Expr->Swipe();
+		list<Expression*>::iterator i;
+		for(i = ExprList->begin(); i!= ExprList->end(); i++)
+		{
+			(*i)->Swipe();
+                }
 	}
-        void SetExpression(Expression * expr)
+        void SetExpressionList(list<Expression*> * exprlist)
         {
-                this->Expr = expr;
+                this->ExprList = exprlist;
         }
         bool Transform(ErrorStack * errstack)
         {
-                this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Transform(errstack)==false)
+		list<Expression*>::iterator i;
+		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
-			errstack->PushFrame(0, "PRINT Statement failed in transforming expression ");
-                        return false;
+			(*i)->SetParentNode(this->GetParentNode());
+                	if((*i)->Transform(errstack)==false)
+			{
+				errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
+                        	return false;
+			}
 		}
 		return true;
         }
 private:
-        Expression * Expr;
+        list<Expression*> * ExprList;
 };
 
 class SleepStatement: public StatementNode

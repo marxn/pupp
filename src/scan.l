@@ -71,6 +71,7 @@ identifier [a-zA-Z]+[0-9]*
                                         yylval.puppy_const_boolean = new BooleanValue(false);
                                 	return BOOLEAN;
 				}
+
 				//Key words
 				if(strcasecmp(yytext,"if")==0)
 					return IF;
@@ -96,7 +97,13 @@ identifier [a-zA-Z]+[0-9]*
 					return PRINT;
 				if(strcasecmp(yytext, "sleep")==0)
 					return SLEEP;
-	
+
+				//symbolic constants
+
+				//new line
+				if(strcmp(yytext, "NL")==0)
+					return NL;
+
 				//Common identifiers
 				yylval.puppy_ident = new Identifier(yytext);
 				return IDENTIFIER;

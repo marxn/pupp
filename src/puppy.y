@@ -31,6 +31,7 @@
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
 	list<Identifier*>           * puppy_identlist;
+	list<Expression*>           * puppy_exprlist;
 	StatementNode               * puppy_statement;
 }
 
@@ -48,12 +49,14 @@
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN
 %token DEF IF WHILE BREAK CONTINUE AS PRINT SLEEP
+%token NL
 
-%type  <puppy_const> const_value
+%type  <puppy_const> const_value symbolic_constant
 %type  <puppy_expr>  expr
 %type  <puppy_node>  program_node simple_node loop_node branch_node
 %type  <puppy_nodelist>  node_list final_block
 %type  <puppy_identlist> identifier_list
+%type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
@@ -218,7 +221,28 @@ sleep_statement:
 			stmt->SetExpression($2);
 			$$ = stmt;
 		}
+
+expr_list:
+	expr_list ',' expr
+		{
+			$1->push_back($3);
+			$$ = $1;
+		}
+	| expr
+		{
+			$$ = new list<Expression*>;
+			$$->push_back($1);
+		}
+
 print_statement:
+	PRINT expr_list
+		{
+			PrintStatement * stmt = new PrintStatement;
+			stmt->SetExpressionList($2);
+			$$ = stmt;
+		}
+	;
+/*
 	PRINT expr
 		{
 			PrintStatement * stmt = new PrintStatement;
@@ -226,6 +250,7 @@ print_statement:
 			$$ = stmt;
 		}
 	;
+*/
 	
 variable:
 	IDENTIFIER
@@ -233,7 +258,12 @@ variable:
 			$$ = new string($1->GetName());
 		}
 	;
-
+symbolic_constant:
+	NL
+		{
+			$$ = new StringValue("\n");
+		}
+	;
 const_value:
 	INTEGER                    
 		{
@@ -252,8 +282,13 @@ const_value:
 			$$ = $1;
 		}
 	;
-	
+
 expr:
+    symbolic_constant
+		{
+			$$ = new ConstValueExpression($1);
+		}
+    |
     const_value
 		{
 			$$ = new ConstValueExpression($1);

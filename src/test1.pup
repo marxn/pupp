@@ -1,8 +1,13 @@
-def i as integer;
+def i,j as integer;
 
 while(i<10)
 {
-	print i;
+	j=0;
+	while(j<10)
+	{
+		print 'i=',i,' ','j=',j, NL;
+		j=j+1;
+	}
 	i=i+1;
 }
 

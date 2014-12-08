@@ -1,3 +1,9 @@
+Dec 8th 2014
+----------------------------
+1. Support multi expressions in one PRINT statement.
+2. Implement symbolic constant in puppy language.
+
+
 Dec 5th 2014
 ----------------------------
 1. Add Swipe function to node and expression in order to 
