@@ -1,6 +1,7 @@
 %{
     #include <iostream>
     #include <stdio.h>
+    #include <stdarg.h>
     #include <list>
     #include "memorymgr.h"
     #include "constval.h"
@@ -27,6 +28,9 @@
 	ConstValue                  * puppy_const;
 	string                      * puppy_variable;
 	Expression                  * puppy_expr;
+	RelationExpression          * puppy_relexpr;
+	ArithmeticExpression        * puppy_arithexpr;
+	LogicalExpression           * puppy_logicalexpr;
         Identifier                  * puppy_ident;
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
@@ -35,6 +39,9 @@
 	StatementNode               * puppy_statement;
 }
 
+%left OR
+%left AND
+%left NOT
 %nonassoc '='
 %nonassoc  '<' '>' EQUAL_OP GE_OP LE_OP NOT_EQUAL_OP
 %left '+' '-'
@@ -49,10 +56,15 @@
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN
 %token DEF IF ELSE WHILE BREAK CONTINUE AS PRINT SLEEP
+%token AND OR NOT
 %token NL PI
 
 %type  <puppy_const> const_value symbolic_constant
-%type  <puppy_expr>  expr
+%type  <puppy_expr>  expr 
+%type  <puppy_arithexpr> arith_expr
+%type  <puppy_relexpr> rel_expr
+%type  <puppy_logicalexpr> logical_expr
+
 %type  <puppy_node>  program_node simple_node loop_node branch_node
 %type  <puppy_nodelist>  optional_else_list node_list final_block
 %type  <puppy_identlist> identifier_list
@@ -288,60 +300,92 @@ const_value:
 		}
 	;
 
+arith_expr:
+    expr '+' expr
+                {
+                        $$ = static_cast<ArithmeticExpression*>(new PlusExpression($1, $3));
+                }
+    | expr '-' expr
+                {
+                        $$ = static_cast<ArithmeticExpression*>(new SubtractExpression($1, $3));
+                }
+    | expr '*' expr
+                {
+                        $$ = static_cast<ArithmeticExpression*>(new MultiplicationExpression($1, $3));
+                }
+    | expr '/' expr
+                {
+                        $$ = static_cast<ArithmeticExpression*>(new DivisionExpression($1, $3));
+                }
+    ;
+
+rel_expr:
+     expr '>' expr
+                {
+                        $$ = static_cast<RelationExpression*>(new GTExpression($1, $3));
+                }
+    | expr '<' expr
+                {
+                        $$ = static_cast<RelationExpression*>(new LTExpression($1, $3));
+                }
+    | expr EQUAL_OP expr
+                {
+                        $$ = static_cast<RelationExpression*>(new EQExpression($1, $3));
+                }
+    | expr NOT_EQUAL_OP expr
+                {
+                        $$ = static_cast<RelationExpression*>(new NEQExpression($1, $3));
+                }
+    | expr GE_OP expr
+                {
+                        $$ = static_cast<RelationExpression*>(new GEExpression($1, $3));
+                }
+    | expr LE_OP expr
+                {
+                        $$ = static_cast<RelationExpression*>(new LEExpression($1, $3));
+                }
+    ;
+
+logical_expr:
+    expr AND expr
+                {
+                        $$ = static_cast<LogicalExpression*>(new ANDExpression($1, $3));
+                }
+    | expr OR expr
+                {
+                        $$ = static_cast<LogicalExpression*>(new ORExpression($1, $3));
+                }
+    | NOT expr
+                {
+                        $$ = static_cast<LogicalExpression*>(new NOTExpression($2));
+                }
+    ;
+
 expr:
     symbolic_constant
 		{
-			$$ = new ConstValueExpression($1);
+			$$ = static_cast<Expression*>(new ConstValueExpression($1));
 		}
-    |
-    const_value
+    | const_value
 		{
-			$$ = new ConstValueExpression($1);
+			$$ = static_cast<Expression*>(new ConstValueExpression($1));
 		}
     | variable
 		{
-			$$ = new VarExpression($1);
+			$$ = static_cast<Expression*>(new VarExpression($1));
 		}
-    | expr '+' expr            
-		{ 
-			$$ = new PlusExpression($1, $3);
-		}
-    | expr '-' expr
+    | arith_expr
 		{
-			$$ = new SubtractExpression($1, $3);
+			$$ = static_cast<Expression*>($1);
 		}
-    | expr '*' expr
+    | rel_expr
 		{
-			$$ = new MultiplicationExpression($1, $3);
+			$$ = static_cast<Expression*>($1);
 		}
-    | expr '/' expr
-		{
-			$$ = new DivisionExpression($1, $3);	
-		}
-    | expr '>' expr
-		{
-			$$ = new GTExpression($1, $3);
-		}
-    | expr '<' expr
-		{
-			$$ = new LTExpression($1, $3);
-		}
-    | expr EQUAL_OP expr
-		{
-			$$ = new EQExpression($1, $3);
-		}
-    | expr NOT_EQUAL_OP expr
-		{
-			$$ = new NEQExpression($1, $3);
-		}
-    | expr GE_OP expr
-		{
-			$$ = new GEExpression($1, $3);
-		}
-    | expr LE_OP expr
-		{
-			$$ = new LEExpression($1, $3);
-		}
+    | logical_expr
+                {
+                        $$ = static_cast<Expression*>($1);
+                }
     | '(' expr ')'             
 		{
 			$$ = $2; 
@@ -351,7 +395,7 @@ expr:
 
 int yyerror(char *s)
 {
-    fprintf(stderr, "%s\n", s);
+    fprintf(stderr, "puppy grammar error: %s\n", s);
     return 0;
 }
 

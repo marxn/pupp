@@ -17,6 +17,14 @@ public:
 	{
 		return this->TypeName;
 	}
+	int GetObjLoc()
+	{
+		return this->ObjectLoc;
+	}
+	void SetObjLoc(int loc)
+	{
+		this->ObjectLoc = loc;
+	}
 	/*void * operator new(size_t size)
 	{
 		return MemoryContextAllocMemory(size);
@@ -27,6 +35,7 @@ public:
 	}*/
 private:
 	string TypeName;
+	int ObjectLoc;
 };
 
 #endif

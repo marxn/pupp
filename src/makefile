@@ -5,7 +5,7 @@ puppy: puppy.o scan.o main.o memorymgr.o
 	g++ -g -o puppy puppy.o scan.o main.o memorymgr.o
 
 puppy.o: puppy.y
-	bison -o puppy.cpp puppy.y -d
+	bison -d -o puppy.cpp puppy.y
 	g++ -g -c -I../include -o puppy.o puppy.cpp
 
 scan.o: scan.l

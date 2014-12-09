@@ -1,0 +1,5 @@
+def a as integer;
+print a,NL; //asd
+//print asd;
+
+

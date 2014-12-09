@@ -338,6 +338,35 @@ public:
                 }
                 return result;
         }
+	static ConstValue * ANDOperation(ConstValue * left, ConstValue * right)
+        {
+                ConstValue * result = NULL;
 
+                if(left->GetType()==Boolean && right->GetType()==Boolean)
+                {
+                        result = new BooleanValue(static_cast<BooleanValue*>(left)->GetValue() && static_cast<BooleanValue*>(right)->GetValue());
+                }
+                return result;
+        }
+        static ConstValue * OROperation(ConstValue * left, ConstValue * right)
+        {
+                ConstValue * result = NULL;
+
+                if(left->GetType()==Boolean && right->GetType()==Boolean)
+                {
+                        result = new BooleanValue(static_cast<BooleanValue*>(left)->GetValue() || static_cast<BooleanValue*>(right)->GetValue());
+                }
+                return result;
+        }
+        static ConstValue * NOTOperation(ConstValue * value)
+        {
+                ConstValue * result = NULL;
+
+                if(value->GetType()==Boolean)
+                {
+                        result = new BooleanValue(!static_cast<BooleanValue*>(value)->GetValue());
+                }
+                return result;
+        }
 };
 #endif

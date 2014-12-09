@@ -162,6 +162,21 @@ public:
         }
 };
 
+class LogicalExpression: public BinaryExpression
+{
+public:
+        LogicalExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        bool Transform(ErrorStack * errstack)
+        {
+                if(BinaryExpression::Transform(errstack)==false)
+                {
+                        return false;
+                }
+
+                this->SetDataType(Boolean);
+                return true;
+        }
+};
 
 class ConstValueExpression: public Expression
 {
@@ -203,7 +218,7 @@ public:
 		this->Var = this->ParentNode->FindVariable(*VarName);
 		if(this->Var==NULL)
 		{
-			errstack->PushFrame(0, "Variable "+*VarName+" not defined");
+			errstack->PushFrame(this->GetObjLoc(), "Variable "+*VarName+" not defined");
                         return false;
 		}
 		this->SetDataType(this->Var->GetType());
@@ -335,5 +350,48 @@ public:
 		return this->intermediate;
         }
 };
+
+class ANDExpression: public LogicalExpression
+{
+public:
+	ANDExpression(Expression * arg1, Expression * arg2):LogicalExpression(arg1, arg2){}
+        ~ANDExpression(){}
+        ConstValue * GetValue()
+        {
+                this->intermediate = Operation::ANDOperation(left->GetValue(), right->GetValue());
+                return this->intermediate;
+        }
+};
+
+class ORExpression: public LogicalExpression
+{
+public:
+        ORExpression(Expression * arg1, Expression * arg2):LogicalExpression(arg1, arg2){}
+        ~ORExpression(){}
+        ConstValue * GetValue()
+        {
+                this->intermediate = Operation::OROperation(left->GetValue(), right->GetValue());
+                return this->intermediate;
+        }
+};
+
+class NOTExpression: public LogicalExpression
+{
+public:
+        NOTExpression(Expression * arg):LogicalExpression(NULL, arg)
+	{
+		this->left = new ConstValueExpression(new BooleanValue(true));
+	}
+        ~NOTExpression(){}
+        ConstValue * GetValue()
+        {
+                this->intermediate = Operation::NOTOperation(right->GetValue());
+                return this->intermediate;
+        }
+};
+
+
+
+
 
 #endif

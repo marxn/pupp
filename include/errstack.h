@@ -30,7 +30,7 @@ public:
 		list<ErrorFrame>::iterator i;
 		for(i=ErrorList.begin(); i!=ErrorList.end(); i++)
 		{
-			cerr<<"puppy error: "<<(*i).ErrMsg<<endl;
+			cerr<<"puppy interpretation error: "<<(*i).ErrNo<<":"<<(*i).ErrMsg<<endl;
 		}
 	}
 private:

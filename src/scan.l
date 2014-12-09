@@ -12,6 +12,7 @@
     int yyerror(char *);
 %}
 
+comment    "//".*
 equal      "=="
 not_equal  "!="|"<>"
 ge_op      ">="
@@ -100,12 +101,21 @@ identifier [a-zA-Z]+[0-9]*
 				if(strcasecmp(yytext, "sleep")==0)
 					return SLEEP;
 
+				//Logical operation
+				if(strcasecmp(yytext,"and")==0)
+                                        return AND;
+                                if(strcasecmp(yytext,"or")==0)
+                                        return OR;
+                                if(strcasecmp(yytext,"not")==0)
+                                        return NOT;
+
 				//symbolic constants
 
 				//new line
 				if(strcmp(yytext, "NL")==0)
 					return NL;
 
+				//PI
 				if(strcmp(yytext, "PI")==0)
 					return PI;
 
@@ -114,6 +124,7 @@ identifier [a-zA-Z]+[0-9]*
 				return IDENTIFIER;
 		}
 {space}		{}
+{comment}       {}
 
 %%
 
