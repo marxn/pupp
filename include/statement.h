@@ -197,7 +197,7 @@ public:
 			(*i)->SetParentNode(this->GetParentNode());
                 	if((*i)->Transform(errstack)==false)
 			{
-				errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
+				//errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
                         	return false;
 			}
 		}
@@ -228,7 +228,7 @@ public:
 		this->Expr->SetParentNode(this->GetParentNode());
                 if(this->Expr->Transform(errstack)==false)
                 {
-                        errstack->PushFrame(0, "SLEEP Statement failed in transforming expression ");
+                        //errstack->PushFrame(0, "SLEEP Statement failed in transforming expression ");
                         return false;
                 }
 		if(this->Expr->GetDataType()!=Integer)

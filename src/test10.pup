@@ -1,5 +1,3 @@
-def a as integer;
-print a,NL; //asd
-//print asd;
+print true and 2.1; 
 
 

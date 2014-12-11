@@ -75,18 +75,18 @@ class LoopNode :public ContainerNode
                 {
                         if(ContainerNode::Transform(errstack)==false)
 			{
-				errstack->PushFrame(0, "LoopNode transform failed - step 1");
+				//errstack->PushFrame(0, "LoopNode transform failed - step 1");
 				return false;
 			}
                         condition->SetParentNode(this->GetParentNode());
                         if(condition->Transform(errstack)==false)
 			{
-				errstack->PushFrame(0, "LoopNode transform failed - step 2");
+				//errstack->PushFrame(0, "LoopNode transform failed - step 2");
                                 return false;
 			}
 			if(condition->GetDataType()!=Boolean)
 			{
-				errstack->PushFrame(0, "LoopNode transform failed - step 3");
+				errstack->PushFrame(0, "Boolean expression expected in while statement");
 				return false;
 			}
 			return true;

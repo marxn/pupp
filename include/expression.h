@@ -156,7 +156,11 @@ public:
                 {
                         return false;
                 }
-
+		if(left->GetDataType()!=Integer || left->GetDataType()!=Float || right->GetDataType()!=Integer ||  right->GetDataType()!=Float)
+		{
+			errstack->PushFrame(0, "Relation expression expect numeric input.");
+                        return false;
+		}
                 this->SetDataType(Boolean);
                 return true;
         }
@@ -172,7 +176,11 @@ public:
                 {
                         return false;
                 }
-
+		if(left->GetDataType()!=Boolean || right->GetDataType()!=Boolean)
+		{
+			errstack->PushFrame(0, "Logical expression expect input of boolean type.");
+                        return false;
+		}
                 this->SetDataType(Boolean);
                 return true;
         }
