@@ -1,0 +1,5 @@
+def a as collection;
+a=[];
+print a,NL;
+
+

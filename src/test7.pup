@@ -3,8 +3,7 @@ def b as float;
 def c as integer;
 
 a=10;
-b=0.123;
-c=1;
+b=a;
 
-print a*(b+c);
+print a,b,NL;
 

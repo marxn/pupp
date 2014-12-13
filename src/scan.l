@@ -21,7 +21,7 @@ digit      [0-9]
 integer    -?{digit}+
 float      -?(({digit}*\.{digit}+)|({digit}+\.{digit}*))
 string     '(\\.|''|[^'\n])*'
-self       [-+\*\/();\:\=\#\&\{\}\<\>,]
+self       [-+\*\/();\:\=\#\&\{\}\[\]\<\>,]
 space      [ \t\r\f\n]
 identifier [a-zA-Z]+[0-9]*
 
@@ -96,6 +96,8 @@ identifier [a-zA-Z]+[0-9]*
 					return TYPE_STRING;
 				if(strcasecmp(yytext,"boolean")==0)
 					return TYPE_BOOLEAN;
+				if(strcasecmp(yytext,"collection")==0)
+                                        return TYPE_SET;
 				if(strcasecmp(yytext,"print")==0)
 					return PRINT;
 				if(strcasecmp(yytext, "sleep")==0)

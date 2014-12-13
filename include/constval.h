@@ -1,6 +1,7 @@
 #ifndef _CONSTVAL_H_
 #define _CONSTVAL_H_
 
+#include <map>
 #include <string>
 #include <stdio.h>
 #include "puppybase.h"
@@ -9,7 +10,7 @@ using namespace std;
 
 enum DataType
 {
-        UnknownDataType = 0, Integer, Float, Boolean, String, DataTypeSize
+        UnknownDataType = 0, Integer, Float, Boolean, String, Set, DataTypeSize
 };
 
 class ConstValue: public PuppyObject
@@ -17,6 +18,7 @@ class ConstValue: public PuppyObject
 public:
 	ConstValue():Type(UnknownDataType){}
 	ConstValue(DataType type):Type(type){}
+	virtual ~ConstValue(){}
 	virtual ConstValue * DupValue() = 0;
 	DataType GetType() {return this->Type;}
 	virtual string toString() = 0;
@@ -106,6 +108,67 @@ public:
 
 protected:
 	string Value;
+};
+
+class SetValue: public ConstValue
+{
+public:
+        SetValue():ConstValue(Set){}
+        SetValue(map<string, ConstValue*>& value):ConstValue(Set)
+	{
+		map<string, ConstValue*>::iterator i;
+		for(i=value.begin();i!=value.end();i++)
+		{
+			this->Value.insert(pair<string, ConstValue*>(i->first, i->second->DupValue()));
+		}
+	}
+	~SetValue()
+	{
+		map<string, ConstValue*>::iterator i;
+                for(i=this->Value.begin();i!=this->Value.end();i++)
+                {
+			delete i->second;
+                }
+	}
+	void AddKV(string key, ConstValue * value)
+	{
+        	if(this->Value.find(key)!=this->Value.end())
+                {
+                        this->Value.erase(key);
+                }
+                this->Value.insert(pair<string, ConstValue*>(key, value));
+	}
+	ConstValue * DupValue()
+        {
+                return new SetValue(this->Value);
+        }
+
+        string toString()
+        {
+		string ret="[";
+		map<string, ConstValue*>::iterator i;
+		for(i=this->Value.begin(); i!=this->Value.end(); i++)
+		{
+			ret.append("<");
+			ret.append(i->first);
+			ret.append(",");
+			if((*i).second->GetType()==String)
+			{
+				ret.append("'");
+			}
+			ret.append(i->second->toString());
+			if((*i).second->GetType()==String)
+                        {
+                                ret.append("'");
+                        }
+			ret.append(">");
+		}
+		ret.append("]");
+                return ret;
+        }
+
+protected:
+        map<string, ConstValue*> Value;
 };
 
 class Operation

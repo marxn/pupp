@@ -12,7 +12,6 @@ class StatementNode :public Node
 public:
 	StatementNode(){}
 	~StatementNode(){}
-	void Swipe(){}
 };
 
 class BreakStatement: public StatementNode
@@ -30,6 +29,7 @@ public:
 	{
 		return true;
         }
+	void Swipe(){}
 };
 
 class ContinueStatement: public StatementNode
@@ -45,6 +45,7 @@ public:
         {
 		return true;
         }
+	void Swipe(){}
 };
 
 class AssignStatement: public StatementNode
@@ -99,12 +100,12 @@ public:
 			errstack->PushFrame(0, "Transform expression falied.");
 			return false;
 		}
-		/*
+		
 		if(this->Expr->GetDataType()!=this->Var->GetType())
 		{
 			errstack->PushFrame(0,"Datatype mismatch for "+this->VarName);
 			return false;
-		}*/
+		}
 		return true;
         }
 private:
@@ -160,6 +161,7 @@ public:
                 }
 		return true;
         }
+	void Swipe(){}
 private:
         list<Identifier*> * IdentList;
         DataType VarType;
@@ -213,7 +215,7 @@ public:
         void Invoke()
         {
 		IntegerValue * value = static_cast<IntegerValue*>(this->Expr->GetValue());
-		sleep(value->GetValue());
+		usleep(value->GetValue());
         }
 	void Swipe()
 	{

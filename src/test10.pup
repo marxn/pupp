@@ -1,3 +1,12 @@
-print true and 2.1; 
+def a as collection;
+def i as integer;
+
+while(true)
+{
+	a = [<1,2>,<3,true>,<4,'abc'>,<5,i>];
+	print a,NL;
+	i=i+1;
+	sleep 10000;
+}
 
 

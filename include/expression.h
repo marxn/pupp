@@ -57,27 +57,11 @@ protected:
 	DataType ExpDataType;
 	ExpType ExpressType;
 };
-/*
-class UnaryExpression: public Expression
-{
-public:
-	UnaryExpression(Expression * expr):data(expr){}
-	void TransformExpr()
-	{
-		data->SetParentNode(this->ParentNode);
-		data->TransformExpr();
-	}
-	~UnaryExpression()
-	{
-	}
-protected:
-	Expression * data;
-};
-*/
+
 class BinaryExpression: public Expression
 {
 public:
-	BinaryExpression(Expression * arg1, Expression * arg2):left(arg1),right(arg2){}
+	BinaryExpression(Expression * arg1, Expression * arg2):left(arg1),right(arg2),intermediate(NULL){}
 	~BinaryExpression(){}
 	
 	void Swipe()
@@ -97,12 +81,10 @@ public:
 
 		if(left->Transform(errstack)==false)
 		{
-			errstack->PushFrame(0, "Transform left failed.");
 			return false;
 		}
 		if(right->Transform(errstack)==false)
 		{
-			errstack->PushFrame(0, "Transform right failed.");
                         return false;
 		}
 
@@ -122,6 +104,94 @@ protected:
 	Expression * left;
 	Expression * right;
 	ConstValue * intermediate;
+};
+
+class KVExpression: public BinaryExpression
+{
+public:
+	KVExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2), tempkey(NULL){}
+	bool Transform(ErrorStack * errstack)
+	{
+		if(BinaryExpression::Transform(errstack)==false)
+                {
+                        return false;
+                }
+		this->SetDataType(right->GetDataType());
+		return true;
+	}
+	void Swipe()
+	{
+		BinaryExpression::Swipe();
+		if(this->tempkey)
+                {
+                        delete this->tempkey;
+                        this->tempkey = NULL;
+                }
+	}
+
+	ConstValue * GetKey()
+	{
+		this->tempkey = this->left->GetValue()->DupValue();
+		return this->tempkey;
+	}
+	ConstValue * GetValue()
+	{
+		this->intermediate = this->right->GetValue()->DupValue();
+		return this->intermediate;
+	}
+private:
+	ConstValue * tempkey;
+};
+
+class SetExpression: public Expression
+{
+public:
+	SetExpression(list<KVExpression*> * exp):kvexprlist(exp){}
+	ConstValue * GetValue()
+	{
+		this->tempvalue = new SetValue;
+                
+		list<KVExpression*>::iterator i;
+                for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
+                {
+                        string key = (*i)->GetKey()->toString();
+                        ConstValue * value = (*i)->GetValue()->DupValue();
+			this->tempvalue->AddKV(key, value);
+                }
+
+		return this->tempvalue;
+	}
+	bool Transform(ErrorStack * errstack)
+	{
+		list<KVExpression*>::iterator i;
+		for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
+		{
+			(*i)->SetParentNode(this->ParentNode);
+			if((*i)->Transform(errstack)!=true)
+			{
+				return false;
+			}
+		}
+		this->SetDataType(Set);
+		return true;
+	}
+	void Swipe()
+	{
+		list<KVExpression*>::iterator i;
+                for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
+                {
+                        (*i)->Swipe();
+                }
+
+		if(this->tempvalue)
+                {
+                        delete this->tempvalue;
+                        this->tempvalue = NULL;
+                }
+	}
+private:
+	SetValue * tempvalue;
+	list<KVExpression*> * kvexprlist;
 };
 
 class ArithmeticExpression: public BinaryExpression
@@ -156,7 +226,7 @@ public:
                 {
                         return false;
                 }
-		if(left->GetDataType()!=Integer || left->GetDataType()!=Float || right->GetDataType()!=Integer ||  right->GetDataType()!=Float)
+		if(left->GetDataType()!=Integer && left->GetDataType()!=Float || right->GetDataType()!=Integer &&  right->GetDataType()!=Float)
 		{
 			errstack->PushFrame(0, "Relation expression expect numeric input.");
                         return false;
@@ -247,8 +317,6 @@ public:
 		this->intermediate = Operation::AddOperation(left->GetValue(), right->GetValue());
 		return this->intermediate;
 	}
-private:
-	ConstValue * Result;
 };
 
 class SubtractExpression: public ArithmeticExpression

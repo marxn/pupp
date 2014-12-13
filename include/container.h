@@ -15,10 +15,7 @@ class ContainerNode :public Node
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                 (*i)->Execute();
                 }
-		void Swipe()
-		{
-		}
-
+		void Swipe(){}
                 void SetNodeList(list<Node*> * nodelist)
                 {
                         subnodelist = nodelist;
