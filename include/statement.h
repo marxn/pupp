@@ -1,6 +1,7 @@
 #ifndef _STATEMENT_H_
 #define _STATEMENT_H_
 
+#include <unistd.h>
 #include <iostream>
 #include "node.h"
 #include "expression.h"
@@ -154,6 +155,9 @@ public:
 					break;
 					case Boolean:
 					var->SetValue(new BooleanValue(false));
+					break;
+					case Set:
+					var->SetValue(new SetValue());
 					break;
 				}
                                 parent->AddVariable(var);
