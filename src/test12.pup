@@ -1,0 +1,9 @@
+def a as string;
+a='123456789';
+while(true)
+{
+	print <a,1>,<a,2>,NL;
+	sleep 10000;
+}
+
+

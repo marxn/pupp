@@ -1,5 +1,15 @@
-def a as collection;
-a=[];
-print a,NL;
+//def a,b as collection;
+def a as string;
+
+//a=[<1,2>,<3,4>];
+a='1234567890';
+
+while(true)
+{
+	print [<a,a>,<a,2>],NL;
+	sleep 1000;
+}
+
+
 
 

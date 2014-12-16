@@ -10,7 +10,7 @@ using namespace std;
 
 enum DataType
 {
-        UnknownDataType = 0, Integer, Float, Boolean, String, Set, DataTypeSize
+        UnknownDataType = 0, Integer, Float, Boolean, String, KeyValue, Set, DataTypeSize
 };
 
 class ConstValue: public PuppyObject
@@ -110,6 +110,30 @@ protected:
 	string Value;
 };
 
+class KVValue: public ConstValue
+{
+public:
+	KVValue():ConstValue(KeyValue){}
+	KVValue(pair<ConstValue*, ConstValue*> kv):Value(kv), ConstValue(KeyValue){}
+	ConstValue * DupValue()
+        {
+                return new KVValue(this->Value);
+        }
+
+        pair<ConstValue*, ConstValue*> GetValue() {return this->Value;}
+        string toString()
+        {
+		string ret = "<";
+		ret.append(this->Value.first->toString());
+		ret.append(",");
+		ret.append(this->Value.second->toString());
+		ret.append(">");
+                return ret;
+        }
+protected:
+	pair<ConstValue*, ConstValue*> Value;
+};
+
 class SetValue: public ConstValue
 {
 public:
@@ -129,14 +153,19 @@ public:
                 {
 			delete i->second;
                 }
+		this->Value.clear();
 	}
-	void AddKV(string key, ConstValue * value)
+	void AddKV(KVValue * kv)
 	{
-        	if(this->Value.find(key)!=this->Value.end())
+		string key = kv->GetValue().first->toString();
+		map<string, ConstValue*>::iterator i = this->Value.find(key);
+
+        	if(i!=this->Value.end())
                 {
+			delete i->second;	
                         this->Value.erase(key);
                 }
-                this->Value.insert(pair<string, ConstValue*>(key, value));
+                this->Value.insert(pair<string, ConstValue*>(key, kv->GetValue().second->DupValue()));
 	}
 	ConstValue * DupValue()
         {

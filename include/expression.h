@@ -109,7 +109,7 @@ protected:
 class KVExpression: public BinaryExpression
 {
 public:
-	KVExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2), tempkey(NULL){}
+	KVExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2), left_store(NULL), right_store(NULL){}
 	bool Transform(ErrorStack * errstack)
 	{
 		if(BinaryExpression::Transform(errstack)==false)
@@ -119,28 +119,24 @@ public:
 		this->SetDataType(right->GetDataType());
 		return true;
 	}
+
+	ConstValue * GetValue()
+	{
+		this->left_store = this->left->GetValue()->DupValue();
+		this->right_store = this->right->GetValue()->DupValue();
+		this->intermediate = new KVValue(pair<ConstValue*, ConstValue*>(this->left_store, this->right_store));
+		return this->intermediate;
+	}
+
 	void Swipe()
 	{
 		BinaryExpression::Swipe();
-		if(this->tempkey)
-                {
-                        delete this->tempkey;
-                        this->tempkey = NULL;
-                }
-	}
-
-	ConstValue * GetKey()
-	{
-		this->tempkey = this->left->GetValue()->DupValue();
-		return this->tempkey;
-	}
-	ConstValue * GetValue()
-	{
-		this->intermediate = this->right->GetValue()->DupValue();
-		return this->intermediate;
+		delete this->left_store;
+		delete this->right_store;
 	}
 private:
-	ConstValue * tempkey;
+	ConstValue * left_store;
+	ConstValue * right_store;
 };
 
 class SetExpression: public Expression
@@ -149,16 +145,16 @@ public:
 	SetExpression(list<KVExpression*> * exp):kvexprlist(exp){}
 	ConstValue * GetValue()
 	{
-		this->tempvalue = new SetValue;
+		SetValue * invoker = new SetValue;
                 
 		list<KVExpression*>::iterator i;
                 for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
                 {
-                        string key = (*i)->GetKey()->toString();
-                        ConstValue * value = (*i)->GetValue()->DupValue();
-			this->tempvalue->AddKV(key, value);
+			KVValue * kv = static_cast<KVValue*>((*i)->GetValue());
+			invoker->AddKV(kv);
                 }
 
+		this->tempvalue = static_cast<ConstValue*>(invoker);
 		return this->tempvalue;
 	}
 	bool Transform(ErrorStack * errstack)
@@ -190,7 +186,7 @@ public:
                 }
 	}
 private:
-	SetValue * tempvalue;
+	ConstValue * tempvalue;
 	list<KVExpression*> * kvexprlist;
 };
 
