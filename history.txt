@@ -1,3 +1,8 @@
+Dec 19th 2014
+---------------------------
+1. Implement offset operation.
+
+
 Dec 16th 2014
 ---------------------------
 1. Fix memory leak problem occures in collection operation.
