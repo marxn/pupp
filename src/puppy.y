@@ -77,6 +77,7 @@
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
+%type  <puppy_statement> object_statement
 
 %%
 
@@ -138,6 +139,10 @@ simple_node:
 			$$ = $1;
 		}
 	| print_statement
+		{
+			$$ = $1;
+		}
+	| object_statement
 		{
 			$$ = $1;
 		}
@@ -252,6 +257,15 @@ sleep_statement:
 			stmt->SetExpression($2);
 			$$ = stmt;
 		}
+	;
+
+object_statement:
+	variable '.' IDENTIFIER expr_list
+		{
+			ObjectStatement * stmt = new ObjectStatement($1, $3, $4);
+			$$ = static_cast<StatementNode*>(stmt);
+		}
+	;
 
 expr_list:
 	expr_list ',' expr

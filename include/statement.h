@@ -248,5 +248,51 @@ private:
 	Expression * Expr;
 };
 
+class ObjectStatement: public StatementNode
+{
+public:
+	ObjectStatement(string * objname, Identifier * method_name, list<Expression*> * expr_list): ObjName(*objname), ExprList(expr_list)
+	{
+		this->MethodName = method_name->GetName();
+	}
+	void Invoke()
+	{
+		//this->FindMethodMapping(this->ObjName, this->MethodName);
+	}
+	void Swipe()
+	{
+		list<Expression*>::iterator i;
+                for(i = ExprList->begin(); i!= ExprList->end(); i++)
+                {
+                        (*i)->Swipe();
+                }
+	}
+	bool Transform(ErrorStack * errstack)
+	{
+		list<Expression*>::iterator i;
+                for(i = ExprList->begin(); i!= ExprList->end(); i++)
+                {
+                        (*i)->SetParentNode(this->GetParentNode());
+                        if((*i)->Transform(errstack)==false)
+                        {
+                                errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
+                                return false;
+                        }
+                }
+
+		Variable * var = this->FindVariable(this->ObjName);
+                if(var==NULL)
+                {
+                        errstack->PushFrame(0, "Object "+this->ObjName+" not defined");
+                        return false;
+                }
+
+                return true;
+	}
+private:
+	list<Expression*> * ExprList;
+	string ObjName;
+	string MethodName;
+};
 #endif
 
