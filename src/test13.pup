@@ -1,0 +1,8 @@
+while(true)
+{
+	def a as collection;
+	a = {<1,2>,<3,<'4',5>>};
+	print a[3],NL;
+	sleep 1000;
+}
+

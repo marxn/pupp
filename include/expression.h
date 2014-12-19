@@ -58,6 +58,27 @@ protected:
 	ExpType ExpressType;
 };
 
+class ConstValueExpression: public Expression
+{
+public:
+        ConstValueExpression():Value(NULL),Expression(ConstExp){}
+        ConstValueExpression(ConstValue * value):Value(value),Expression(ConstExp){}
+        ~ConstValueExpression()
+        {
+        }
+        ConstValue * GetValue()
+        {
+                return Value;
+        }
+        bool Transform(ErrorStack * errstack)
+        {
+                this->SetDataType(this->Value->GetType());
+                return true;
+        }
+private:
+        ConstValue * Value;
+};
+
 class BinaryExpression: public Expression
 {
 public:
@@ -116,7 +137,7 @@ public:
                 {
                         return false;
                 }
-		this->SetDataType(right->GetDataType());
+		this->SetDataType(KeyValue);
 		return true;
 	}
 
@@ -142,7 +163,7 @@ private:
 class SetExpression: public Expression
 {
 public:
-	SetExpression(list<KVExpression*> * exp):kvexprlist(exp){}
+	SetExpression(list<Expression*> * exp):exprlist(exp){}
 	ConstValue * GetValue()
 	{
 		SetValue * invoker = new SetValue;
@@ -159,6 +180,33 @@ public:
 	}
 	bool Transform(ErrorStack * errstack)
 	{
+		if(this->exprlist!=NULL)
+		{
+			long index = 0;
+			this->kvexprlist = new list<KVExpression*>;
+
+			list<Expression*>::iterator i;
+	                for(i = this->exprlist->begin(); i!=this->exprlist->end(); i++)
+                	{
+				(*i)->SetParentNode(this->ParentNode);
+        	                if((*i)->Transform(errstack)!=true)
+	                        {
+                                	return false;
+                        	}
+				if((*i)->GetDataType()==KeyValue)
+				{
+					this->kvexprlist->push_back(static_cast<KVExpression*>(*i));
+				}
+				else
+				{
+					IntegerValue * key = new IntegerValue(index);
+					KVExpression * kve = new KVExpression(new ConstValueExpression(key), *i);
+					this->kvexprlist->push_back(kve);
+					index++;
+				}
+			}
+		}
+
 		list<KVExpression*>::iterator i;
 		for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
 		{
@@ -188,6 +236,49 @@ public:
 private:
 	ConstValue * tempvalue;
 	list<KVExpression*> * kvexprlist;
+	list<Expression*> * exprlist;
+};
+
+class OffsetExpression: public BinaryExpression
+{
+public:
+	OffsetExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+        bool Transform(ErrorStack * errstack)
+        {
+                if(BinaryExpression::Transform(errstack)==false)
+                {
+                        return false;
+                }
+		if(this->left->GetDataType()!=Set)
+		{
+			errstack->PushFrame(0, "Expect a collection to the left of '['.");
+                        return false;
+		}
+                this->SetDataType(Offset);
+                return true;
+        }
+
+        ConstValue * GetValue()
+        {
+		SetValue * collection = static_cast<SetValue*>(this->left->GetValue());
+		string key = this->right->GetValue()->toString();
+
+                this->intermediate = collection->FindByKey(key);
+		if(this->intermediate == NULL)
+		{
+			this->intermediate = new StringValue("");
+		}
+		else
+		{
+			this->intermediate = this->intermediate->DupValue();
+		}
+                return this->intermediate;
+        }
+
+        void Swipe()
+        {
+                BinaryExpression::Swipe();
+        }
 };
 
 class ArithmeticExpression: public BinaryExpression
@@ -250,27 +341,6 @@ public:
                 this->SetDataType(Boolean);
                 return true;
         }
-};
-
-class ConstValueExpression: public Expression
-{
-public:
-	ConstValueExpression():Value(NULL),Expression(ConstExp){}
-	ConstValueExpression(ConstValue * value):Value(value),Expression(ConstExp){}
-	~ConstValueExpression()
-	{
-	}
-	ConstValue * GetValue()
-	{
-		return Value;
-	}
-	bool Transform(ErrorStack * errstack)
-	{
-		this->SetDataType(this->Value->GetType());
-		return true;
-	}
-private:
-	ConstValue * Value;
 };
 
 class VarExpression: public Expression

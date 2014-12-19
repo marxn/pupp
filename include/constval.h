@@ -10,7 +10,7 @@ using namespace std;
 
 enum DataType
 {
-        UnknownDataType = 0, Integer, Float, Boolean, String, KeyValue, Set, DataTypeSize
+        UnknownDataType = 0, Integer, Float, Boolean, String, KeyValue, Set, Offset, DataTypeSize
 };
 
 class ConstValue: public PuppyObject
@@ -114,7 +114,16 @@ class KVValue: public ConstValue
 {
 public:
 	KVValue():ConstValue(KeyValue){}
-	KVValue(pair<ConstValue*, ConstValue*> kv):Value(kv), ConstValue(KeyValue){}
+	KVValue(pair<ConstValue*, ConstValue*> kv):ConstValue(KeyValue)
+	{
+		this->Value.first = kv.first->DupValue();
+		this->Value.second = kv.second->DupValue();
+	}
+	~KVValue()
+	{
+		delete this->Value.first;
+		delete this->Value.second;
+	}
 	ConstValue * DupValue()
         {
                 return new KVValue(this->Value);
@@ -123,10 +132,18 @@ public:
         pair<ConstValue*, ConstValue*> GetValue() {return this->Value;}
         string toString()
         {
-		string ret = "<";
+		string ret = "<'";
 		ret.append(this->Value.first->toString());
-		ret.append(",");
+		ret.append("',");
+		if(Value.second->GetType()==String)
+		{
+			ret.append("'");
+		}
 		ret.append(this->Value.second->toString());
+		if(Value.second->GetType()==String)
+                {
+                        ret.append("'");
+                }
 		ret.append(">");
                 return ret;
         }
@@ -167,6 +184,16 @@ public:
                 }
                 this->Value.insert(pair<string, ConstValue*>(key, kv->GetValue().second->DupValue()));
 	}
+	void RemoveKV(string key)
+	{
+		this->Value.erase(key);
+	}
+
+	ConstValue * FindByKey(string key)
+	{
+		return this->Value[key];
+	}
+	
 	ConstValue * DupValue()
         {
                 return new SetValue(this->Value);
@@ -174,13 +201,13 @@ public:
 
         string toString()
         {
-		string ret="[";
+		string ret="{";
 		map<string, ConstValue*>::iterator i;
 		for(i=this->Value.begin(); i!=this->Value.end(); i++)
 		{
-			ret.append("<");
+			ret.append("<'");
 			ret.append(i->first);
-			ret.append(",");
+			ret.append("',");
 			if((*i).second->GetType()==String)
 			{
 				ret.append("'");
@@ -192,7 +219,7 @@ public:
                         }
 			ret.append(">");
 		}
-		ret.append("]");
+		ret.append("}");
                 return ret;
         }
 

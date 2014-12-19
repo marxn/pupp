@@ -33,12 +33,12 @@
 	LogicalExpression           * puppy_logicalexpr;
 	KVExpression                * puppy_kvexpr;
 	SetExpression               * puppy_setexpr;
+	OffsetExpression            * puppy_offsetexpr;
         Identifier                  * puppy_ident;
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
 	list<Identifier*>           * puppy_identlist;
 	list<Expression*>           * puppy_exprlist;
-	list<KVExpression*>         * puppy_kvexprlist;
 	StatementNode               * puppy_statement;
 }
 
@@ -69,11 +69,11 @@
 %type  <puppy_logicalexpr> logical_expr
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
+%type  <puppy_offsetexpr> offset_expr
 %type  <puppy_node>  program_node simple_node loop_node branch_node
 %type  <puppy_nodelist>  optional_else_list node_list final_block
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
-%type  <puppy_kvexprlist> kvexpr_list
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
@@ -231,7 +231,7 @@ vardefstatement:
 			$$ = stmt;
 		}
 	;
-	
+
 identifier_list:
 	identifier_list ',' IDENTIFIER
 		{
@@ -264,6 +264,11 @@ expr_list:
 			$$ = new list<Expression*>;
 			$$->push_back($1);
 		}
+	|
+		{
+			$$ = new list<Expression*>;
+		}
+	;
 
 print_statement:
 	PRINT expr_list
@@ -309,25 +314,8 @@ const_value:
 		}
 	;
 
-kvexpr_list:
-	kvexpr_list ',' kvexpr
-		{
-			$1->push_back($3);
-			$$ = $1;
-		}
-	| kvexpr
-		{
-			$$ = new list<KVExpression*>;
-                        $$->push_back($1);
-		}
-	|
-		{
-			$$ = new list<KVExpression*>;
-		}
-	;
-
 set_expr:
-    '[' kvexpr_list ']'
+    '{' expr_list '}'
 		{
 			$$ = new SetExpression($2);
 		}
@@ -400,6 +388,15 @@ kvexpr:
 			$$ = static_cast<KVExpression*>(new KVExpression($2,$4));
 		}
     ;
+
+offset_expr:
+    variable '[' expr ']' 
+		{
+			VarExpression * var = new VarExpression($1);
+			$$ = static_cast<OffsetExpression*>(new OffsetExpression(var,$3));
+		}
+    ;
+
 expr:
     symbolic_constant
 		{
@@ -430,6 +427,10 @@ expr:
 			$$ = static_cast<Expression*>($1);
 		}
     | set_expr
+		{
+			$$ = static_cast<Expression*>($1);
+		}
+    | offset_expr
 		{
 			$$ = static_cast<Expression*>($1);
 		}
