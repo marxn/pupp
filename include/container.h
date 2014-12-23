@@ -41,8 +41,14 @@ class ContainerNode :public Node
 class LoopNode :public ContainerNode
 {
         public:
+		virtual void PreLoopStatement() = 0;
+		virtual void PerOnceStatement() = 0;
+
                 void Invoke()
                 {
+			cerr<<"starting loop..."<<endl;
+			this->PreLoopStatement();
+
                         bool localctl = true;
                         while(localctl && Evaluate())
                         {
@@ -54,14 +60,17 @@ class LoopNode :public ContainerNode
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                 {
                                         (*i)->Execute();
-                                         if(this->GetNeedBreak())
-                                         {
-                                                 localctl = false;
+                                        if(this->GetNeedBreak())
+                                        {
+                                                localctl = false;
+                                                break;
+                                        }
+                                        if(this->GetNeedContinue())
+					{
                                                  break;
-                                         }
-                                         if(this->GetNeedContinue())
-                                                 break;
+					}
                                 }
+				this->PerOnceStatement();
                         }
                 }
                 void SetCondition(Expression * condition)
@@ -70,15 +79,14 @@ class LoopNode :public ContainerNode
                 }
                 bool Transform(ErrorStack * errstack)
                 {
+			cerr<<"transforming...."<<endl;
                         if(ContainerNode::Transform(errstack)==false)
 			{
-				//errstack->PushFrame(0, "LoopNode transform failed - step 1");
 				return false;
 			}
                         condition->SetParentNode(this->GetParentNode());
                         if(condition->Transform(errstack)==false)
 			{
-				//errstack->PushFrame(0, "LoopNode transform failed - step 2");
                                 return false;
 			}
 			if(condition->GetDataType()!=Boolean)
@@ -98,6 +106,57 @@ class LoopNode :public ContainerNode
                 Expression * condition;
 };
 
+class WhileLoopNode: public LoopNode
+{
+public:
+	void PreLoopStatement(){}
+	void PerOnceStatement(){}
+};
+
+class ForLoopNode: public LoopNode
+{
+public:
+	void SetPreLoopStatement(Node * preloop)
+	{
+		this->PreLoop = preloop;
+	}
+	void SetPerOnceStatement(Node * peronce)
+	{
+		this->PerOnce = peronce;
+	}
+	void PreLoopStatement()
+	{
+		this->PreLoop->Execute();
+	}
+        void PerOnceStatement()
+	{
+		this->PerOnce->Execute();
+	}
+	bool Transform(ErrorStack * errstack)
+	{
+		if(LoopNode::Transform(errstack)!=true)
+		{
+			return false;
+		}
+
+		this->PreLoop->SetParentNode(this->GetParentNode());
+		if(this->PreLoop->Transform(errstack)!=true)
+		{
+			errstack->PushFrame(0, "Cannot identify pre-loop statement");
+			return false;
+		}
+
+		this->PerOnce->SetParentNode(this->GetParentNode());
+		if(this->PerOnce->Transform(errstack)!=true)
+                {
+			errstack->PushFrame(0, "Cannot identify per-once statement");
+                        return false;
+                }
+	}
+private:
+	Node * PreLoop;
+	Node * PerOnce;
+};
 
 class BranchNode :public ContainerNode
 {

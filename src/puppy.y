@@ -58,7 +58,7 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
-%token DEF IF ELSE WHILE BREAK CONTINUE AS PRINT SLEEP
+%token DEF IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
 %token AND OR NOT
 %token NL PI
 
@@ -70,7 +70,7 @@
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
 %type  <puppy_offsetexpr> offset_expr
-%type  <puppy_node>  program_node simple_node loop_node branch_node
+%type  <puppy_node>  program_node simple_node loop_node while_loop for_loop branch_node
 %type  <puppy_nodelist>  optional_else_list node_list final_block
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
@@ -148,15 +148,37 @@ simple_node:
 		}
     ;
 
-loop_node:
+while_loop:
 	WHILE '(' expr ')' '{' node_list '}'
+                {
+                        WhileLoopNode * node = new WhileLoopNode;
+
+                        node->SetCondition($3);
+                        node->SetNodeList($6);
+
+                        $$ = static_cast<Node*>(node);
+                }
+	;
+
+for_loop:
+	FOR simple_node ';' expr ';' simple_node DO '{' node_list '}'
+                {
+			ForLoopNode * node = new ForLoopNode;
+			node->SetPreLoopStatement($2);
+			node->SetCondition($4);
+			node->SetPerOnceStatement($6);
+			node->SetNodeList($9);
+			$$ = static_cast<Node*>(node);
+                }
+	;
+loop_node:
+	while_loop
 		{
-			LoopNode * node = new LoopNode;
-			
-			node->SetCondition($3);
-			node->SetNodeList($6);
-			
-			$$ = (Node *)node;
+			$$ = $1;
+		}
+	| for_loop
+		{
+			$$ = $1;
 		}
 	;
 
@@ -168,7 +190,8 @@ optional_else_list:
 	| /*empty*/
 		{
 			$$ = NULL;
-		};
+		}
+	;
 
 branch_node:
 	IF '(' expr ')' '{' node_list '}' optional_else_list

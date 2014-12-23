@@ -88,6 +88,14 @@ identifier [a-zA-Z]+[0-9]*
 					return DEF;
 				if(strcasecmp(yytext,"as")==0)
 					return AS;
+				if(strcasecmp(yytext,"for")==0)
+                                        return FOR;
+				if(strcasecmp(yytext,"foreach")==0)
+                                        return FOREACH;
+				if(strcasecmp(yytext,"in")==0)
+                                        return IN;
+				if(strcasecmp(yytext,"do")==0)
+                                        return DO;
 				if(strcasecmp(yytext,"integer")==0)
 					return TYPE_INTEGER;
 				if(strcasecmp(yytext,"float")==0)
