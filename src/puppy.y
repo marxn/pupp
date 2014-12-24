@@ -70,7 +70,7 @@
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
 %type  <puppy_offsetexpr> offset_expr
-%type  <puppy_node>  program_node simple_node loop_node while_loop for_loop branch_node
+%type  <puppy_node>  program_node simple_node loop_node while_loop for_loop foreach_loop branch_node
 %type  <puppy_nodelist>  optional_else_list node_list final_block
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
@@ -163,20 +163,49 @@ while_loop:
 for_loop:
 	FOR simple_node ';' expr ';' simple_node DO '{' node_list '}'
                 {
+			list<Node*> * n1 = new list<Node*>;
+			n1->push_back($2);
+
+			list<Node*> * n2 = new list<Node*>;
+                        n2->push_back($6);
+
 			ForLoopNode * node = new ForLoopNode;
-			node->SetPreLoopStatement($2);
+			node->SetPreLoopStatement(n1);
 			node->SetCondition($4);
-			node->SetPerOnceStatement($6);
+			node->SetPerOnceStatement(n2);
 			node->SetNodeList($9);
+
 			$$ = static_cast<Node*>(node);
                 }
 	;
+
+foreach_loop:
+	FOREACH '<' IDENTIFIER ',' IDENTIFIER '>' IN expr DO '{' node_list '}'
+		{
+			ForeachLoopNode * node = new ForeachLoopNode;
+
+			node->SetPreLoopStatement(new list<Node*>);
+			node->SetPerOnceStatement(new list<Node*>);
+
+			node->SetCondition(new ConstValueExpression(new BooleanValue(true)));
+			node->SetKV($3->GetName(), $5->GetName());
+			node->SetCollectionExpr(static_cast<SetExpression*>($8));
+                        node->SetNodeList($11);
+
+                        $$ = static_cast<Node*>(node);
+		}
+	;
+
 loop_node:
 	while_loop
 		{
 			$$ = $1;
 		}
 	| for_loop
+		{
+			$$ = $1;
+		}
+	| foreach_loop
 		{
 			$$ = $1;
 		}

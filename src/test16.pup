@@ -1,0 +1,12 @@
+def a as integer;
+a=0;
+
+while(a<10)
+{
+	def b as integer;
+	b=20;
+	print a,b,NL;
+	a=a+1;
+}
+
+//print b,NL;

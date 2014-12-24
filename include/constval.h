@@ -193,7 +193,10 @@ public:
 	{
 		return this->Value[key];
 	}
-	
+	map<string, ConstValue*> * GetValue()
+	{
+		return &this->Value;
+	}	
 	ConstValue * DupValue()
         {
                 return new SetValue(this->Value);

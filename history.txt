@@ -1,3 +1,9 @@
+Dec 24th 2014
+---------------------------
+1. Implemented FOR statement.
+2. Implemented FOREACH statement.
+
+
 Dec 19th 2014
 ---------------------------
 1. Implement offset operation.
