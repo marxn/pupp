@@ -21,6 +21,3 @@ memorymgr.o: memorymgr.cpp
 clean:
 	rm -rf *.o scan.cpp puppy.cpp puppy puppy.hpp 
 
-test:
-	./puppy ./test7.pup
-
