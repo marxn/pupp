@@ -72,7 +72,7 @@
 %type  <puppy_offsetexpr> offset_expr
 %type  <puppy_node>  program_node simple_node loop_node while_loop for_loop foreach_loop branch_node
 %type  <puppy_nodelist>  optional_else_list node_list final_block
-%type  <puppy_identlist> identifier_list
+%type  <puppy_identlist> identifier_list qualified_object
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
@@ -311,11 +311,24 @@ sleep_statement:
 		}
 	;
 
-object_statement:
-	variable '.' IDENTIFIER expr_list
+qualified_object:
+	qualified_object '.' IDENTIFIER
 		{
-			ObjectStatement * stmt = new ObjectStatement($1, $3, $4);
-			$$ = static_cast<StatementNode*>(stmt);
+			$1->push_back($3);
+                        $$ = $1;
+		}
+	| IDENTIFIER
+		{
+			$$ = new list<Identifier*>;
+                        $$->push_back($1);
+		}
+	;
+
+object_statement:
+	qualified_object expr_list
+		{
+			//ObjectStatement * stmt = new ObjectStatement($1, $3, $4);
+			//$$ = static_cast<StatementNode*>(stmt);
 		}
 	;
 

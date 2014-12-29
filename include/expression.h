@@ -14,29 +14,16 @@
 
 using namespace std;
 
-enum ExpType {UnknownExpType, ConstExp, VarExp, MixedExp};
-
 class Expression: public PuppyObject
 {
 public:
-	Expression():ExpressType(UnknownExpType), ExpDataType(UnknownDataType)
-	{
-	}
-	Expression(ExpType type):ExpressType(type), ExpDataType(UnknownDataType)
+	Expression(): ExpDataType(UnknownDataType)
 	{
 	}
 	virtual ~Expression(){}
-	virtual ConstValue * GetValue() = 0;
+	virtual ConstValue * Calculate() = 0;
 	virtual void Swipe(){}
 
-	void SetExpType(ExpType type)
-	{
-		this->ExpressType = type;
-	}
-	ExpType GetExpType()
-	{
-		return this->ExpressType;
-	}
 	void SetDataType(DataType type)
 	{
 		this->ExpDataType = type;
@@ -50,27 +37,26 @@ public:
 		this->ParentNode = node;
 	}
 
-	virtual bool Transform(ErrorStack * errstack) = 0;
+	virtual bool Provision(ErrorStack * errstack) = 0;
 
 protected:
 	Node * ParentNode;
 	DataType ExpDataType;
-	ExpType ExpressType;
 };
 
 class ConstValueExpression: public Expression
 {
 public:
-        ConstValueExpression():Value(NULL),Expression(ConstExp){}
-        ConstValueExpression(ConstValue * value):Value(value),Expression(ConstExp){}
+        ConstValueExpression():Value(NULL){}
+        ConstValueExpression(ConstValue * value):Value(value){}
         ~ConstValueExpression()
         {
         }
-        ConstValue * GetValue()
+        ConstValue * Calculate()
         {
-                return Value;
+                return Value->DupValue();
         }
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
                 this->SetDataType(this->Value->GetType());
                 return true;
@@ -82,40 +68,40 @@ private:
 class BinaryExpression: public Expression
 {
 public:
-	BinaryExpression(Expression * arg1, Expression * arg2):left(arg1),right(arg2),intermediate(NULL){}
-	~BinaryExpression(){}
-	
-	void Swipe()
+	BinaryExpression(Expression * arg1, Expression * arg2):left(arg1),right(arg2)
 	{
-		left->Swipe();
-		right->Swipe();
-		if(this->intermediate)
-		{
-			delete this->intermediate;
-			this->intermediate = NULL;
-		}
 	}
-	bool Transform(ErrorStack * errstack)
+
+	ConstValue * Calculate()
+	{
+		this->left_store = this->left->Calculate();
+                this->right_store = this->right->Calculate();
+
+		ConstValue * result = this->CarryOut();
+
+		delete this->left_store;
+		delete this->right_store;
+
+		this->left_store = NULL;
+		this->right_store = NULL;
+
+		return result;
+	}
+
+	virtual ConstValue * CarryOut() = 0;
+
+	bool Provision(ErrorStack * errstack)
 	{
 		left->SetParentNode(this->ParentNode);
 		right->SetParentNode(this->ParentNode);
 
-		if(left->Transform(errstack)==false)
+		if(left->Provision(errstack)==false)
 		{
 			return false;
 		}
-		if(right->Transform(errstack)==false)
+		if(right->Provision(errstack)==false)
 		{
                         return false;
-		}
-
-		if(left->GetExpType()==VarExp || left->GetExpType()==MixedExp || right->GetExpType()==VarExp || right->GetExpType()==MixedExp)
-                {
-                        this->SetExpType(MixedExp);
-                }
-		else
-		{
-			this->SetExpType(ConstExp);
 		}
 
 		return true;
@@ -124,16 +110,19 @@ public:
 protected:
 	Expression * left;
 	Expression * right;
-	ConstValue * intermediate;
+	ConstValue * left_store;
+	ConstValue * right_store;
 };
 
 class KVExpression: public BinaryExpression
 {
 public:
-	KVExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2), left_store(NULL), right_store(NULL){}
-	bool Transform(ErrorStack * errstack)
+	KVExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2)
 	{
-		if(BinaryExpression::Transform(errstack)==false)
+	}
+	bool Provision(ErrorStack * errstack)
+	{
+		if(BinaryExpression::Provision(errstack)==false)
                 {
                         return false;
                 }
@@ -141,44 +130,31 @@ public:
 		return true;
 	}
 
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->left_store = this->left->GetValue()->DupValue();
-		this->right_store = this->right->GetValue()->DupValue();
-		this->intermediate = new KVValue(pair<ConstValue*, ConstValue*>(this->left_store, this->right_store));
-		return this->intermediate;
+		return new KVValue(pair<ConstValue*, ConstValue*>(this->left_store, this->right_store));
 	}
-
-	void Swipe()
-	{
-		BinaryExpression::Swipe();
-		delete this->left_store;
-		delete this->right_store;
-	}
-private:
-	ConstValue * left_store;
-	ConstValue * right_store;
 };
 
 class SetExpression: public Expression
 {
 public:
 	SetExpression(list<Expression*> * exp):exprlist(exp){}
-	ConstValue * GetValue()
+	ConstValue * Calculate()
 	{
-		SetValue * invoker = new SetValue;
+		SetValue * result = new SetValue;
                 
 		list<KVExpression*>::iterator i;
                 for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
                 {
-			KVValue * kv = static_cast<KVValue*>((*i)->GetValue());
-			invoker->AddKV(kv);
+			KVValue * kv = static_cast<KVValue*>((*i)->Calculate());
+			result->AddKV(kv);
+			delete kv;
                 }
 
-		this->tempvalue = static_cast<ConstValue*>(invoker);
-		return this->tempvalue;
+		return result;
 	}
-	bool Transform(ErrorStack * errstack)
+	bool Provision(ErrorStack * errstack)
 	{
 		if(this->exprlist!=NULL)
 		{
@@ -189,7 +165,7 @@ public:
 	                for(i = this->exprlist->begin(); i!=this->exprlist->end(); i++)
                 	{
 				(*i)->SetParentNode(this->ParentNode);
-        	                if((*i)->Transform(errstack)!=true)
+        	                if((*i)->Provision(errstack)!=true)
 	                        {
                                 	return false;
                         	}
@@ -211,7 +187,7 @@ public:
 		for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
 		{
 			(*i)->SetParentNode(this->ParentNode);
-			if((*i)->Transform(errstack)!=true)
+			if((*i)->Provision(errstack)!=true)
 			{
 				return false;
 			}
@@ -219,22 +195,7 @@ public:
 		this->SetDataType(Set);
 		return true;
 	}
-	void Swipe()
-	{
-		list<KVExpression*>::iterator i;
-                for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
-                {
-                        (*i)->Swipe();
-                }
-
-		if(this->tempvalue)
-                {
-                        delete this->tempvalue;
-                        this->tempvalue = NULL;
-                }
-	}
 private:
-	ConstValue * tempvalue;
 	list<KVExpression*> * kvexprlist;
 	list<Expression*> * exprlist;
 };
@@ -243,9 +204,9 @@ class OffsetExpression: public BinaryExpression
 {
 public:
 	OffsetExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
-                if(BinaryExpression::Transform(errstack)==false)
+                if(BinaryExpression::Provision(errstack)==false)
                 {
                         return false;
                 }
@@ -258,26 +219,22 @@ public:
                 return true;
         }
 
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-		SetValue * collection = static_cast<SetValue*>(this->left->GetValue());
-		string key = this->right->GetValue()->toString();
+		SetValue * collection = static_cast<SetValue*>(this->left_store);
+		ConstValue * key = this->right_store;
 
-                this->intermediate = collection->FindByKey(key);
-		if(this->intermediate == NULL)
+                ConstValue * result = collection->FindByKey(key->toString());
+		if(result == NULL)
 		{
-			this->intermediate = new StringValue("");
+			result = new StringValue("");
 		}
 		else
 		{
-			this->intermediate = this->intermediate->DupValue();
+			result = result->DupValue();
 		}
-                return this->intermediate;
-        }
 
-        void Swipe()
-        {
-                BinaryExpression::Swipe();
+                return result;
         }
 };
 
@@ -285,9 +242,9 @@ class ArithmeticExpression: public BinaryExpression
 {
 public:
 	ArithmeticExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-	bool Transform(ErrorStack * errstack)
+	bool Provision(ErrorStack * errstack)
 	{
-		if(BinaryExpression::Transform(errstack)==false)
+		if(BinaryExpression::Provision(errstack)==false)
 		{
 			return false;
 		}
@@ -307,9 +264,9 @@ class RelationExpression: public BinaryExpression
 {
 public:
 	RelationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
-                if(BinaryExpression::Transform(errstack)==false)
+                if(BinaryExpression::Provision(errstack)==false)
                 {
                         return false;
                 }
@@ -327,9 +284,9 @@ class LogicalExpression: public BinaryExpression
 {
 public:
         LogicalExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
-                if(BinaryExpression::Transform(errstack)==false)
+                if(BinaryExpression::Provision(errstack)==false)
                 {
                         return false;
                 }
@@ -346,10 +303,10 @@ public:
 class VarExpression: public Expression
 {
 public:
-	VarExpression():Var(NULL),Expression(VarExp){}
-	VarExpression(string * varname):VarName(varname),Expression(VarExp){}
+	VarExpression():Var(NULL){}
+	VarExpression(string * varname):VarName(varname){}
 	~VarExpression(){}
-	ConstValue * GetValue()
+	ConstValue * Calculate()
 	{
 		if(this->Var) 
 		{
@@ -357,7 +314,7 @@ public:
 		}
 		return NULL;
 	}
-	bool Transform(ErrorStack * errstack)
+	bool Provision(ErrorStack * errstack)
 	{
 		this->Var = this->ParentNode->FindVariable(*VarName);
 		if(this->Var==NULL)
@@ -378,10 +335,9 @@ class PlusExpression: public ArithmeticExpression
 public:
 	PlusExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~PlusExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::AddOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::AddOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -390,10 +346,9 @@ class SubtractExpression: public ArithmeticExpression
 public:
 	SubtractExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~SubtractExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::SubOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::SubOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -402,10 +357,9 @@ class MultiplicationExpression: public ArithmeticExpression
 public:
 	MultiplicationExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~MultiplicationExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::MulOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::MulOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -414,10 +368,9 @@ class DivisionExpression: public ArithmeticExpression
 public:
 	DivisionExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
 	~DivisionExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::DivOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::DivOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -426,10 +379,9 @@ class GTExpression: public RelationExpression
 public:
 	GTExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
 	~GTExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::GTOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::GTOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -438,10 +390,9 @@ class LTExpression: public RelationExpression
 public:
 	LTExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
 	~LTExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::LTOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::LTOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -450,10 +401,9 @@ class EQExpression: public RelationExpression
 public:
 	EQExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
 	~EQExpression(){}
-	ConstValue * GetValue()
+	ConstValue * CarryOut()
 	{
-		this->intermediate = Operation::EQOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+		return Operation::EQOperation(this->left_store, this->right_store);
 	}
 };
 
@@ -462,10 +412,9 @@ class NEQExpression: public RelationExpression
 public:
         NEQExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
         ~NEQExpression(){}
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-                this->intermediate = Operation::NEQOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+                return Operation::NEQOperation(this->left_store, this->right_store);
         }
 };
 
@@ -474,10 +423,9 @@ class GEExpression: public RelationExpression
 public:
         GEExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
         ~GEExpression(){}
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-                this->intermediate = Operation::GEOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+                return Operation::GEOperation(this->left_store, this->right_store);
         }
 };
 
@@ -486,10 +434,9 @@ class LEExpression: public RelationExpression
 public:
         LEExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
         ~LEExpression(){}
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-                this->intermediate = Operation::LEOperation(left->GetValue(), right->GetValue());
-		return this->intermediate;
+                return Operation::LEOperation(this->left_store, this->right_store);
         }
 };
 
@@ -498,10 +445,9 @@ class ANDExpression: public LogicalExpression
 public:
 	ANDExpression(Expression * arg1, Expression * arg2):LogicalExpression(arg1, arg2){}
         ~ANDExpression(){}
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-                this->intermediate = Operation::ANDOperation(left->GetValue(), right->GetValue());
-                return this->intermediate;
+                return Operation::ANDOperation(this->left_store, this->right_store);
         }
 };
 
@@ -510,10 +456,9 @@ class ORExpression: public LogicalExpression
 public:
         ORExpression(Expression * arg1, Expression * arg2):LogicalExpression(arg1, arg2){}
         ~ORExpression(){}
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-                this->intermediate = Operation::OROperation(left->GetValue(), right->GetValue());
-                return this->intermediate;
+                return Operation::OROperation(this->left_store, this->right_store);
         }
 };
 
@@ -525,10 +470,9 @@ public:
 		this->left = new ConstValueExpression(new BooleanValue(true));
 	}
         ~NOTExpression(){}
-        ConstValue * GetValue()
+        ConstValue * CarryOut()
         {
-                this->intermediate = Operation::NOTOperation(right->GetValue());
-                return this->intermediate;
+                return Operation::NOTOperation(this->right_store);
         }
 };
 

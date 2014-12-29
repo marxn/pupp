@@ -13,6 +13,7 @@ class StatementNode :public Node
 public:
 	StatementNode(){}
 	~StatementNode(){}
+	void Swipe(){}
 };
 
 class BreakStatement: public StatementNode
@@ -26,11 +27,10 @@ public:
                         node->SetNeedBreak(true);
                 }
         }
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
 	{
 		return true;
         }
-	void Swipe(){}
 };
 
 class ContinueStatement: public StatementNode
@@ -42,11 +42,10 @@ public:
                 if(node)
                         node->SetNeedContinue(true);
         }
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
 		return true;
         }
-	void Swipe(){}
 };
 
 class AssignStatement: public StatementNode
@@ -54,21 +53,10 @@ class AssignStatement: public StatementNode
 public:
         void Invoke()
         {
-                if(this->Var)
-                {
-			ConstValue * value = this->Var->GetValue();
-			if(value)
-			{
-				delete value;
-			}
-
-                        this->Var->SetValue(Expr->GetValue()->DupValue());
-                }
+		ConstValue * value = Expr->Calculate();
+		this->Var->SetValue(value);
+		delete value;
         }
-	void Swipe()
-	{
-		this->Expr->Swipe();
-	}
         void SetVariableName(string name)
         {
                 this->VarName = name;
@@ -81,7 +69,7 @@ public:
         {
                 this->Expr = expr;
         }
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
                 this->Var = this->FindVariable(VarName);
                 if(this->Var==NULL)
@@ -96,9 +84,9 @@ public:
                 }
 
 		this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Transform(errstack)==false)
+                if(this->Expr->Provision(errstack)==false)
 		{
-			errstack->PushFrame(0, "Transform expression falied.");
+			errstack->PushFrame(0, "Provision expression falied.");
 			return false;
 		}
 		
@@ -124,7 +112,7 @@ public:
         void Invoke()
         {
         }
-        bool Transform(ErrorStack * errstack)        
+        bool Provision(ErrorStack * errstack)        
 	{
                 list<Identifier*>::iterator i;
                 Node * parent = GetParentNode();
@@ -165,7 +153,6 @@ public:
                 }
 		return true;
         }
-	void Swipe(){}
 private:
         list<Identifier*> * IdentList;
         DataType VarType;
@@ -179,29 +166,24 @@ public:
 		list<Expression*>::iterator i;
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
-	                printf("%s",(*i)->GetValue()->toString().c_str());
+			ConstValue * value = (*i)->Calculate();
+	                printf("%s",value->toString().c_str());
 			fflush(stdout);
+			
+			delete value;
 		}
         }
-	void Swipe()
-	{
-		list<Expression*>::iterator i;
-		for(i = ExprList->begin(); i!= ExprList->end(); i++)
-		{
-			(*i)->Swipe();
-                }
-	}
         void SetExpressionList(list<Expression*> * exprlist)
         {
                 this->ExprList = exprlist;
         }
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
 		list<Expression*>::iterator i;
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
 			(*i)->SetParentNode(this->GetParentNode());
-                	if((*i)->Transform(errstack)==false)
+                	if((*i)->Provision(errstack)==false)
 			{
 				//errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
                         	return false;
@@ -218,21 +200,19 @@ class SleepStatement: public StatementNode
 public:
         void Invoke()
         {
-		IntegerValue * value = static_cast<IntegerValue*>(this->Expr->GetValue());
-		usleep(value->GetValue());
+		ConstValue * value = this->Expr->Calculate();
+		usleep(static_cast<IntegerValue*>(value)->GetValue());
+
+		delete value;
         }
-	void Swipe()
-	{
-		this->Expr->Swipe();
-	}
 	void SetExpression(Expression * expr)
         {
                 this->Expr = expr;
         }
-        bool Transform(ErrorStack * errstack)
+        bool Provision(ErrorStack * errstack)
         {
 		this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Transform(errstack)==false)
+                if(this->Expr->Provision(errstack)==false)
                 {
                         //errstack->PushFrame(0, "SLEEP Statement failed in transforming expression ");
                         return false;
@@ -259,21 +239,13 @@ public:
 	{
 		//this->FindMethodMapping(this->ObjName, this->MethodName);
 	}
-	void Swipe()
-	{
-		list<Expression*>::iterator i;
-                for(i = ExprList->begin(); i!= ExprList->end(); i++)
-                {
-                        (*i)->Swipe();
-                }
-	}
-	bool Transform(ErrorStack * errstack)
+	bool Provision(ErrorStack * errstack)
 	{
 		list<Expression*>::iterator i;
                 for(i = ExprList->begin(); i!= ExprList->end(); i++)
                 {
                         (*i)->SetParentNode(this->GetParentNode());
-                        if((*i)->Transform(errstack)==false)
+                        if((*i)->Provision(errstack)==false)
                         {
                                 errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
                                 return false;

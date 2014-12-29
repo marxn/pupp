@@ -18,8 +18,8 @@ not_equal  "!="|"<>"
 ge_op      ">="
 le_op      "<="
 digit      [0-9]
-integer    -?{digit}+
-float      -?(({digit}*\.{digit}+)|({digit}+\.{digit}*))
+integer    {digit}+
+float      (({digit}*\.{digit}+)|({digit}+\.{digit}*))
 string     '(\\.|''|[^'\n])*'
 self       [-+\*\/();\:\=\#\&\{\}\[\]\<\>\.,]
 space      [ \t\r\f\n]

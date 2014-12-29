@@ -11,11 +11,11 @@ using namespace std;
 class Variable: public PuppyObject
 {
 public:
-	Variable(Identifier * ident):value(NULL), VarType(UnknownDataType)
+	Variable(Identifier * ident):Value(NULL), VarType(UnknownDataType)
 	{
 		this->VarName = ident->GetName();
 	}
-	Variable(string VarName):value(NULL), VarType(UnknownDataType)
+	Variable(string VarName):Value(NULL), VarType(UnknownDataType)
 	{
 		this->VarName = VarName;
 	}
@@ -29,11 +29,15 @@ public:
 	}
 	void SetValue(ConstValue * value)
 	{
-		this->value = value;
+		if(this->Value)
+		{
+			delete this->Value;
+		}
+		this->Value = value->DupValue();
 	}
 	ConstValue * GetValue()
 	{
-		return value;
+		return Value->DupValue();
 	}
 	string GetName()
 	{
@@ -42,7 +46,7 @@ public:
 private:
 	string VarName;
 	DataType VarType;
-	ConstValue * value;
+	ConstValue * Value;
 };
 
 #endif

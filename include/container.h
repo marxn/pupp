@@ -20,13 +20,13 @@ class ContainerNode :public Node
                 {
                         subnodelist = nodelist;
                 }
-                bool Transform(ErrorStack * errstack)
+                bool Provision(ErrorStack * errstack)
                 {
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                         {
                                 (*i)->SetParentNode(this);
-                                if((*i)->Transform(errstack)!=true)
+                                if((*i)->Provision(errstack)!=true)
 				{
 					//errstack->PushFrame(0, "ContainerNode transform failed.");
 					return false;
@@ -76,15 +76,15 @@ class LoopNode :public ContainerNode
                 {
                         this->condition = condition;
                 }
-                bool Transform(ErrorStack * errstack)
+                bool Provision(ErrorStack * errstack)
                 {
-                        if(ContainerNode::Transform(errstack)==false)
+                        if(ContainerNode::Provision(errstack)==false)
 			{
 				errstack->PushFrame(0, "Failed to transform container.");
 				return false;
 			}
                         condition->SetParentNode(this->GetParentNode());
-                        if(condition->Transform(errstack)==false)
+                        if(condition->Provision(errstack)==false)
 			{
 				errstack->PushFrame(0, "Failed to transform condition expression.");
                                 return false;
@@ -99,8 +99,10 @@ class LoopNode :public ContainerNode
         private:
                 virtual bool Evaluate()
                 {
-			bool ret = static_cast<BooleanValue*>(condition->GetValue())->GetValue();
-			condition->Swipe();
+			ConstValue * eva = this->condition->Calculate();
+			bool ret = static_cast<BooleanValue*>(eva)->GetValue();
+			delete eva;
+
                         return ret;;
                 }
                 Expression * condition;
@@ -140,9 +142,9 @@ public:
 			(*i)->Execute();
 		}
 	}
-	bool Transform(ErrorStack * errstack)
+	bool Provision(ErrorStack * errstack)
 	{
-		if(LoopNode::Transform(errstack)!=true)
+		if(LoopNode::Provision(errstack)!=true)
 		{
 			return false;
 		}
@@ -151,7 +153,7 @@ public:
 		for(i=this->PreLoop->begin(); i!= this->PreLoop->end(); i++)
                 {
 			(*i)->SetParentNode(this->GetParentNode());
-                	if((*i)->Transform(errstack)!=true)
+                	if((*i)->Provision(errstack)!=true)
         	        {
 	                        errstack->PushFrame(0, "Cannot identify pre-loop statement");
                         	return false;
@@ -161,7 +163,7 @@ public:
                 for(i=this->PerOnce->begin(); i!= this->PerOnce->end(); i++)
                 {
 			(*i)->SetParentNode(this->GetParentNode());
-			if((*i)->Transform(errstack)!=true)
+			if((*i)->Provision(errstack)!=true)
                 	{
                 	        errstack->PushFrame(0, "Cannot identify per-once statement");
         	                return false;
@@ -183,7 +185,11 @@ class ForeachLoopNode: public ForLoopNode
 public:
 	void PreLoopStatement()
 	{
-		this->Collection = static_cast<SetValue*>(this->CollectionExpr->GetValue())->GetValue();
+		//ugly case: To reduce the memory cost, CollectionKeeper holds the memory 
+		// allocated by CollectionExpr->Calculate(). So it needs to be freed later.
+		this->CollectionKeeper = this->CollectionExpr->Calculate();
+		this->Collection = static_cast<SetValue*>(this->CollectionKeeper)->GetValue();
+
 		this->Handle = this->Collection->begin();
 		
 		if(this->Handle!=this->Collection->end())
@@ -205,27 +211,17 @@ public:
 		Variable * key = this->FindVariable(this->Key);
                 Variable * value = this->FindVariable(this->Value);
 
-                ConstValue * tmpkey = key->GetValue();
-                if(tmpkey!=NULL)
-                {
-                        delete tmpkey;
-                }
-
-                tmpkey = new StringValue(this->Handle->first);
+                ConstValue * tmpkey = new StringValue(this->Handle->first);
                 key->SetValue(tmpkey);
+		delete tmpkey;
 
-                ConstValue * tmpvalue = value->GetValue();
-                if(tmpvalue!=NULL)
-                {
-                        delete tmpvalue;
-                }
-                tmpvalue = this->Handle->second->DupValue();
+                ConstValue * tmpvalue = this->Handle->second;
                 value->SetValue(tmpvalue);
                 value->SetType(tmpvalue->GetType());
 	}
 	void Swipe()
 	{
-		this->CollectionExpr->Swipe();
+		delete this->CollectionKeeper;
 		ForLoopNode::Swipe();
 	}
 	bool Evaluate()
@@ -242,7 +238,7 @@ public:
 		this->Value = value;
 	}
 	
-	bool Transform(ErrorStack * errstack)
+	bool Provision(ErrorStack * errstack)
         {
 		Variable * key = new Variable(this->Key);
                 Variable * value = new Variable(this->Value);
@@ -253,12 +249,12 @@ public:
                 this->AddVariable(key);
                 this->AddVariable(value);
 
-                if(ForLoopNode::Transform(errstack)!=true)
+                if(ForLoopNode::Provision(errstack)!=true)
                 {
                         return false;
                 }
 		CollectionExpr->SetParentNode(this->GetParentNode());
-		if(CollectionExpr->Transform(errstack)==false)
+		if(CollectionExpr->Provision(errstack)==false)
                 {
                         errstack->PushFrame(0, "Failed to transform condition expression.");
                         return false;
@@ -274,6 +270,7 @@ public:
 private:
 	string Key;
 	string Value;
+	ConstValue * CollectionKeeper;
 	SetExpression * CollectionExpr;
 	map<string, ConstValue*> * Collection;
 	map<string, ConstValue*>::iterator Handle;
@@ -306,13 +303,13 @@ class BranchNode :public ContainerNode
                 {
                         this->condition = condition;
                 }
-		bool TransformElseStmt(ErrorStack * errstack)
+		bool ProvisionElseStmt(ErrorStack * errstack)
 		{
 			list<Node*>::iterator i;
                         for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
                         {
                                 (*i)->SetParentNode(this);
-                                if((*i)->Transform(errstack)!=true)
+                                if((*i)->Provision(errstack)!=true)
                                 {
                                         //errstack->PushFrame(0, "BranchNode transform failed.");
                                         return false;
@@ -321,21 +318,21 @@ class BranchNode :public ContainerNode
                         return true;
 
 		}
-                bool Transform(ErrorStack * errstack)
+                bool Provision(ErrorStack * errstack)
                 {
 			condition->SetParentNode(this->GetParentNode());
-                        if(condition->Transform(errstack)==false)
+                        if(condition->Provision(errstack)==false)
                         {
                                 //errstack->PushFrame(0, "BranchNode transform failed - step 2");
                                 return false;
                         }
 
-                        if(ContainerNode::Transform(errstack)==false)
+                        if(ContainerNode::Provision(errstack)==false)
                         {
                                 //errstack->PushFrame(0, "BranchNode transform failed - step 1");
                                 return false;
                         }
-			if(this->elsenodelist!=NULL && TransformElseStmt(errstack)==false)
+			if(this->elsenodelist!=NULL && ProvisionElseStmt(errstack)==false)
 			{
 				return false;
 			}
@@ -345,8 +342,10 @@ class BranchNode :public ContainerNode
         private:
                 bool Evaluate()
                 {
-			bool ret = static_cast<BooleanValue*>(condition->GetValue())->GetValue();
-                        condition->Swipe();
+			ConstValue * eva = this->condition->Calculate();
+			bool ret = static_cast<BooleanValue*>(eva)->GetValue();
+                        delete eva;
+
                         return ret;;
                 }
 

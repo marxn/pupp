@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
 
 	Node * tree = parse();
 
-	if(tree && tree->Transform(&errstack))
+	if(tree && tree->Provision(&errstack))
 	{
 		tree->Execute();
 	}

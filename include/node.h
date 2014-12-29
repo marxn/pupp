@@ -27,7 +27,7 @@ public:
 		virtual void Invoke() = 0;
 		virtual void Swipe() = 0;
 
-		virtual bool Transform(ErrorStack * errstack) = 0;
+		virtual bool Provision(ErrorStack * errstack) = 0;
 
 		void SetParentNode(Node * node)
 		{

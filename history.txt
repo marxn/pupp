@@ -1,3 +1,8 @@
+Dec 29th 2014
+---------------------------
+1. Optimize memory allocation mechanism.
+2. Regular some naming rule.
+
 Dec 24th 2014
 ---------------------------
 1. Implemented FOR statement.
