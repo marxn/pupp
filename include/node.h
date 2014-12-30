@@ -6,7 +6,6 @@
 #include <sstream>
 #include <list>
 #include <string>
-#include "memorymgr.h"
 #include "puppybase.h"
 #include "variable.h"
 #include "errstack.h"

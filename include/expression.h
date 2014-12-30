@@ -158,7 +158,10 @@ public:
 	{
 		if(this->exprlist!=NULL)
 		{
-			long index = 0;
+			//Transform the elements into key-value pair
+
+			list<Expression*> tobedone;
+
 			this->kvexprlist = new list<KVExpression*>;
 
 			list<Expression*>::iterator i;
@@ -171,15 +174,19 @@ public:
                         	}
 				if((*i)->GetDataType()==KeyValue)
 				{
-					this->kvexprlist->push_back(static_cast<KVExpression*>(*i));
+					tobedone.push_back(*i);
 				}
 				else
 				{
-					IntegerValue * key = new IntegerValue(index);
+					IntegerValue * key = new IntegerValue(this->Index);
 					KVExpression * kve = new KVExpression(new ConstValueExpression(key), *i);
 					this->kvexprlist->push_back(kve);
-					index++;
+					this->Index++;
 				}
+			}
+			for(i = tobedone.begin(); i!=tobedone.end(); i++)
+                        {
+				this->kvexprlist->push_back(static_cast<KVExpression*>(*i));
 			}
 		}
 
@@ -195,7 +202,12 @@ public:
 		this->SetDataType(Set);
 		return true;
 	}
+	long GetIndex()
+	{
+		return this->Index;
+	}
 private:
+	long Index;
 	list<KVExpression*> * kvexprlist;
 	list<Expression*> * exprlist;
 };

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include "memorymgr.h"
 #include "puppybase.h"
 #include "errstack.h"
 #include "node.h"
@@ -16,7 +15,6 @@ using namespace std;
 
 int main(int argc, char * argv[])
 {
-	__MMgr = new PMemoryMgr;
 	FILE * fp = NULL;
 
 	if(argc!=2)

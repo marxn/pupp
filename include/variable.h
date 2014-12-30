@@ -39,6 +39,10 @@ public:
 	{
 		return Value->DupValue();
 	}
+	ConstValue * GetReference()
+	{
+		return this->Value;
+	}
 	string GetName()
 	{
 		return VarName;

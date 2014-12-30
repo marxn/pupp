@@ -103,6 +103,64 @@ private:
         Expression * Expr;
 };
 
+class SetElementAssignStatement: public StatementNode
+{
+public:
+	void Invoke()
+        {
+                ConstValue * offset_value = OffsetExpr->Calculate();
+		ConstValue * target_value = Expr->Calculate();
+
+		SetValue * value = static_cast<SetValue*>(this->Var->GetReference());
+		KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
+		value->AddKV(kv);
+
+		delete kv;
+                delete target_value;
+		delete offset_value;
+        }
+	void SetVariableName(string name)
+        {
+                this->VarName = name;
+        }
+	void SetExpression(Expression * expr)
+        {
+                this->Expr = expr;
+        }
+	void SetOffsetExpr(Expression * expr)
+	{
+		this->OffsetExpr = expr;
+	}
+	bool Provision(ErrorStack * errstack)
+        {
+		this->Var = this->FindVariable(VarName);
+                if(this->Var==NULL)
+                {
+                        errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
+                        return false;
+                }
+
+                this->Expr->SetParentNode(this->GetParentNode());
+                if(this->Expr->Provision(errstack)==false)
+                {
+                        return false;
+                }
+
+		this->OffsetExpr->SetParentNode(this->GetParentNode());
+		if(this->OffsetExpr->Provision(errstack)==false)
+		{
+			return false;
+		}
+
+                return true;
+        }
+private:
+	string VarName;
+	Variable * Var;
+        Expression * Expr;
+	Expression * OffsetExpr;
+};
+
 class VarDefinitionStatement: public StatementNode
 {
 public:

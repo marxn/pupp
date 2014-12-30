@@ -1,3 +1,8 @@
+Dec 30th 2014
+---------------------------
+1. Support of adding element to collection using Offset style.
+
+
 Dec 29th 2014
 ---------------------------
 1. Optimize memory allocation mechanism.

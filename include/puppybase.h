@@ -2,7 +2,6 @@
 #define _PUPPY_BASE_H_
 
 #include <string>
-#include "memorymgr.h"
 
 using namespace std;
 
@@ -25,14 +24,6 @@ public:
 	{
 		this->ObjectLoc = loc;
 	}
-	/*void * operator new(size_t size)
-	{
-		return MemoryContextAllocMemory(size);
-	}
-	void operator delete(void * p)
-	{
-		MemoryContextDeallocMemory(p);
-	}*/
 private:
 	string TypeName;
 	int ObjectLoc;

@@ -3,7 +3,6 @@
     #include <stdio.h>
     #include <stdarg.h>
     #include <list>
-    #include "memorymgr.h"
     #include "constval.h"
     #include "expression.h"
     #include "variable.h"
@@ -77,7 +76,7 @@
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
-%type  <puppy_statement> object_statement
+%type  <puppy_statement> element_assign_statement object_statement
 
 %%
 
@@ -139,6 +138,10 @@ simple_node:
 			$$ = $1;
 		}
 	| print_statement
+		{
+			$$ = $1;
+		}
+	| element_assign_statement
 		{
 			$$ = $1;
 		}
@@ -240,6 +243,17 @@ assign_statement:
 			AssignStatement * stmt = new AssignStatement;
 			stmt->SetVariableName($1->GetName());
 			stmt->SetExpression($3);
+			$$ = stmt;
+		}
+	;
+
+element_assign_statement:
+	IDENTIFIER '[' expr ']' '=' expr
+		{
+			SetElementAssignStatement * stmt = new SetElementAssignStatement;
+			stmt->SetVariableName($1->GetName());
+			stmt->SetOffsetExpr($3);
+			stmt->SetExpression($6);
 			$$ = stmt;
 		}
 	;

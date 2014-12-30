@@ -1,8 +1,8 @@
 all: puppy
 	@echo all done.
 
-puppy: puppy.o scan.o main.o memorymgr.o
-	g++ -g -o puppy puppy.o scan.o main.o memorymgr.o
+puppy: puppy.o scan.o main.o 
+	g++ -g -o puppy puppy.o scan.o main.o
 
 puppy.o: puppy.y
 	bison -d -o puppy.cpp puppy.y
@@ -14,9 +14,6 @@ scan.o: scan.l
 
 main.o: main.cpp
 	g++ -g -c -I../include -o main.o main.cpp
-
-memorymgr.o: memorymgr.cpp 
-	g++ -g -c -I../include -o memorymgr.o memorymgr.cpp
 
 clean:
 	rm -rf *.o scan.cpp puppy.cpp puppy puppy.hpp 
