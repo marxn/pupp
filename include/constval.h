@@ -10,13 +10,13 @@ using namespace std;
 
 enum DataType
 {
-        UnknownDataType = 0, Integer, Float, Boolean, String, KeyValue, Set, Offset, DataTypeSize
+        Null = 0, Integer, Float, Boolean, String, KeyValue, Set
 };
 
 class ConstValue: public PuppyObject
 {
 public:
-	ConstValue():Type(UnknownDataType){}
+	ConstValue():Type(Null){}
 	ConstValue(DataType type):Type(type){}
 	virtual ~ConstValue(){}
 	virtual ConstValue * DupValue() = 0;
@@ -25,6 +25,20 @@ public:
 
 protected:
 	DataType Type;
+};
+
+class NullValue: public ConstValue
+{
+public:
+	NullValue():ConstValue(Null){}
+	ConstValue * DupValue()
+	{
+		return new NullValue;
+	}
+	string toString()
+	{
+		return "Null";
+	}
 };
 
 class IntegerValue: public ConstValue
@@ -233,18 +247,6 @@ protected:
 class Operation
 {
 public:
-	static DataType GetOperationRetType(DataType left, DataType right)
-	{
-		if(left==Integer && right==Integer)
-		{
-			return Integer;
-		}
-		if(left==Float && right==Integer || left==Integer && right==Float || left==Float && right==Float)
-		{
-			return Float;
-		}
-		return UnknownDataType;
-	}
 	static ConstValue * AddOperation(ConstValue * left, ConstValue * right)
 	{
 		ConstValue * result = NULL;
@@ -252,18 +254,23 @@ public:
 		{
 			result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() + static_cast<IntegerValue*>(right)->GetValue());
 		}
-		if(left->GetType()==Integer && right->GetType()==Float)
+		else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() + static_cast<FloatValue*>(right)->GetValue());
                 }
-		if(left->GetType()==Float && right->GetType()==Integer)
+		else if(left->GetType()==Float && right->GetType()==Integer)
 		{
 			result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() + static_cast<IntegerValue*>(right)->GetValue());
 		}
-		if(left->GetType()==Float && right->GetType()==Float)
+		else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() + static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			//TODO
+			result = new NullValue;
+		}
 		return result;
 	}
 
@@ -274,18 +281,22 @@ public:
                 {
                         result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() - static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() - static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() - static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() - static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
 	}
 
@@ -296,18 +307,22 @@ public:
                 {
                         result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() * static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() * static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() * static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() * static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
 
 	}
@@ -319,18 +334,22 @@ public:
                 {
                         result = new IntegerValue(static_cast<IntegerValue*>(left)->GetValue() / static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<IntegerValue*>(left)->GetValue() / static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() / static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new FloatValue(static_cast<FloatValue*>(left)->GetValue() / static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
 	}
 	
@@ -341,18 +360,22 @@ public:
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() > static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() > static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() > static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() > static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
 	}
 	static ConstValue * LTOperation(ConstValue * left, ConstValue * right)
@@ -362,18 +385,22 @@ public:
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() < static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() < static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() < static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() < static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
 	}
 	static ConstValue * EQOperation(ConstValue * left, ConstValue * right)
@@ -383,15 +410,15 @@ public:
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() == static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() == static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() == static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() == static_cast<FloatValue*>(right)->GetValue());
                 }
@@ -404,18 +431,22 @@ public:
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() != static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() != static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() != static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() != static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
         }
         static ConstValue * GEOperation(ConstValue * left, ConstValue * right)
@@ -425,18 +456,22 @@ public:
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() >= static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() >= static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() >= static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() >= static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
         }
         static ConstValue * LEOperation(ConstValue * left, ConstValue * right)
@@ -446,18 +481,22 @@ public:
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() <= static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Integer && right->GetType()==Float)
+                else if(left->GetType()==Integer && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<IntegerValue*>(left)->GetValue() <= static_cast<FloatValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Integer)
+                else if(left->GetType()==Float && right->GetType()==Integer)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() <= static_cast<IntegerValue*>(right)->GetValue());
                 }
-                if(left->GetType()==Float && right->GetType()==Float)
+                else if(left->GetType()==Float && right->GetType()==Float)
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() <= static_cast<FloatValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
         }
 	static ConstValue * ANDOperation(ConstValue * left, ConstValue * right)
@@ -468,6 +507,10 @@ public:
                 {
                         result = new BooleanValue(static_cast<BooleanValue*>(left)->GetValue() && static_cast<BooleanValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
         }
         static ConstValue * OROperation(ConstValue * left, ConstValue * right)
@@ -478,6 +521,10 @@ public:
                 {
                         result = new BooleanValue(static_cast<BooleanValue*>(left)->GetValue() || static_cast<BooleanValue*>(right)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
         }
         static ConstValue * NOTOperation(ConstValue * value)
@@ -488,6 +535,10 @@ public:
                 {
                         result = new BooleanValue(!static_cast<BooleanValue*>(value)->GetValue());
                 }
+		else
+		{
+			result = new NullValue;
+		}
                 return result;
         }
 };

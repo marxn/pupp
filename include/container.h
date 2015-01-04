@@ -9,11 +9,17 @@ using namespace std;
 class ContainerNode :public Node
 {
         public:
-                void Invoke()
+                bool Invoke()
                 {
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-                                (*i)->Execute();
+			{
+                                if((*i)->Execute()==false)
+				{
+					return false;
+				}
+			}
+			return true;
                 }
 		void Swipe(){}
                 void SetNodeList(list<Node*> * nodelist)
@@ -28,7 +34,6 @@ class ContainerNode :public Node
                                 (*i)->SetParentNode(this);
                                 if((*i)->Provision(errstack)!=true)
 				{
-					//errstack->PushFrame(0, "ContainerNode transform failed.");
 					return false;
 				}
                         }
@@ -41,16 +46,29 @@ class ContainerNode :public Node
 class LoopNode :public ContainerNode
 {
         public:
-		virtual void PreLoopStatement() = 0;
-		virtual void PerOnceStatement() = 0;
+		virtual bool PreLoopStatement() = 0;
+		virtual bool PerOnceStatement() = 0;
 
-                void Invoke()
+                bool Invoke()
                 {
-			this->PreLoopStatement();
+			if(this->PreLoopStatement()==false)
+			{
+				return false;
+			}
 
                         bool localctl = true;
-                        while(localctl && Evaluate())
+                        while(localctl)
                         {
+				int runnable = this->Evaluate();
+				if(runnable==-1)
+				{
+					return false;
+				}
+				else if(runnable==0)
+				{
+					break;
+				}
+
                                 this->SetNeedBreak(false);
                                 this->SetNeedContinue(false);
 
@@ -58,7 +76,10 @@ class LoopNode :public ContainerNode
 
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                 {
-                                        (*i)->Execute();
+                                        if((*i)->Execute()==false)
+					{
+						return false;
+					}
                                         if(this->GetNeedBreak())
                                         {
                                                 localctl = false;
@@ -69,8 +90,12 @@ class LoopNode :public ContainerNode
                                                  break;
 					}
                                 }
-				this->PerOnceStatement();
+				if(this->PerOnceStatement()==false)
+				{
+					return false;
+				}
                         }
+			return true;
                 }
                 void SetCondition(Expression * condition)
                 {
@@ -89,21 +114,25 @@ class LoopNode :public ContainerNode
 				errstack->PushFrame(0, "Failed to transform condition expression.");
                                 return false;
 			}
-			if(condition->GetDataType()!=Boolean)
-			{
-				errstack->PushFrame(0, "Boolean expression expected in while statement");
-				return false;
-			}
 			return true;
                 }
         private:
-                virtual bool Evaluate()
+		//1 - true, 0 - false, -1 - error
+                virtual int Evaluate()
                 {
 			ConstValue * eva = this->condition->Calculate();
+			if(eva->GetType()!=Boolean)
+			{
+				//TODO
+				//errstack->PushFrame(0, "Wrong data type in while expression - expect a boolean expression.");
+				cerr<<"Wrong data type in while expression - expect a boolean expression."<<endl;
+                                return -1;
+			}
+
 			bool ret = static_cast<BooleanValue*>(eva)->GetValue();
 			delete eva;
 
-                        return ret;;
+                        return ret?1:0;
                 }
                 Expression * condition;
 };
@@ -111,8 +140,14 @@ class LoopNode :public ContainerNode
 class WhileLoopNode: public LoopNode
 {
 public:
-	void PreLoopStatement(){}
-	void PerOnceStatement(){}
+	bool PreLoopStatement()
+	{
+		return true;
+	}
+	bool PerOnceStatement()
+	{
+		return true;
+	}
 };
 
 class ForLoopNode: public LoopNode
@@ -126,21 +161,29 @@ public:
 	{
 		this->PerOnce = peronce;
 	}
-	void PreLoopStatement()
+	bool PreLoopStatement()
 	{
 		list<Node*>::iterator i;
 		for(i=this->PreLoop->begin(); i!= this->PreLoop->end(); i++)
 		{
-			(*i)->Execute();
+			if((*i)->Execute()==false)
+			{
+				return false;
+			}
 		}
+		return true;
 	}
-        void PerOnceStatement()
+        bool PerOnceStatement()
 	{
 		list<Node*>::iterator i;
 		for(i=this->PerOnce->begin(); i!= this->PerOnce->end(); i++)
 		{
-			(*i)->Execute();
+			if((*i)->Execute()==false)
+			{
+				return false;
+			}
 		}
+		return true;
 	}
 	bool Provision(ErrorStack * errstack)
 	{
@@ -183,11 +226,18 @@ private:
 class ForeachLoopNode: public ForLoopNode
 {
 public:
-	void PreLoopStatement()
+	bool PreLoopStatement()
 	{
 		//ugly case: To reduce the memory cost, CollectionKeeper holds the memory 
 		// allocated by CollectionExpr->Calculate(). So it needs to be freed later.
 		this->CollectionKeeper = this->CollectionExpr->Calculate();
+		if(this->CollectionKeeper->GetType()!=Set)
+		{
+			//errstack->PushFrame(0, "FOREACH need a collection as input.");
+			//TODO
+			cerr<<"FOREACH need a collection as input."<<endl;
+			return false;
+		}
 		this->Collection = static_cast<SetValue*>(this->CollectionKeeper)->GetValue();
 
 		this->Handle = this->Collection->begin();
@@ -196,8 +246,9 @@ public:
 		{
 			this->ProvisionKV();
 		}
+		return true;
 	}
-	void PerOnceStatement()
+	bool PerOnceStatement()
 	{
 		this->Handle++;
 
@@ -205,6 +256,7 @@ public:
 		{
 			this->ProvisionKV();
 		}
+		return true;
 	}
 	void ProvisionKV()
 	{
@@ -224,10 +276,14 @@ public:
 		delete this->CollectionKeeper;
 		ForLoopNode::Swipe();
 	}
-	bool Evaluate()
-	{
-		return this->Handle!=this->Collection->end();
-	}
+
+	//1 - true, 0 - false, -1 - error
+        int Evaluate()
+        {
+		bool ret = this->Handle!=this->Collection->end();
+                return ret?1:0;
+        }
+
 	void SetCollectionExpr(SetExpression * expr)
 	{
 		this->CollectionExpr = expr;
@@ -244,7 +300,7 @@ public:
                 Variable * value = new Variable(this->Value);
 
                 key->SetType(String);
-                value->SetType(UnknownDataType);
+                value->SetType(Null);
 
                 this->AddVariable(key);
                 this->AddVariable(value);
@@ -259,11 +315,6 @@ public:
                         errstack->PushFrame(0, "Failed to transform condition expression.");
                         return false;
                 }
-		if(CollectionExpr->GetDataType()!=Set)
-		{
-			errstack->PushFrame(0, "FOREACH need a collection as input.");
-			return false;
-		}
 
 		return true;
 	}
@@ -279,20 +330,33 @@ private:
 class BranchNode :public ContainerNode
 {
         public:
-                void Invoke()
+                bool Invoke()
                 {
-                        if(Evaluate())
+                        if(this->Evaluate()==1)
                         {
                                 list<Node*>::iterator i;
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-                                        (*i)->Execute();
+				{
+                                        if((*i)->Execute()==false)
+					{
+						return false;
+					}
+				}
                         }
-			else
+			else if(this->Evaluate()==0)
 			{
 				list<Node*>::iterator i;
                                 for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
-                                        (*i)->Execute();
+                                        if((*i)->Execute()==false)
+					{
+						return false;
+					}
 			}
+			else
+			{
+				return false;
+			}
+			return true;
                 }
 		void SetElseNodeList(list<Node*> * nodelist)
                 {
@@ -311,7 +375,6 @@ class BranchNode :public ContainerNode
                                 (*i)->SetParentNode(this);
                                 if((*i)->Provision(errstack)!=true)
                                 {
-                                        //errstack->PushFrame(0, "BranchNode transform failed.");
                                         return false;
                                 }
                         }
@@ -323,13 +386,11 @@ class BranchNode :public ContainerNode
 			condition->SetParentNode(this->GetParentNode());
                         if(condition->Provision(errstack)==false)
                         {
-                                //errstack->PushFrame(0, "BranchNode transform failed - step 2");
                                 return false;
                         }
 
                         if(ContainerNode::Provision(errstack)==false)
                         {
-                                //errstack->PushFrame(0, "BranchNode transform failed - step 1");
                                 return false;
                         }
 			if(this->elsenodelist!=NULL && ProvisionElseStmt(errstack)==false)
@@ -340,13 +401,21 @@ class BranchNode :public ContainerNode
 			return true;
                 }
         private:
-                bool Evaluate()
+                int Evaluate()
                 {
 			ConstValue * eva = this->condition->Calculate();
+			if(eva->GetType()!=Boolean)
+                        {
+				//TODO
+                                //errstack->PushFrame(0, "Wrong data type in while expression - expect a boolean expression.");
+				cerr<<"Wrong data type in if statement - expect a boolean expression."<<endl;
+                                return -1;
+                        }
+
 			bool ret = static_cast<BooleanValue*>(eva)->GetValue();
                         delete eva;
 
-                        return ret;;
+                        return ret?1:0;
                 }
 
                 Expression * condition;

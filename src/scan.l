@@ -120,6 +120,9 @@ identifier [a-zA-Z]+[0-9]*
                                         return NOT;
 
 				//symbolic constants
+				//Null object
+				if(strcmp(yytext, "NIL")==0)
+                                        return NIL;
 
 				//new line
 				if(strcmp(yytext, "NL")==0)
@@ -130,7 +133,7 @@ identifier [a-zA-Z]+[0-9]*
 					return PI;
 
 				//Common identifiers
-				yylval.puppy_ident = new Identifier(yytext);
+				yylval.puppy_ident = new string(yytext);
 				return IDENTIFIER;
 		}
 {space}		{}

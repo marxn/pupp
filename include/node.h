@@ -18,12 +18,13 @@ class Node: public PuppyObject
 public:
 		Node():ParentNode(NULL),NeedBreak(false),NeedContinue(false){}
 		virtual ~Node(){}
-		void Execute()
+		bool Execute()
 		{
-			this->Invoke();
+			bool ret = this->Invoke();
 			this->Swipe();
+			return ret;
 		}
-		virtual void Invoke() = 0;
+		virtual bool Invoke() = 0;
 		virtual void Swipe() = 0;
 
 		virtual bool Provision(ErrorStack * errstack) = 0;

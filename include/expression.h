@@ -17,21 +17,12 @@ using namespace std;
 class Expression: public PuppyObject
 {
 public:
-	Expression(): ExpDataType(UnknownDataType)
+	Expression()
 	{
 	}
 	virtual ~Expression(){}
 	virtual ConstValue * Calculate() = 0;
-	virtual void Swipe(){}
 
-	void SetDataType(DataType type)
-	{
-		this->ExpDataType = type;
-	}
-	DataType GetDataType()
-	{
-		return this->ExpDataType;
-	}
 	void SetParentNode(Node * node)
 	{
 		this->ParentNode = node;
@@ -41,7 +32,6 @@ public:
 
 protected:
 	Node * ParentNode;
-	DataType ExpDataType;
 };
 
 class ConstValueExpression: public Expression
@@ -58,7 +48,6 @@ public:
         }
         bool Provision(ErrorStack * errstack)
         {
-                this->SetDataType(this->Value->GetType());
                 return true;
         }
 private:
@@ -126,7 +115,6 @@ public:
                 {
                         return false;
                 }
-		this->SetDataType(KeyValue);
 		return true;
 	}
 
@@ -139,107 +127,80 @@ public:
 class SetExpression: public Expression
 {
 public:
-	SetExpression(list<Expression*> * exp):exprlist(exp){}
+	SetExpression(list<Expression*> * exp):ExprList(exp){}
 	ConstValue * Calculate()
 	{
+		long index = 0;
 		SetValue * result = new SetValue;
-                
-		list<KVExpression*>::iterator i;
-                for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
+                list<KVValue*> tobedone;
+
+		list<Expression*>::iterator i;
+                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
-			KVValue * kv = static_cast<KVValue*>((*i)->Calculate());
-			result->AddKV(kv);
-			delete kv;
+			ConstValue * value = (*i)->Calculate();
+			if(value->GetType()==KeyValue)
+			{
+				tobedone.push_back(static_cast<KVValue*>(value));
+			}
+			else
+			{
+				IntegerValue * key = new IntegerValue(index);
+				KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(key, value));
+				result->AddKV(kv);
+                                delete kv;
+                                index++;
+			}
+                }
+
+		list<KVValue*>::iterator j;
+		for(j = tobedone.begin(); j!=tobedone.end(); j++)
+                {
+			KVValue * value = *j;
+                        result->AddKV(value);
+			delete value;
                 }
 
 		return result;
 	}
 	bool Provision(ErrorStack * errstack)
 	{
-		if(this->exprlist!=NULL)
-		{
-			//Transform the elements into key-value pair
-
-			list<Expression*> tobedone;
-
-			this->kvexprlist = new list<KVExpression*>;
-
-			list<Expression*>::iterator i;
-	                for(i = this->exprlist->begin(); i!=this->exprlist->end(); i++)
-                	{
-				(*i)->SetParentNode(this->ParentNode);
-        	                if((*i)->Provision(errstack)!=true)
-	                        {
-                                	return false;
-                        	}
-				if((*i)->GetDataType()==KeyValue)
-				{
-					tobedone.push_back(*i);
-				}
-				else
-				{
-					IntegerValue * key = new IntegerValue(this->Index);
-					KVExpression * kve = new KVExpression(new ConstValueExpression(key), *i);
-					this->kvexprlist->push_back(kve);
-					this->Index++;
-				}
-			}
-			for(i = tobedone.begin(); i!=tobedone.end(); i++)
-                        {
-				this->kvexprlist->push_back(static_cast<KVExpression*>(*i));
-			}
-		}
-
-		list<KVExpression*>::iterator i;
-		for(i = this->kvexprlist->begin(); i!=this->kvexprlist->end(); i++)
-		{
+		list<Expression*>::iterator i;
+                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
+               	{
 			(*i)->SetParentNode(this->ParentNode);
-			if((*i)->Provision(errstack)!=true)
-			{
-				return false;
-			}
+       	                if((*i)->Provision(errstack)!=true)
+                        {
+                               	return false;
+                       	}
 		}
-		this->SetDataType(Set);
+
 		return true;
 	}
-	long GetIndex()
-	{
-		return this->Index;
-	}
 private:
-	long Index;
-	list<KVExpression*> * kvexprlist;
-	list<Expression*> * exprlist;
+	list<Expression*> * ExprList;
 };
 
 class OffsetExpression: public BinaryExpression
 {
 public:
 	OffsetExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-        bool Provision(ErrorStack * errstack)
-        {
-                if(BinaryExpression::Provision(errstack)==false)
-                {
-                        return false;
-                }
-		if(this->left->GetDataType()!=Set)
-		{
-			errstack->PushFrame(0, "Expect a collection to the left of '['.");
-                        return false;
-		}
-                this->SetDataType(Offset);
-                return true;
-        }
 
         ConstValue * CarryOut()
         {
+		if(this->left_store->GetType()!=Set)
+		{
+			//TODO
+                        //errstack->PushFrame(0, "Expect a collection to the left of '['.");
+                        return new NullValue;
+                }
+
 		SetValue * collection = static_cast<SetValue*>(this->left_store);
 		ConstValue * key = this->right_store;
 
                 ConstValue * result = collection->FindByKey(key->toString());
 		if(result == NULL)
 		{
-			result = new StringValue("");
+			result = new NullValue;
 		}
 		else
 		{
@@ -247,68 +208,6 @@ public:
 		}
 
                 return result;
-        }
-};
-
-class ArithmeticExpression: public BinaryExpression
-{
-public:
-	ArithmeticExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-	bool Provision(ErrorStack * errstack)
-	{
-		if(BinaryExpression::Provision(errstack)==false)
-		{
-			return false;
-		}
-
-		DataType type = Operation::GetOperationRetType(left->GetDataType(), right->GetDataType());
-                if(type==UnknownDataType)
-                {
-                        errstack->PushFrame(0, "value type of expression is undeterminated.");
-                        return false;
-                }
-		this->SetDataType(type);
-		return true;
-	}
-};
-
-class RelationExpression: public BinaryExpression
-{
-public:
-	RelationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-        bool Provision(ErrorStack * errstack)
-        {
-                if(BinaryExpression::Provision(errstack)==false)
-                {
-                        return false;
-                }
-		if(left->GetDataType()!=Integer && left->GetDataType()!=Float || right->GetDataType()!=Integer &&  right->GetDataType()!=Float)
-		{
-			errstack->PushFrame(0, "Relation expression expect numeric input.");
-                        return false;
-		}
-                this->SetDataType(Boolean);
-                return true;
-        }
-};
-
-class LogicalExpression: public BinaryExpression
-{
-public:
-        LogicalExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
-        bool Provision(ErrorStack * errstack)
-        {
-                if(BinaryExpression::Provision(errstack)==false)
-                {
-                        return false;
-                }
-		if(left->GetDataType()!=Boolean || right->GetDataType()!=Boolean)
-		{
-			errstack->PushFrame(0, "Logical expression expect input of boolean type.");
-                        return false;
-		}
-                this->SetDataType(Boolean);
-                return true;
         }
 };
 
@@ -334,7 +233,6 @@ public:
 			errstack->PushFrame(this->GetObjLoc(), "Variable "+*VarName+" not defined");
                         return false;
 		}
-		this->SetDataType(this->Var->GetType());
 		return true;
 	}
 private:
@@ -342,10 +240,10 @@ private:
 	Variable * Var;
 };
 
-class PlusExpression: public ArithmeticExpression 
+class PlusExpression: public BinaryExpression 
 {
 public:
-	PlusExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
+	PlusExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~PlusExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -353,10 +251,10 @@ public:
 	}
 };
 
-class SubtractExpression: public ArithmeticExpression
+class SubtractExpression: public BinaryExpression
 {
 public:
-	SubtractExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
+	SubtractExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~SubtractExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -364,10 +262,10 @@ public:
 	}
 };
 
-class MultiplicationExpression: public ArithmeticExpression
+class MultiplicationExpression: public BinaryExpression
 {
 public:
-	MultiplicationExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
+	MultiplicationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~MultiplicationExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -375,10 +273,10 @@ public:
 	}
 };
 
-class DivisionExpression: public ArithmeticExpression
+class DivisionExpression: public BinaryExpression
 {
 public:
-	DivisionExpression(Expression * arg1, Expression * arg2):ArithmeticExpression(arg1, arg2){}
+	DivisionExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~DivisionExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -386,10 +284,10 @@ public:
 	}
 };
 
-class GTExpression: public RelationExpression
+class GTExpression: public BinaryExpression
 {
 public:
-	GTExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
+	GTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~GTExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -397,10 +295,10 @@ public:
 	}
 };
 
-class LTExpression: public RelationExpression
+class LTExpression: public BinaryExpression
 {
 public:
-	LTExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
+	LTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~LTExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -408,10 +306,10 @@ public:
 	}
 };
 
-class EQExpression: public RelationExpression
+class EQExpression: public BinaryExpression
 {
 public:
-	EQExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
+	EQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~EQExpression(){}
 	ConstValue * CarryOut()
 	{
@@ -419,10 +317,10 @@ public:
 	}
 };
 
-class NEQExpression: public RelationExpression
+class NEQExpression: public BinaryExpression
 {
 public:
-        NEQExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
+        NEQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~NEQExpression(){}
         ConstValue * CarryOut()
         {
@@ -430,10 +328,10 @@ public:
         }
 };
 
-class GEExpression: public RelationExpression
+class GEExpression: public BinaryExpression
 {
 public:
-        GEExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
+        GEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~GEExpression(){}
         ConstValue * CarryOut()
         {
@@ -441,10 +339,10 @@ public:
         }
 };
 
-class LEExpression: public RelationExpression
+class LEExpression: public BinaryExpression
 {
 public:
-        LEExpression(Expression * arg1, Expression * arg2):RelationExpression(arg1, arg2){}
+        LEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~LEExpression(){}
         ConstValue * CarryOut()
         {
@@ -452,10 +350,10 @@ public:
         }
 };
 
-class ANDExpression: public LogicalExpression
+class ANDExpression: public BinaryExpression
 {
 public:
-	ANDExpression(Expression * arg1, Expression * arg2):LogicalExpression(arg1, arg2){}
+	ANDExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~ANDExpression(){}
         ConstValue * CarryOut()
         {
@@ -463,10 +361,10 @@ public:
         }
 };
 
-class ORExpression: public LogicalExpression
+class ORExpression: public BinaryExpression
 {
 public:
-        ORExpression(Expression * arg1, Expression * arg2):LogicalExpression(arg1, arg2){}
+        ORExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~ORExpression(){}
         ConstValue * CarryOut()
         {
@@ -474,10 +372,10 @@ public:
         }
 };
 
-class NOTExpression: public LogicalExpression
+class NOTExpression: public BinaryExpression
 {
 public:
-        NOTExpression(Expression * arg):LogicalExpression(NULL, arg)
+        NOTExpression(Expression * arg):BinaryExpression(NULL, arg)
 	{
 		this->left = new ConstValueExpression(new BooleanValue(true));
 	}

@@ -1,3 +1,8 @@
+Jan 4th 2015
+---------------------------
+1. Support Null value.
+2. Move those checks in Provision to Runtime.
+
 Dec 30th 2014
 ---------------------------
 1. Support of adding element to collection using Offset style.

@@ -27,16 +27,16 @@
 	ConstValue                  * puppy_const;
 	string                      * puppy_variable;
 	Expression                  * puppy_expr;
-	RelationExpression          * puppy_relexpr;
-	ArithmeticExpression        * puppy_arithexpr;
-	LogicalExpression           * puppy_logicalexpr;
+	BinaryExpression            * puppy_relexpr;
+	BinaryExpression            * puppy_arithexpr;
+	BinaryExpression            * puppy_logicalexpr;
 	KVExpression                * puppy_kvexpr;
 	SetExpression               * puppy_setexpr;
 	OffsetExpression            * puppy_offsetexpr;
-        Identifier                  * puppy_ident;
+        string                      * puppy_ident;
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
-	list<Identifier*>           * puppy_identlist;
+	list<string*>               * puppy_identlist;
 	list<Expression*>           * puppy_exprlist;
 	StatementNode               * puppy_statement;
 }
@@ -48,7 +48,6 @@
 %nonassoc  '<' '>' EQUAL_OP GE_OP LE_OP NOT_EQUAL_OP
 %left '+' '-'
 %left '*' '/'
-%left UMINUS
 
 %token <puppy_const_integer> INTEGER 
 %token <puppy_const_float> FLOAT
@@ -59,7 +58,7 @@
 %token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
 %token DEF IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
 %token AND OR NOT
-%token NL PI
+%token NIL NL PI
 
 %type  <puppy_const> const_value symbolic_constant
 %type  <puppy_expr>  expr 
@@ -191,7 +190,7 @@ foreach_loop:
 			node->SetPerOnceStatement(new list<Node*>);
 
 			node->SetCondition(new ConstValueExpression(new BooleanValue(true)));
-			node->SetKV($3->GetName(), $5->GetName());
+			node->SetKV(*($3), *($5));
 			node->SetCollectionExpr(static_cast<SetExpression*>($8));
                         node->SetNodeList($11);
 
@@ -241,7 +240,7 @@ assign_statement:
 	IDENTIFIER '=' expr
 		{
 			AssignStatement * stmt = new AssignStatement;
-			stmt->SetVariableName($1->GetName());
+			stmt->SetVariableName(*($1));
 			stmt->SetExpression($3);
 			$$ = stmt;
 		}
@@ -251,7 +250,7 @@ element_assign_statement:
 	IDENTIFIER '[' expr ']' '=' expr
 		{
 			SetElementAssignStatement * stmt = new SetElementAssignStatement;
-			stmt->SetVariableName($1->GetName());
+			stmt->SetVariableName(*($1));
 			stmt->SetOffsetExpr($3);
 			stmt->SetExpression($6);
 			$$ = stmt;
@@ -311,7 +310,7 @@ identifier_list:
 		}
 	| IDENTIFIER
 		{
-			$$ = new list<Identifier*>;
+			$$ = new list<string*>;
 			$$->push_back($1);
 		}
 	;
@@ -333,7 +332,7 @@ qualified_object:
 		}
 	| IDENTIFIER
 		{
-			$$ = new list<Identifier*>;
+			$$ = new list<string*>;
                         $$->push_back($1);
 		}
 	;
@@ -375,7 +374,7 @@ print_statement:
 variable:
 	IDENTIFIER
 		{
-			$$ = new string($1->GetName());
+			$$ = new string(*($1));
 		}
 	;
 symbolic_constant:
@@ -386,6 +385,10 @@ symbolic_constant:
 	| PI
 		{
 			$$ = new FloatValue(3.1415926);
+		}
+	| NIL
+		{
+			$$ = new NullValue;
 		}
 	;
 const_value:
@@ -417,68 +420,68 @@ set_expr:
 arith_expr:
     expr '+' expr
                 {
-                        $$ = static_cast<ArithmeticExpression*>(new PlusExpression($1, $3));
+                        $$ = new PlusExpression($1, $3);
                 }
     | expr '-' expr
                 {
-                        $$ = static_cast<ArithmeticExpression*>(new SubtractExpression($1, $3));
+                        $$ = new SubtractExpression($1, $3);
                 }
     | expr '*' expr
                 {
-                        $$ = static_cast<ArithmeticExpression*>(new MultiplicationExpression($1, $3));
+                        $$ = new MultiplicationExpression($1, $3);
                 }
     | expr '/' expr
                 {
-                        $$ = static_cast<ArithmeticExpression*>(new DivisionExpression($1, $3));
+                        $$ = new DivisionExpression($1, $3);
                 }
     ;
 
 rel_expr:
      expr '>' expr
                 {
-                        $$ = static_cast<RelationExpression*>(new GTExpression($1, $3));
+                        $$ = new GTExpression($1, $3);
                 }
     | expr '<' expr
                 {
-                        $$ = static_cast<RelationExpression*>(new LTExpression($1, $3));
+                        $$ = new LTExpression($1, $3);
                 }
     | expr EQUAL_OP expr
                 {
-                        $$ = static_cast<RelationExpression*>(new EQExpression($1, $3));
+                        $$ = new EQExpression($1, $3);
                 }
     | expr NOT_EQUAL_OP expr
                 {
-                        $$ = static_cast<RelationExpression*>(new NEQExpression($1, $3));
+                        $$ = new NEQExpression($1, $3);
                 }
     | expr GE_OP expr
                 {
-                        $$ = static_cast<RelationExpression*>(new GEExpression($1, $3));
+                        $$ = new GEExpression($1, $3);
                 }
     | expr LE_OP expr
                 {
-                        $$ = static_cast<RelationExpression*>(new LEExpression($1, $3));
+                        $$ = new LEExpression($1, $3);
                 }
     ;
 
 logical_expr:
     expr AND expr
                 {
-                        $$ = static_cast<LogicalExpression*>(new ANDExpression($1, $3));
+                        $$ = new ANDExpression($1, $3);
                 }
     | expr OR expr
                 {
-                        $$ = static_cast<LogicalExpression*>(new ORExpression($1, $3));
+                        $$ = new ORExpression($1, $3);
                 }
     | NOT expr
                 {
-                        $$ = static_cast<LogicalExpression*>(new NOTExpression($2));
+                        $$ = new NOTExpression($2);
                 }
     ;
 
 kvexpr:
     '<' expr ',' expr '>'
 		{
-			$$ = static_cast<KVExpression*>(new KVExpression($2,$4));
+			$$ = new KVExpression($2,$4);
 		}
     ;
 
@@ -486,7 +489,11 @@ offset_expr:
     variable '[' expr ']' 
 		{
 			VarExpression * var = new VarExpression($1);
-			$$ = static_cast<OffsetExpression*>(new OffsetExpression(var,$3));
+			$$ = new OffsetExpression(var,$3);
+		}
+    | offset_expr '[' expr ']'
+		{
+			$$ = new OffsetExpression($1, $3);
 		}
     ;
 

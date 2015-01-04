@@ -11,11 +11,11 @@ using namespace std;
 class Variable: public PuppyObject
 {
 public:
-	Variable(Identifier * ident):Value(NULL), VarType(UnknownDataType)
+	Variable(Identifier * ident):Value(NULL), VarType(Null)
 	{
 		this->VarName = ident->GetName();
 	}
-	Variable(string VarName):Value(NULL), VarType(UnknownDataType)
+	Variable(string VarName):Value(NULL), VarType(Null)
 	{
 		this->VarName = VarName;
 	}

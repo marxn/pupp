@@ -19,13 +19,14 @@ public:
 class BreakStatement: public StatementNode
 {
 public:
-        void Invoke()
+        bool Invoke()
         {
                 Node * node = this->GetParentNode();
                 if(node)
                 {
                         node->SetNeedBreak(true);
                 }
+		return true;
         }
         bool Provision(ErrorStack * errstack)
 	{
@@ -36,11 +37,14 @@ public:
 class ContinueStatement: public StatementNode
 {
 public:
-        void Invoke()
+        bool Invoke()
         {
                 Node * node = this->GetParentNode();
                 if(node)
+		{
                         node->SetNeedContinue(true);
+		}
+		return true;
         }
         bool Provision(ErrorStack * errstack)
         {
@@ -51,11 +55,14 @@ public:
 class AssignStatement: public StatementNode
 {
 public:
-        void Invoke()
+        bool Invoke()
         {
 		ConstValue * value = Expr->Calculate();
 		this->Var->SetValue(value);
+		this->Var->SetType(value->GetType());
 		delete value;
+
+		return true;
         }
         void SetVariableName(string name)
         {
@@ -90,11 +97,6 @@ public:
 			return false;
 		}
 		
-		if(this->Expr->GetDataType()!=this->Var->GetType())
-		{
-			errstack->PushFrame(0,"Datatype mismatch for "+this->VarName);
-			return false;
-		}
 		return true;
         }
 private:
@@ -106,7 +108,7 @@ private:
 class SetElementAssignStatement: public StatementNode
 {
 public:
-	void Invoke()
+	bool Invoke()
         {
                 ConstValue * offset_value = OffsetExpr->Calculate();
 		ConstValue * target_value = Expr->Calculate();
@@ -118,6 +120,8 @@ public:
 		delete kv;
                 delete target_value;
 		delete offset_value;
+
+		return true;
         }
 	void SetVariableName(string name)
         {
@@ -164,28 +168,29 @@ private:
 class VarDefinitionStatement: public StatementNode
 {
 public:
-	VarDefinitionStatement(list<Identifier*> * list, DataType vartype):IdentList(list), VarType(vartype)
+	VarDefinitionStatement(list<string*> * list, DataType vartype):IdentList(list), VarType(vartype)
 	{
 	}
-        void Invoke()
+        bool Invoke()
         {
+		return true;
         }
         bool Provision(ErrorStack * errstack)        
 	{
-                list<Identifier*>::iterator i;
+                list<string*>::iterator i;
                 Node * parent = GetParentNode();
 
                 if(parent)
                 {
                         for(i = IdentList->begin(); i != IdentList->end(); i++)
                         {
-				if(parent->FindVariable((*i)->GetName()))
+				if(parent->FindVariable(*(*i)))
 				{
-					errstack->PushFrame(0, "Duplicated variable: "+(*i)->GetName());
+					errstack->PushFrame(0, "Duplicated variable: "+*(*i));
         		                return false;
 				}
 
-                                Variable * var = new Variable((*i)->GetName());
+                                Variable * var = new Variable(*(*i));
 				var->SetType(this->VarType);
 
 				switch(this->VarType)
@@ -212,14 +217,14 @@ public:
 		return true;
         }
 private:
-        list<Identifier*> * IdentList;
+        list<string*> * IdentList;
         DataType VarType;
 };
 
 class PrintStatement: public StatementNode
 {
 public:
-        void Invoke()
+        bool Invoke()
         {
 		list<Expression*>::iterator i;
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
@@ -230,6 +235,7 @@ public:
 			
 			delete value;
 		}
+		return true;
         }
         void SetExpressionList(list<Expression*> * exprlist)
         {
@@ -243,7 +249,6 @@ public:
 			(*i)->SetParentNode(this->GetParentNode());
                 	if((*i)->Provision(errstack)==false)
 			{
-				//errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
                         	return false;
 			}
 		}
@@ -256,12 +261,21 @@ private:
 class SleepStatement: public StatementNode
 {
 public:
-        void Invoke()
+        bool Invoke()
         {
 		ConstValue * value = this->Expr->Calculate();
+		if(value->GetType()!=Integer)
+                {
+                        //errstack->PushFrame(0, "SLEEP Statement MUST have a Integer parameter ");
+                        //TODO
+			cerr<<"SLEEP Statement MUST have a Integer parameter "<<endl;
+			return false;
+                }
+
 		usleep(static_cast<IntegerValue*>(value)->GetValue());
 
 		delete value;
+		return true;
         }
 	void SetExpression(Expression * expr)
         {
@@ -272,14 +286,8 @@ public:
 		this->Expr->SetParentNode(this->GetParentNode());
                 if(this->Expr->Provision(errstack)==false)
                 {
-                        //errstack->PushFrame(0, "SLEEP Statement failed in transforming expression ");
                         return false;
                 }
-		if(this->Expr->GetDataType()!=Integer)
-		{
-			errstack->PushFrame(0, "SLEEP Statement MUST have a Integer parameter ");
-                        return false;
-		}
                 return true;
         }
 private:
@@ -289,13 +297,14 @@ private:
 class ObjectStatement: public StatementNode
 {
 public:
-	ObjectStatement(string * objname, Identifier * method_name, list<Expression*> * expr_list): ObjName(*objname), ExprList(expr_list)
+	ObjectStatement(string * objname, string * method_name, list<Expression*> * expr_list): ObjName(*objname), ExprList(expr_list)
 	{
-		this->MethodName = method_name->GetName();
+		this->MethodName = *method_name;
 	}
-	void Invoke()
+	bool Invoke()
 	{
 		//this->FindMethodMapping(this->ObjName, this->MethodName);
+		return true;
 	}
 	bool Provision(ErrorStack * errstack)
 	{
