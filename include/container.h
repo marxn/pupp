@@ -124,7 +124,6 @@ class LoopNode :public ContainerNode
 			if(eva->GetType()!=Boolean)
 			{
 				//TODO
-				//errstack->PushFrame(0, "Wrong data type in while expression - expect a boolean expression.");
 				cerr<<"Wrong data type in while expression - expect a boolean expression."<<endl;
                                 return -1;
 			}
@@ -233,7 +232,6 @@ public:
 		this->CollectionKeeper = this->CollectionExpr->Calculate();
 		if(this->CollectionKeeper->GetType()!=Set)
 		{
-			//errstack->PushFrame(0, "FOREACH need a collection as input.");
 			//TODO
 			cerr<<"FOREACH need a collection as input."<<endl;
 			return false;
@@ -269,7 +267,6 @@ public:
 
                 ConstValue * tmpvalue = this->Handle->second;
                 value->SetValue(tmpvalue);
-                value->SetType(tmpvalue->GetType());
 	}
 	void Swipe()
 	{
@@ -299,8 +296,8 @@ public:
 		Variable * key = new Variable(this->Key);
                 Variable * value = new Variable(this->Value);
 
-                key->SetType(String);
-                value->SetType(Null);
+		key->SetVarType(String);
+		value->SetVarType(Any);
 
                 this->AddVariable(key);
                 this->AddVariable(value);
@@ -407,7 +404,6 @@ class BranchNode :public ContainerNode
 			if(eva->GetType()!=Boolean)
                         {
 				//TODO
-                                //errstack->PushFrame(0, "Wrong data type in while expression - expect a boolean expression.");
 				cerr<<"Wrong data type in if statement - expect a boolean expression."<<endl;
                                 return -1;
                         }

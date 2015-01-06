@@ -58,8 +58,14 @@ public:
         bool Invoke()
         {
 		ConstValue * value = Expr->Calculate();
+		if(this->Var->GetVarType()!=value->GetType() && this->Var->GetVarType()!=Any)
+		{
+			cerr<<"Data type mismatch"<<endl;
+
+			delete value;
+			return false;
+		}
 		this->Var->SetValue(value);
-		this->Var->SetType(value->GetType());
 		delete value;
 
 		return true;
@@ -105,44 +111,152 @@ private:
         Expression * Expr;
 };
 
+class CollectionElementRef
+{
+public:
+	CollectionElementRef(string * id, Expression * exp)
+	{
+		this->Var = *id;
+		this->ExpList = new list<Expression*>;
+		this->ExpList->push_back(exp);
+	}
+	string GetVarName()
+	{
+		return this->Var;
+	}
+	list<Expression*> * GetExpList()
+	{
+		return this->ExpList;
+	}
+	void AddOffsetExpr(Expression * expr)
+	{
+		this->ExpList->push_back(expr);
+	}
+private:
+	string Var;
+	list<Expression*> * ExpList;
+};
+
 class SetElementAssignStatement: public StatementNode
 {
 public:
+	SetElementAssignStatement(CollectionElementRef * ref):Reference(ref){}
 	bool Invoke()
         {
-                ConstValue * offset_value = OffsetExpr->Calculate();
-		ConstValue * target_value = Expr->Calculate();
+		if(this->Var->GetVarType()!=Set && this->Var->GetVarType()!=Any)
+		{
+			cerr<<"puppy warning: Cannot accept a non-collection variable."<<endl;
+			return true;
+		}
+		if(this->Var->GetReference()->GetType()==Null)
+		{
+			this->Var->SetValue(new SetValue);
+		}
 
-		SetValue * value = static_cast<SetValue*>(this->Var->GetReference());
-		KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
-		value->AddKV(kv);
+		SetValue * vref = static_cast<SetValue*>(this->Var->GetReference());
+		list<Expression*>* exprlist = this->Reference->GetExpList();
 
-		delete kv;
-                delete target_value;
-		delete offset_value;
+		int listsize = exprlist->size();
+
+		bool need_clear = false;
+		SetValue * last_set = NULL;
+		ConstValue * last_offset_value = NULL;
+		list<Expression*>::iterator i;
+                for(i=exprlist->begin(); i!=exprlist->end(); i++, listsize--)
+                {
+			ConstValue * offset_value = (*i)->Calculate();
+                        string offstr = offset_value->toString();
+
+			if(vref->GetType()!=Set)
+			{
+				if(vref->GetType()==Null)
+				{
+					SetValue * stub = new SetValue;
+					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(last_offset_value, stub));
+					last_set->AddKV(kv);
+
+					delete kv;
+					delete stub;
+
+					vref = static_cast<SetValue*>(last_set->FindByKey(last_offset_value->toString()));
+				}
+				else
+				{
+					cerr<<"puppy warning: Cannot use a scalar value as a collection."<<endl;
+					delete offset_value;
+					return true;
+				}
+			}
+
+			if(need_clear)
+			{
+				delete last_offset_value;
+				need_clear = false;
+			}
+
+			ConstValue * value = vref->FindByKey(offstr);
+
+			if(value==NULL)
+			{
+				if(listsize>1)
+				{
+					SetValue * stub = new SetValue;
+					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, stub));
+					vref->AddKV(kv);
+
+					vref = static_cast<SetValue*>(vref->FindByKey(offstr));
+
+					delete kv;
+					delete value;
+					delete stub;
+				}
+				else
+				{
+					ConstValue * target_value = Expr->Calculate();
+					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
+					vref->AddKV(kv);
+
+					delete kv;
+					delete target_value;
+				}
+			}
+			else
+			{
+				last_set = vref;
+				last_offset_value = offset_value->DupValue();
+				vref = static_cast<SetValue*>(value);
+				need_clear = true;
+			}
+			
+			delete offset_value;
+		}
 
 		return true;
-        }
-	void SetVariableName(string name)
-        {
-                this->VarName = name;
         }
 	void SetExpression(Expression * expr)
         {
                 this->Expr = expr;
         }
-	void SetOffsetExpr(Expression * expr)
-	{
-		this->OffsetExpr = expr;
-	}
 	bool Provision(ErrorStack * errstack)
         {
-		this->Var = this->FindVariable(VarName);
+		this->Var = this->FindVariable(this->Reference->GetVarName());
                 if(this->Var==NULL)
                 {
-                        errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
+                        errstack->PushFrame(0, "Variable "+this->Reference->GetVarName()+" not defined");
                         return false;
                 }
+
+		list<Expression*>* exprlist = this->Reference->GetExpList();
+
+		list<Expression*>::iterator i;
+		for(i=exprlist->begin(); i!=exprlist->end(); i++)
+		{
+			(*i)->SetParentNode(this->GetParentNode());
+			if((*i)->Provision(errstack)==false)
+	                {
+                        	return false;
+                	}
+		}
 
                 this->Expr->SetParentNode(this->GetParentNode());
                 if(this->Expr->Provision(errstack)==false)
@@ -150,19 +264,12 @@ public:
                         return false;
                 }
 
-		this->OffsetExpr->SetParentNode(this->GetParentNode());
-		if(this->OffsetExpr->Provision(errstack)==false)
-		{
-			return false;
-		}
-
                 return true;
         }
 private:
-	string VarName;
-	Variable * Var;
+	CollectionElementRef * Reference;
         Expression * Expr;
-	Expression * OffsetExpr;
+	Variable * Var;
 };
 
 class VarDefinitionStatement: public StatementNode
@@ -191,26 +298,8 @@ public:
 				}
 
                                 Variable * var = new Variable(*(*i));
-				var->SetType(this->VarType);
-
-				switch(this->VarType)
-				{
-					case Integer:
-					var->SetValue(new IntegerValue(0));
-					break;
-					case Float:
-					var->SetValue(new FloatValue(0.0f));
-					break;
-					case String:
-					var->SetValue(new StringValue(""));
-					break;
-					case Boolean:
-					var->SetValue(new BooleanValue(false));
-					break;
-					case Set:
-					var->SetValue(new SetValue());
-					break;
-				}
+				var->SetVarType(this->VarType);
+				var->SetValue(new NullValue);
                                 parent->AddVariable(var);
                         }
                 }
@@ -266,7 +355,6 @@ public:
 		ConstValue * value = this->Expr->Calculate();
 		if(value->GetType()!=Integer)
                 {
-                        //errstack->PushFrame(0, "SLEEP Statement MUST have a Integer parameter ");
                         //TODO
 			cerr<<"SLEEP Statement MUST have a Integer parameter "<<endl;
 			return false;

@@ -40,7 +40,10 @@ int main(int argc, char * argv[])
 
 	if(tree && tree->Provision(&errstack))
 	{
-		tree->Execute();
+		if(tree->Execute()==false)
+		{
+			cerr<<"puppy: abnornal exit."<<endl;
+		}
 	}
 	else if(tree)
 	{

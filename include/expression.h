@@ -147,7 +147,10 @@ public:
 				IntegerValue * key = new IntegerValue(index);
 				KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(key, value));
 				result->AddKV(kv);
+
                                 delete kv;
+				delete key;
+				delete value;
                                 index++;
 			}
                 }

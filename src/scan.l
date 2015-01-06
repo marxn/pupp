@@ -96,6 +96,10 @@ identifier [a-zA-Z]+[0-9]*
                                         return IN;
 				if(strcasecmp(yytext,"do")==0)
                                         return DO;
+
+				//Variable Type
+				if(strcasecmp(yytext,"any")==0)
+                                        return TYPE_ANY;
 				if(strcasecmp(yytext,"integer")==0)
 					return TYPE_INTEGER;
 				if(strcasecmp(yytext,"float")==0)

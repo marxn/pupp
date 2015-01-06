@@ -11,21 +11,25 @@ using namespace std;
 class Variable: public PuppyObject
 {
 public:
-	Variable(Identifier * ident):Value(NULL), VarType(Null)
+	Variable(Identifier * ident):Value(NULL), VarType(Any)
 	{
 		this->VarName = ident->GetName();
 	}
-	Variable(string VarName):Value(NULL), VarType(Null)
+	Variable(string VarName):Value(NULL), VarType(Any)
 	{
 		this->VarName = VarName;
 	}
-	void SetType(DataType type)
+	void SetVarType(DataType type)
 	{
 		this->VarType = type;
 	}
-	DataType GetType()
+	DataType GetVarType()
+        {
+                return this->VarType;
+        }
+	DataType GetValueType()
 	{
-		return this->VarType;
+		return this->Value->GetType();
 	}
 	void SetValue(ConstValue * value)
 	{

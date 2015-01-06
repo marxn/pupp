@@ -38,6 +38,7 @@
 	list<Node*>                 * puppy_nodelist;
 	list<string*>               * puppy_identlist;
 	list<Expression*>           * puppy_exprlist;
+	CollectionElementRef        * puppy_collection_eleref;
 	StatementNode               * puppy_statement;
 }
 
@@ -55,7 +56,7 @@
 %token <puppy_const_string> STRING
 
 %token <puppy_ident> IDENTIFIER 
-%token TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
+%token TYPE_ANY TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
 %token DEF IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
 %token AND OR NOT
 %token NIL NL PI
@@ -74,6 +75,7 @@
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
+%type  <puppy_collection_eleref> collection_element_ref
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
 %type  <puppy_statement> element_assign_statement object_statement
 
@@ -246,13 +248,23 @@ assign_statement:
 		}
 	;
 
-element_assign_statement:
-	IDENTIFIER '[' expr ']' '=' expr
+collection_element_ref:
+	collection_element_ref '[' expr ']'
+                {
+                        $1->AddOffsetExpr($3);
+                        $$ = $1;
+                }
+	| IDENTIFIER '[' expr ']'
 		{
-			SetElementAssignStatement * stmt = new SetElementAssignStatement;
-			stmt->SetVariableName(*($1));
-			stmt->SetOffsetExpr($3);
-			stmt->SetExpression($6);
+			$$ = new CollectionElementRef($1, $3);
+		}
+	;
+
+element_assign_statement:
+	collection_element_ref '=' expr
+		{
+			SetElementAssignStatement * stmt = new SetElementAssignStatement($1);
+			stmt->SetExpression($3);
 			$$ = stmt;
 		}
 	;
@@ -272,7 +284,11 @@ continue_statement:
 	;
 
 def_data_type:
-	TYPE_INTEGER
+	TYPE_ANY
+		{
+			$$ = Any;
+		}
+	| TYPE_INTEGER
 		{
 			$$ = Integer;
 		}

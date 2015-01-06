@@ -10,7 +10,7 @@ using namespace std;
 
 enum DataType
 {
-        Null = 0, Integer, Float, Boolean, String, KeyValue, Set
+        Null = 0, Any, Integer, Float, Boolean, String, KeyValue, Set
 };
 
 class ConstValue: public PuppyObject
@@ -268,7 +268,6 @@ public:
                 }
 		else
 		{
-			//TODO
 			result = new NullValue;
 		}
 		return result;
