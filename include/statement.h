@@ -183,6 +183,13 @@ public:
 				else
 				{
 					cerr<<"puppy warning: Cannot use a scalar value as a collection."<<endl;
+
+					if(need_clear)
+                        		{
+                	                	delete last_offset_value;
+	        	                        need_clear = false;
+		                        }
+
 					delete offset_value;
 					return true;
 				}
@@ -222,10 +229,22 @@ public:
 			}
 			else
 			{
-				last_set = vref;
-				last_offset_value = offset_value->DupValue();
-				vref = static_cast<SetValue*>(value);
-				need_clear = true;
+				if(listsize>1)
+				{
+					last_set = vref;
+					last_offset_value = offset_value->DupValue();
+					vref = static_cast<SetValue*>(value);
+					need_clear = true;
+				}
+				else
+				{
+					ConstValue * target_value = Expr->Calculate();
+                                        KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
+                                        vref->AddKV(kv);
+
+                                        delete kv;
+                                        delete target_value;
+				}
 			}
 			
 			delete offset_value;

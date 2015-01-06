@@ -146,18 +146,10 @@ public:
         pair<ConstValue*, ConstValue*> GetValue() {return this->Value;}
         string toString()
         {
-		string ret = "<'";
+		string ret = "<";
 		ret.append(this->Value.first->toString());
-		ret.append("',");
-		if(Value.second->GetType()==String)
-		{
-			ret.append("'");
-		}
+		ret.append(",");
 		ret.append(this->Value.second->toString());
-		if(Value.second->GetType()==String)
-                {
-                        ret.append("'");
-                }
 		ret.append(">");
                 return ret;
         }
@@ -219,22 +211,20 @@ public:
         string toString()
         {
 		string ret="{";
+
+		int size = this->Value.size();
 		map<string, ConstValue*>::iterator i;
-		for(i=this->Value.begin(); i!=this->Value.end(); i++)
+		for(i=this->Value.begin(); i!=this->Value.end(); i++, size--)
 		{
-			ret.append("<'");
+			ret.append("<");
 			ret.append(i->first);
-			ret.append("',");
-			if((*i).second->GetType()==String)
-			{
-				ret.append("'");
-			}
+			ret.append(",");
 			ret.append(i->second->toString());
-			if((*i).second->GetType()==String)
-                        {
-                                ret.append("'");
-                        }
 			ret.append(">");
+			if(size>1)
+			{
+				ret.append(",");
+			}
 		}
 		ret.append("}");
                 return ret;
@@ -421,6 +411,14 @@ public:
                 {
                         result = new BooleanValue(static_cast<FloatValue*>(left)->GetValue() == static_cast<FloatValue*>(right)->GetValue());
                 }
+		else if(left->GetType()==Null && right->GetType()==Null)
+		{
+			result = new BooleanValue(true);
+		}
+		else
+		{
+			result = new BooleanValue(false);
+		}
                 return result;
 	}
 	static ConstValue * NEQOperation(ConstValue * left, ConstValue * right)

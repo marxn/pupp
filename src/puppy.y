@@ -62,22 +62,27 @@
 %token NIL NL PI
 
 %type  <puppy_const> const_value symbolic_constant
-%type  <puppy_expr>  expr 
+%type  <puppy_expr>  expr
+ 
 %type  <puppy_arithexpr> arith_expr
 %type  <puppy_relexpr> rel_expr
 %type  <puppy_logicalexpr> logical_expr
+
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
 %type  <puppy_offsetexpr> offset_expr
+
 %type  <puppy_node>  program_node simple_node loop_node while_loop for_loop foreach_loop branch_node
-%type  <puppy_nodelist>  optional_else_list node_list final_block
+%type  <puppy_nodelist>  optional_else_list node_list final_block 
+
 %type  <puppy_identlist> identifier_list qualified_object
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type
+
 %type  <puppy_collection_eleref> collection_element_ref
-%type  <puppy_statement> assign_statement print_statement break_statement continue_statement vardefstatement sleep_statement
-%type  <puppy_statement> element_assign_statement object_statement
+%type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
+%type  <puppy_statement> vardefstatement sleep_statement element_assign_statement object_statement
 
 %%
 
@@ -165,26 +170,26 @@ while_loop:
 	;
 
 for_loop:
-	FOR simple_node ';' expr ';' simple_node DO '{' node_list '}'
+	FOR '(' simple_node ';' expr ';' simple_node ')' '{' node_list '}'
                 {
 			list<Node*> * n1 = new list<Node*>;
-			n1->push_back($2);
+			n1->push_back($3);
 
 			list<Node*> * n2 = new list<Node*>;
-                        n2->push_back($6);
+                        n2->push_back($7);
 
 			ForLoopNode * node = new ForLoopNode;
 			node->SetPreLoopStatement(n1);
-			node->SetCondition($4);
+			node->SetCondition($5);
 			node->SetPerOnceStatement(n2);
-			node->SetNodeList($9);
+			node->SetNodeList($10);
 
 			$$ = static_cast<Node*>(node);
                 }
 	;
 
 foreach_loop:
-	FOREACH '<' IDENTIFIER ',' IDENTIFIER '>' IN expr DO '{' node_list '}'
+	FOREACH '(' '<' IDENTIFIER ',' IDENTIFIER '>' IN expr ')' '{' node_list '}' 
 		{
 			ForeachLoopNode * node = new ForeachLoopNode;
 
@@ -192,9 +197,9 @@ foreach_loop:
 			node->SetPerOnceStatement(new list<Node*>);
 
 			node->SetCondition(new ConstValueExpression(new BooleanValue(true)));
-			node->SetKV(*($3), *($5));
-			node->SetCollectionExpr(static_cast<SetExpression*>($8));
-                        node->SetNodeList($11);
+			node->SetKV(*($4), *($6));
+			node->SetCollectionExpr(static_cast<SetExpression*>($9));
+                        node->SetNodeList($12);
 
                         $$ = static_cast<Node*>(node);
 		}
