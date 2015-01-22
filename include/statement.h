@@ -13,20 +13,15 @@ class StatementNode :public Node
 public:
 	StatementNode(){}
 	~StatementNode(){}
-	void Swipe(){}
+	void Swipe(NodeContext * context){}
 };
 
 class BreakStatement: public StatementNode
 {
 public:
-        bool Invoke()
+        int Invoke(NodeContext * context)
         {
-                Node * node = this->GetParentNode();
-                if(node)
-                {
-                        node->SetNeedBreak(true);
-                }
-		return true;
+		return NODE_RET_NEEDBREAK;
         }
         bool Provision(ErrorStack * errstack)
 	{
@@ -37,14 +32,9 @@ public:
 class ContinueStatement: public StatementNode
 {
 public:
-        bool Invoke()
+        int Invoke(NodeContext * context)
         {
-                Node * node = this->GetParentNode();
-                if(node)
-		{
-                        node->SetNeedContinue(true);
-		}
-		return true;
+		return NODE_RET_NEEDCONTINUE;
         }
         bool Provision(ErrorStack * errstack)
         {
@@ -55,20 +45,24 @@ public:
 class AssignStatement: public StatementNode
 {
 public:
-        bool Invoke()
+        int Invoke(NodeContext * context)
         {
-		ConstValue * value = Expr->Calculate();
-		if(this->Var->GetVarType()!=value->GetType() && this->Var->GetVarType()!=Any)
+		Variable * var = context->GetVariable(this->VarName);
+		if(var==NULL)
+		{
+			return NODE_RET_ERROR;
+		}
+		ConstValue * value = Expr->Calculate(context);
+		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
 		{
 			cerr<<"Data type mismatch"<<endl;
 
 			delete value;
 			return false;
 		}
-		this->Var->SetValue(value);
+		var->SetValue(value);
 		delete value;
-
-		return true;
+		return NODE_RET_NORMAL;
         }
         void SetVariableName(string name)
         {
@@ -84,30 +78,24 @@ public:
         }
         bool Provision(ErrorStack * errstack)
         {
-                this->Var = this->FindVariable(VarName);
-                if(this->Var==NULL)
+		Node * parent = this->GetParentNode();
+                VariableDef * vardef = parent->FindVariable(VarName);
+                if(vardef==NULL)
                 {
                         errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
                         return false;
                 }
-                if(this->Expr==NULL)
-                {
-                        errstack->PushFrame(0,"Illeagle Expression");
-			return false;
-                }
 
-		this->Expr->SetParentNode(this->GetParentNode());
+		this->Expr->SetParentNode(parent);
                 if(this->Expr->Provision(errstack)==false)
 		{
 			errstack->PushFrame(0, "Provision expression falied.");
 			return false;
 		}
-		
 		return true;
         }
 private:
         string VarName;
-        Variable * Var;
         Expression * Expr;
 };
 
@@ -141,19 +129,22 @@ class SetElementAssignStatement: public StatementNode
 {
 public:
 	SetElementAssignStatement(CollectionElementRef * ref):Reference(ref){}
-	bool Invoke()
+	int Invoke(NodeContext * context)
         {
-		if(this->Var->GetVarType()!=Set && this->Var->GetVarType()!=Any)
+		Variable * var = context->GetVariable(this->Var->GetVarName());
+
+		if(var->GetValueType()!=Set && var->GetValueType()!=Any)
 		{
 			cerr<<"puppy warning: Cannot accept a non-collection variable."<<endl;
-			return true;
-		}
-		if(this->Var->GetReference()->GetType()==Null)
-		{
-			this->Var->SetValue(new SetValue);
+			return NODE_RET_ERROR;
 		}
 
-		SetValue * vref = static_cast<SetValue*>(this->Var->GetReference());
+		if(var->GetReference()->GetType()==Null)
+		{
+			var->SetValue(new SetValue);
+		}
+
+		SetValue * vref = static_cast<SetValue*>(var->GetReference());
 		list<Expression*>* exprlist = this->Reference->GetExpList();
 
 		int listsize = exprlist->size();
@@ -164,7 +155,7 @@ public:
 		list<Expression*>::iterator i;
                 for(i=exprlist->begin(); i!=exprlist->end(); i++, listsize--)
                 {
-			ConstValue * offset_value = (*i)->Calculate();
+			ConstValue * offset_value = (*i)->Calculate(context);
                         string offstr = offset_value->toString();
 
 			if(vref->GetType()!=Set)
@@ -219,7 +210,7 @@ public:
 				}
 				else
 				{
-					ConstValue * target_value = Expr->Calculate();
+					ConstValue * target_value = Expr->Calculate(context);
 					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
 					vref->AddKV(kv);
 
@@ -238,7 +229,7 @@ public:
 				}
 				else
 				{
-					ConstValue * target_value = Expr->Calculate();
+					ConstValue * target_value = Expr->Calculate(context);
                                         KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
                                         vref->AddKV(kv);
 
@@ -250,7 +241,7 @@ public:
 			delete offset_value;
 		}
 
-		return true;
+		return NODE_RET_NORMAL;
         }
 	void SetExpression(Expression * expr)
         {
@@ -288,7 +279,7 @@ public:
 private:
 	CollectionElementRef * Reference;
         Expression * Expr;
-	Variable * Var;
+	VariableDef * Var;
 };
 
 class VarDefinitionStatement: public StatementNode
@@ -297,15 +288,14 @@ public:
 	VarDefinitionStatement(list<string*> * list, DataType vartype):IdentList(list), VarType(vartype)
 	{
 	}
-        bool Invoke()
+        int Invoke(NodeContext * context)
         {
-		return true;
+		return NODE_RET_NORMAL;
         }
         bool Provision(ErrorStack * errstack)        
 	{
                 list<string*>::iterator i;
-                Node * parent = GetParentNode();
-
+                Node * parent = this->GetParentNode();
                 if(parent)
                 {
                         for(i = IdentList->begin(); i != IdentList->end(); i++)
@@ -316,10 +306,9 @@ public:
         		                return false;
 				}
 
-                                Variable * var = new Variable(*(*i));
-				var->SetVarType(this->VarType);
-				var->SetValue(new NullValue);
-                                parent->AddVariable(var);
+                                VariableDef * vardef = new VariableDef(*(*i));
+				vardef->SetVarType(this->VarType);
+                                parent->AddVariable(vardef);
                         }
                 }
 		return true;
@@ -332,18 +321,18 @@ private:
 class PrintStatement: public StatementNode
 {
 public:
-        bool Invoke()
+        int Invoke(NodeContext * context)
         {
 		list<Expression*>::iterator i;
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
-			ConstValue * value = (*i)->Calculate();
+			ConstValue * value = (*i)->Calculate(context);
 	                printf("%s",value->toString().c_str());
 			fflush(stdout);
 			
 			delete value;
 		}
-		return true;
+		return NODE_RET_NORMAL;
         }
         void SetExpressionList(list<Expression*> * exprlist)
         {
@@ -369,20 +358,20 @@ private:
 class SleepStatement: public StatementNode
 {
 public:
-        bool Invoke()
+        int Invoke(NodeContext * context)
         {
-		ConstValue * value = this->Expr->Calculate();
+		ConstValue * value = this->Expr->Calculate(context);
 		if(value->GetType()!=Integer)
                 {
                         //TODO
 			cerr<<"SLEEP Statement MUST have a Integer parameter "<<endl;
-			return false;
+			return NODE_RET_ERROR;
                 }
 
 		usleep(static_cast<IntegerValue*>(value)->GetValue());
 
 		delete value;
-		return true;
+		return NODE_RET_NORMAL;
         }
 	void SetExpression(Expression * expr)
         {
@@ -401,6 +390,65 @@ private:
 	Expression * Expr;
 };
 
+class ReturnStatement: public StatementNode
+{
+public:
+	int Invoke(NodeContext * context)
+        {
+                ConstValue * value = this->Expr->Calculate(context);
+		context->FunctionRet = value->DupValue();
+
+		delete value;
+                return NODE_RET_NEEDRETURN;
+        }
+        void SetExpression(Expression * expr)
+        {
+                this->Expr = expr;
+        }
+        bool Provision(ErrorStack * errstack)
+        {
+                this->Expr->SetParentNode(this->GetParentNode());
+                if(this->Expr->Provision(errstack)==false)
+                {
+                        return false;
+                }
+                return true;
+	}
+private:
+        Expression * Expr;
+
+};
+
+class CallStatement: public StatementNode
+{
+public:
+        int Invoke(NodeContext * context)
+        {
+                this->RetVal = this->Expr->Calculate(context);
+                return NODE_RET_NORMAL;
+        }
+        void SetExpression(Expression * expr)
+        {
+                this->Expr = expr;
+        }
+        bool Provision(ErrorStack * errstack)
+        {
+                this->Expr->SetParentNode(this->GetParentNode());
+                if(this->Expr->Provision(errstack)==false)
+                {
+                        return false;
+                }
+                return true;
+        }
+	ConstValue * GetRetVal()
+	{
+		return this->RetVal;
+	}
+private:
+	ConstValue * RetVal;
+        Expression * Expr;
+};
+
 class ObjectStatement: public StatementNode
 {
 public:
@@ -408,10 +456,10 @@ public:
 	{
 		this->MethodName = *method_name;
 	}
-	bool Invoke()
+	int Invoke(NodeContext * context)
 	{
 		//this->FindMethodMapping(this->ObjName, this->MethodName);
-		return true;
+		return NODE_RET_NORMAL;
 	}
 	bool Provision(ErrorStack * errstack)
 	{
@@ -426,8 +474,8 @@ public:
                         }
                 }
 
-		Variable * var = this->FindVariable(this->ObjName);
-                if(var==NULL)
+		VariableDef * vardef = this->FindVariable(this->ObjName);
+                if(vardef==NULL)
                 {
                         errstack->PushFrame(0, "Object "+this->ObjName+" not defined");
                         return false;

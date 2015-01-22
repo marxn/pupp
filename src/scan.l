@@ -96,7 +96,14 @@ identifier [a-zA-Z]+[0-9]*
                                         return IN;
 				if(strcasecmp(yytext,"do")==0)
                                         return DO;
-
+				if(strcasecmp(yytext,"print")==0)
+                                        return PRINT;
+                                if(strcasecmp(yytext,"sleep")==0)
+                                        return SLEEP;
+				if(strcasecmp(yytext,"function")==0)
+                                        return FUNCTION;
+				if(strcasecmp(yytext,"return")==0)
+                                        return RETURN;
 				//Variable Type
 				if(strcasecmp(yytext,"any")==0)
                                         return TYPE_ANY;
@@ -110,10 +117,6 @@ identifier [a-zA-Z]+[0-9]*
 					return TYPE_BOOLEAN;
 				if(strcasecmp(yytext,"collection")==0)
                                         return TYPE_SET;
-				if(strcasecmp(yytext,"print")==0)
-					return PRINT;
-				if(strcasecmp(yytext, "sleep")==0)
-					return SLEEP;
 
 				//Logical operation
 				if(strcasecmp(yytext,"and")==0)

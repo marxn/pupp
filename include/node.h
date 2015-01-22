@@ -1,6 +1,7 @@
 #ifndef _NODE_H_
 #define _NODE_H_
 
+#include <stack>
 #include <map>
 #include <iostream>
 #include <sstream>
@@ -12,76 +13,162 @@
 
 using namespace std;
 
+#define NODE_RET_NORMAL       0
+#define NODE_RET_ERROR       -1
+#define NODE_RET_NEEDBREAK    1
+#define NODE_RET_NEEDCONTINUE 2
+#define NODE_RET_NEEDRETURN   3
+
+#define EVA_TRUE 1
+#define EVA_FALSE 0
+#define EVA_ERROR -1
+
+class NodeContext;
 
 class Node: public PuppyObject
 {
 public:
-		Node():ParentNode(NULL),NeedBreak(false),NeedContinue(false){}
-		virtual ~Node(){}
-		bool Execute()
-		{
-			bool ret = this->Invoke();
-			this->Swipe();
-			return ret;
-		}
-		virtual bool Invoke() = 0;
-		virtual void Swipe() = 0;
+	Node()
+	{
+	}
+	virtual ~Node()
+	{
+	}
+	void display()
+        {
+                cerr<<"size="<<this->VariableDefTable.size();
+                map<string, VariableDef*>::iterator i;
+                for(i=this->VariableDefTable.begin(); i!=this->VariableDefTable.end();i++)
+                {
+                        cerr<<" displaying:"<<i->first<<" var="<<i->second<<endl;
+                }
+        }
 
-		virtual bool Provision(ErrorStack * errstack) = 0;
+	int Execute(NodeContext * context)
+	{
+		int ret = this->Invoke(context);
+		this->Swipe(context);
+		return ret;
+	}
 
-		void SetParentNode(Node * node)
+	Node * GetParentNode()
+	{
+		return this->ParentNode;
+	}
+	void SetParentNode(Node * node)
+	{
+		this->ParentNode = node;
+	}
+	virtual bool Provision(ErrorStack * errstack) = 0;
+	virtual int Invoke(NodeContext * context) = 0;
+	virtual void Swipe(NodeContext * context) = 0;
+
+	void AddVariable(VariableDef * var)
+        {
+                VariableDef * thevar = this->VariableDefTable[var->GetVarName()];
+                if(thevar != NULL)
+                {
+                        delete thevar;
+                        this->VariableDefTable.erase(var->GetVarName());
+                }
+		this->VariableDefTable[var->GetVarName()] = var;
+        }
+        VariableDef * FindVariable(string varname)
+        {
+		map<string, VariableDef*>::iterator i = this->VariableDefTable.find(varname);
+		if(i!=this->VariableDefTable.end())
 		{
-			this->ParentNode = node;
+			return i->second;
 		}
-		Node * GetParentNode()
+		if(this->ParentNode!=NULL)
 		{
-			return this->ParentNode;
+			return this->ParentNode->FindVariable(varname);
 		}
-                void SetNeedBreak(bool val)
+
+                return NULL;
+        }
+	
+        void AddFunctionDef(string name, Node * func)
+        {
+                this->FunctionDefTable.insert(pair<string, Node*>(name, func));
+        }
+        Node * FindFunctionDef(string name)
+        {
+                Node * result = this->FunctionDefTable[name];
+                if(result == NULL && this->ParentNode!=NULL)
                 {
-                        this->NeedBreak = val;
+                        return ParentNode->FindFunctionDef(name);
                 }
-                void SetNeedContinue(bool val)
+
+                return result;
+        }
+
+	Node * ParentNode;
+	map<string, VariableDef*> VariableDefTable;
+	map<string, Node*> FunctionDefTable;
+};
+
+
+struct ForeachLoopCtx 
+{
+	map<string, ConstValue*> * SetValueHolder;
+	map<string, ConstValue*>::iterator ValueHandle;
+};
+
+class NodeContext
+{
+public:
+	NodeContext(){}
+	~NodeContext()
+	{
+		while(this->Frames.size()>0)
+		{
+			this->PopFrame();
+		}
+	}
+	void AddFrame(Node * snapshot)
+	{
+		map<string, Variable*> * frame = new map<string, Variable*>;
+
+		map<string, VariableDef*>::iterator i;
+                for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
                 {
-                        this->NeedContinue = val;
+                        string name = i->first;
+                        VariableDef * def = i->second;
+                        frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
                 }
-                bool GetNeedBreak()
+		this->Frames.push_front(frame);
+	}
+	void PopFrame()
+	{
+		map<string, Variable*> * frame = this->Frames.front();
+		map<string, Variable*>::iterator i;
+                for(i = frame->begin(); i!=frame->end(); i++)
                 {
-                        return this->NeedBreak;
+                        delete i->second;
                 }
-                bool GetNeedContinue()
-                {
-                        return this->NeedContinue;
-                }
-                Variable * GetVariable(string name)
-                {
-                        return this->Variables[name];
-                }
-                void AddVariable(Variable * var)
-                {
-                        // need optimize
-			Variable * thevar = Variables[var->GetName()];
-                        if(thevar != NULL)
-			{	
-				delete thevar;
-				Variables.erase(var->GetName());
+		delete frame;
+                this->Frames.erase(this->Frames.begin());
+	}
+        Variable * GetVariable(string name)
+        {
+		list<map<string, Variable*>* >::iterator i;
+		for(i=this->Frames.begin(); i!=this->Frames.end();i++)
+		{
+			map<string, Variable*>::iterator j = (*i)->find(name);
+			if(j!=(*i)->end())
+			{
+				return j->second;
 			}
-			Variables[var->GetName()] = var;
-                }
-                Variable * FindVariable(string varname)
-                {
-                        Variable * result = this->Variables[varname];
+		}
+                return NULL;
+        }
 
-                        if(result == NULL && this->ParentNode!=NULL)
-                                return ParentNode->FindVariable(varname);
+        stack<ForeachLoopCtx*> ForeachCtx;
+        ConstValue * FunctionRet;
 
-                        return result;
-                }
 private:
-                map<string, Variable*> Variables;
-                bool NeedBreak;
-                bool NeedContinue;
-		Node * ParentNode;
+        list<map<string, Variable*>* > Frames;
 };
 
 #endif

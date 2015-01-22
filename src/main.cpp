@@ -4,11 +4,13 @@
 #include <map>
 #include "puppybase.h"
 #include "errstack.h"
-#include "node.h"
+#include "container.h"
 #include "constval.h"
 #include "expression.h"
+#include "bean.h"
+#include "statement.h"
 
-extern Node * parse();
+extern PuppyBean * parse();
 extern FILE * yyin;
 
 using namespace std;
@@ -29,27 +31,61 @@ int main(int argc, char * argv[])
 			fprintf(stderr, "can not open file\n");
 			return -1;
 		}
-		
 	}
 
 	yyin = fp;
 
 	ErrorStack errstack;
 
-	Node * tree = parse();
+	PuppyBean * bean = parse();
 
-	if(tree && tree->Provision(&errstack))
+	int ret = -1;
+
+	if(bean == NULL)
 	{
-		if(tree->Execute()==false)
+		fprintf(stderr, "Failed to parse the source code.");
+		return -1;
+	}
+
+	if(true)
+	{
+		list<Expression*> * explist = new list<Expression*>;
+		SetValue * para = new SetValue;
+
+		for(int i = 0; i<argc; i++)
 		{
-			cerr<<"puppy: abnornal exit."<<endl;
+			IntegerValue * key = new IntegerValue(i);
+			StringValue * value = new StringValue(string(argv[i]));
+			KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(key, value));
+			para->AddKV(kv);
+
+			delete kv;
+			delete value;
+			delete key;
 		}
+
+		explist->push_back(new ConstValueExpression(para));
+
+		string StartName = "main";
+		FunctionExpression * payload = new FunctionExpression(&StartName, explist);
+
+		CallStatement * callstmt = new CallStatement;
+		callstmt->SetExpression(payload);
+		bean->subnodelist->push_back(callstmt);
+
+		if(bean->Provision(&errstack))
+	        {
+			NodeContext * context = new NodeContext;
+			context->AddFrame(bean);
+			ret = callstmt->Execute(context);
+        	}
+	        else
+        	{
+			cerr<<"provision failed."<<endl;
+	                errstack.PrintStack();
+        	}
 	}
-	else if(tree)
-	{
-		errstack.PrintStack();
-	}
-		
 	fclose(fp);
-	return 0;
+	return ret;
 }
+

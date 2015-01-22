@@ -3,18 +3,23 @@
     #include <stdio.h>
     #include <stdarg.h>
     #include <list>
+
     #include "constval.h"
     #include "expression.h"
     #include "variable.h"
     #include "node.h"
     #include "statement.h"
     #include "container.h"
-    
+    #include "loop.h"
+    #include "ifelse.h"
+    #include "function.h"
+    #include "bean.h"
+
     using namespace std;
     
     int yyerror(char *);
     int yylex(void);
-    ContainerNode * final_node;
+    PuppyBean * final;
 %}
 
 %union
@@ -33,6 +38,7 @@
 	KVExpression                * puppy_kvexpr;
 	SetExpression               * puppy_setexpr;
 	OffsetExpression            * puppy_offsetexpr;
+	FunctionExpression          * puppy_funcexpr;
         string                      * puppy_ident;
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
@@ -40,6 +46,9 @@
 	list<Expression*>           * puppy_exprlist;
 	CollectionElementRef        * puppy_collection_eleref;
 	StatementNode               * puppy_statement;
+	FunctionNode                * puppy_function_node;
+	FuncArgDef                  * puppy_function_argdef;
+	list<FuncArgDef*>           * puppy_function_arg_list;
 }
 
 %left OR
@@ -57,7 +66,7 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_ANY TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
-%token DEF IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
+%token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
 %token AND OR NOT
 %token NIL NL PI
 
@@ -71,9 +80,14 @@
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
 %type  <puppy_offsetexpr> offset_expr
+%type  <puppy_funcexpr> func_expr
 
+%type  <puppy_node>  puppybean
+%type  <puppy_function_argdef> func_arg
+%type  <puppy_function_arg_list> arg_list
+%type  <puppy_function_node> function_node
 %type  <puppy_node>  program_node simple_node loop_node while_loop for_loop foreach_loop branch_node
-%type  <puppy_nodelist>  optional_else_list node_list final_block 
+%type  <puppy_nodelist>  optional_else_list node_list
 
 %type  <puppy_identlist> identifier_list qualified_object
 %type  <puppy_exprlist>  expr_list
@@ -83,14 +97,47 @@
 %type  <puppy_collection_eleref> collection_element_ref
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
 %type  <puppy_statement> vardefstatement sleep_statement element_assign_statement object_statement
+%type  <puppy_statement> returnstatement
 
 %%
 
-final_block: 
-	node_list 
+puppybean: 
+	node_list
 		{
-			final_node = new ContainerNode;
-			final_node->SetNodeList($1);
+			final = new PuppyBean;
+			final->SetNodeList($1);
+		}
+	;
+
+func_arg:
+	IDENTIFIER AS def_data_type
+		{
+			$$ = new FuncArgDef($1, $3);
+		}
+ 	;
+
+arg_list:
+	arg_list ',' func_arg
+		{
+			$1->push_back($3);
+                        $$ = $1;
+		}
+	| func_arg
+		{
+			$$ = new list<FuncArgDef*>;
+                        $$->push_back($1);
+		}
+	;
+
+function_node:
+	DEF FUNCTION IDENTIFIER '(' arg_list ')' AS def_data_type '{' node_list '}'
+		{
+			FunctionNode * fun = new FunctionNode($3);
+			fun->SetArgList($5);
+			fun->SetRtnType($8);
+			fun->SetNodeList($10);
+
+			$$ = fun;
 		}
 	;
 	
@@ -120,6 +167,10 @@ program_node:
 		{
 			$$ = $1;
 		} 
+	| function_node
+		{
+			$$ = $1;
+		}
 	;
 
 simple_node:
@@ -144,6 +195,10 @@ simple_node:
 			$$ = $1;
 		}
 	| print_statement
+		{
+			$$ = $1;
+		}
+	| returnstatement
 		{
 			$$ = $1;
 		}
@@ -172,16 +227,10 @@ while_loop:
 for_loop:
 	FOR '(' simple_node ';' expr ';' simple_node ')' '{' node_list '}'
                 {
-			list<Node*> * n1 = new list<Node*>;
-			n1->push_back($3);
-
-			list<Node*> * n2 = new list<Node*>;
-                        n2->push_back($7);
-
 			ForLoopNode * node = new ForLoopNode;
-			node->SetPreLoopStatement(n1);
+			node->SetPreLoopStatement($3);
 			node->SetCondition($5);
-			node->SetPerOnceStatement(n2);
+			node->SetPerOnceStatement($7);
 			node->SetNodeList($10);
 
 			$$ = static_cast<Node*>(node);
@@ -193,8 +242,8 @@ foreach_loop:
 		{
 			ForeachLoopNode * node = new ForeachLoopNode;
 
-			node->SetPreLoopStatement(new list<Node*>);
-			node->SetPerOnceStatement(new list<Node*>);
+			node->SetPreLoopStatement(NULL);
+			node->SetPerOnceStatement(NULL);
 
 			node->SetCondition(new ConstValueExpression(new BooleanValue(true)));
 			node->SetKV(*($4), *($6));
@@ -345,6 +394,15 @@ sleep_statement:
 		}
 	;
 
+returnstatement:
+	RETURN expr
+		{
+			ReturnStatement * stmt = new ReturnStatement;
+			stmt->SetExpression($2);
+			$$ = stmt;
+		}
+	;
+
 qualified_object:
 	qualified_object '.' IDENTIFIER
 		{
@@ -432,9 +490,16 @@ const_value:
 	;
 
 set_expr:
-    '{' expr_list '}'
+	'{' expr_list '}'
 		{
 			$$ = new SetExpression($2);
+		}
+	;
+
+func_expr:
+	IDENTIFIER '(' expr_list ')'
+		{
+			$$ = new FunctionExpression($1, $3);
 		}
 	;
 
@@ -555,6 +620,10 @@ expr:
 		{
 			$$ = static_cast<Expression*>($1);
 		}
+    | func_expr
+		{
+			$$ = static_cast<Expression*>($1);
+		}
     | '(' expr ')'             
 		{
 			$$ = $2; 
@@ -568,9 +637,9 @@ int yyerror(char *s)
     return 0;
 }
 
-Node * parse()
+PuppyBean * parse()
 {
     yyparse();
 	
-    return (Node*)final_node;
+    return final;
 }

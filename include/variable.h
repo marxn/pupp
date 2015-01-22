@@ -8,16 +8,78 @@
 
 using namespace std;
 
-class Variable: public PuppyObject
+class Variable
 {
 public:
-	Variable(Identifier * ident):Value(NULL), VarType(Any)
+	Variable(string name, DataType type)
+	{
+		this->Value = NULL;
+		this->VarName = name;
+		this->VarType = type;
+	}
+	~Variable()
+	{
+		if(this->Value)
+                {
+                        delete this->Value;
+                }
+	}
+
+	string GetVarName()
+        {
+                return VarName;
+        }
+
+	void SetValue(ConstValue * value)
+        {
+                if(this->Value)
+                {
+                        delete this->Value;
+                }
+                this->Value = value->DupValue();
+        }
+        ConstValue * GetValue()
+        {
+                return Value->DupValue();
+        }
+	DataType GetVarType()
+	{
+		return this->VarType;
+	}
+	DataType GetValueType()
+        {
+                return this->Value->GetType();
+        }
+        ConstValue * GetReference()
+        {
+                return this->Value;
+        }
+
+private:
+	ConstValue * Value;
+	DataType VarType;
+	string VarName;
+};
+
+class VariableDef: public PuppyObject
+{
+public:
+	VariableDef(Identifier * ident):VarType(Any)
 	{
 		this->VarName = ident->GetName();
 	}
-	Variable(string VarName):Value(NULL), VarType(Any)
+	VariableDef(string VarName):VarType(Any)
 	{
 		this->VarName = VarName;
+	}
+	Variable * GetInstance()
+	{
+		Variable * ret = new Variable(this->VarName, this->VarType);
+		NullValue * value = new NullValue;
+		ret->SetValue(value);
+		delete value;
+
+		return ret;
 	}
 	void SetVarType(DataType type)
 	{
@@ -27,34 +89,13 @@ public:
         {
                 return this->VarType;
         }
-	DataType GetValueType()
-	{
-		return this->Value->GetType();
-	}
-	void SetValue(ConstValue * value)
-	{
-		if(this->Value)
-		{
-			delete this->Value;
-		}
-		this->Value = value->DupValue();
-	}
-	ConstValue * GetValue()
-	{
-		return Value->DupValue();
-	}
-	ConstValue * GetReference()
-	{
-		return this->Value;
-	}
-	string GetName()
+	string GetVarName()
 	{
 		return VarName;
 	}
 private:
 	string VarName;
 	DataType VarType;
-	ConstValue * Value;
 };
 
 #endif

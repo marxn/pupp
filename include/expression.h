@@ -11,6 +11,7 @@
 #include "variable.h"
 #include "node.h"
 #include "errstack.h"
+#include "function.h"
 
 using namespace std;
 
@@ -21,7 +22,7 @@ public:
 	{
 	}
 	virtual ~Expression(){}
-	virtual ConstValue * Calculate() = 0;
+	virtual ConstValue * Calculate(NodeContext * context) = 0;
 
 	void SetParentNode(Node * node)
 	{
@@ -42,7 +43,7 @@ public:
         ~ConstValueExpression()
         {
         }
-        ConstValue * Calculate()
+        ConstValue * Calculate(NodeContext * context)
         {
                 return Value->DupValue();
         }
@@ -61,23 +62,20 @@ public:
 	{
 	}
 
-	ConstValue * Calculate()
+	ConstValue * Calculate(NodeContext * context)
 	{
-		this->left_store = this->left->Calculate();
-                this->right_store = this->right->Calculate();
+		ConstValue * left_store = this->left->Calculate(context);
+                ConstValue * right_store = this->right->Calculate(context);
 
-		ConstValue * result = this->CarryOut();
+		ConstValue * result = this->CarryOut(left_store, right_store);
 
-		delete this->left_store;
-		delete this->right_store;
-
-		this->left_store = NULL;
-		this->right_store = NULL;
+		delete left_store;
+		delete right_store;
 
 		return result;
 	}
 
-	virtual ConstValue * CarryOut() = 0;
+	virtual ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store) = 0;
 
 	bool Provision(ErrorStack * errstack)
 	{
@@ -99,8 +97,6 @@ public:
 protected:
 	Expression * left;
 	Expression * right;
-	ConstValue * left_store;
-	ConstValue * right_store;
 };
 
 class KVExpression: public BinaryExpression
@@ -118,9 +114,9 @@ public:
 		return true;
 	}
 
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return new KVValue(pair<ConstValue*, ConstValue*>(this->left_store, this->right_store));
+		return new KVValue(pair<ConstValue*, ConstValue*>(left_store, right_store));
 	}
 };
 
@@ -128,7 +124,7 @@ class SetExpression: public Expression
 {
 public:
 	SetExpression(list<Expression*> * exp):ExprList(exp){}
-	ConstValue * Calculate()
+	ConstValue * Calculate(NodeContext * context)
 	{
 		long index = 0;
 		SetValue * result = new SetValue;
@@ -137,7 +133,7 @@ public:
 		list<Expression*>::iterator i;
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
-			ConstValue * value = (*i)->Calculate();
+			ConstValue * value = (*i)->Calculate(context);
 			if(value->GetType()==KeyValue)
 			{
 				tobedone.push_back(static_cast<KVValue*>(value));
@@ -188,17 +184,17 @@ class OffsetExpression: public BinaryExpression
 public:
 	OffsetExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-		if(this->left_store->GetType()!=Set)
+		if(left_store->GetType()!=Set)
 		{
 			//TODO
                         //errstack->PushFrame(0, "Expect a collection to the left of '['.");
                         return new NullValue;
                 }
 
-		SetValue * collection = static_cast<SetValue*>(this->left_store);
-		ConstValue * key = this->right_store;
+		SetValue * collection = static_cast<SetValue*>(left_store);
+		ConstValue * key = right_store;
 
                 ConstValue * result = collection->FindByKey(key->toString());
 		if(result == NULL)
@@ -217,40 +213,124 @@ public:
 class VarExpression: public Expression
 {
 public:
-	VarExpression():Var(NULL){}
+	VarExpression(){}
 	VarExpression(string * varname):VarName(varname){}
 	~VarExpression(){}
-	ConstValue * Calculate()
+	ConstValue * Calculate(NodeContext * context)
 	{
-		if(this->Var) 
+		Variable * var = context->GetVariable(*VarName);
+		if(var)
 		{
-			return this->Var->GetValue();
+			return var->GetValue();
 		}
-		return NULL;
+		cerr<<"Variable "+*VarName+" not defined"<<endl;
+		return new NullValue;
 	}
 	bool Provision(ErrorStack * errstack)
 	{
-		this->Var = this->ParentNode->FindVariable(*VarName);
-		if(this->Var==NULL)
-		{
-			errstack->PushFrame(this->GetObjLoc(), "Variable "+*VarName+" not defined");
-                        return false;
-		}
 		return true;
 	}
 private:
 	string * VarName;
-	Variable * Var;
 };
+
+class FunctionExpression: public Expression
+{
+public:
+	FunctionExpression(string * funcname, list<Expression*> * exprlist)
+	{
+		this->FuncName = *funcname;
+		this->ExprList = exprlist;
+	}
+	ConstValue * Calculate(NodeContext * context)
+        {
+		ConstValue * result = NULL;
+
+                if(this->Func)
+                {
+			NodeContext * new_ctx = new NodeContext;
+			new_ctx->AddFrame(this->Func);
+
+			list<Expression*>::iterator i;
+			list<FuncArgDef*>::iterator j;
+
+			for(i = this->ExprList->begin(), j = this->Func->GetArgList()->begin(); 
+				i!=this->ExprList->end() && j!=this->Func->GetArgList()->end(); i++,j++)
+			{
+				ConstValue * value = (*i)->Calculate(context);
+				if(value->GetType()!=(*j)->GetType() && (*j)->GetType()!=Any)
+				{
+					delete new_ctx;
+					cerr<<"puppy runtime error: data type mismatch when calling a function."<<endl;
+					return new NullValue;
+				}
+
+				string argname = (*j)->GetName();
+
+				Variable * localvar = new_ctx->GetVariable(argname);
+				if(localvar)
+				{
+					localvar->SetValue(value);
+				}
+
+				delete value;
+			}
+
+			int rtn = this->Func->Execute(new_ctx);
+
+			if(rtn==NODE_RET_NEEDRETURN)
+			{
+				result = new_ctx->FunctionRet;
+			}
+			else
+			{
+				result = new NullValue;
+			}
+			
+			delete new_ctx;
+                }
+                return result;
+        }
+        bool Provision(ErrorStack * errstack)
+        {
+                this->Func = static_cast<FunctionNode*>(this->ParentNode->FindFunctionDef(this->FuncName));
+                if(this->Func==NULL)
+                {
+                        errstack->PushFrame(this->GetObjLoc(), "Function "+this->FuncName+"() has not been defined");
+                        return false;
+                }
+		list<Expression*>::iterator i;
+                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
+                {
+                        (*i)->SetParentNode(this->ParentNode);
+                        if((*i)->Provision(errstack)!=true)
+                        {
+                                return false;
+                        }
+                }
+
+		if(this->Func->GetArgList()->size()!=this->ExprList->size())
+		{
+			errstack->PushFrame(0, "Number of arguments mismatch");	
+			return false;
+		}
+                return true;
+        }
+private:
+	string FuncName;
+	FunctionNode * Func;
+	list<Expression*> * ExprList;
+};
+
 
 class PlusExpression: public BinaryExpression 
 {
 public:
 	PlusExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~PlusExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::AddOperation(this->left_store, this->right_store);
+		return Operation::AddOperation(left_store, right_store);
 	}
 };
 
@@ -259,9 +339,9 @@ class SubtractExpression: public BinaryExpression
 public:
 	SubtractExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~SubtractExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::SubOperation(this->left_store, this->right_store);
+		return Operation::SubOperation(left_store, right_store);
 	}
 };
 
@@ -270,9 +350,9 @@ class MultiplicationExpression: public BinaryExpression
 public:
 	MultiplicationExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~MultiplicationExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::MulOperation(this->left_store, this->right_store);
+		return Operation::MulOperation(left_store, right_store);
 	}
 };
 
@@ -281,9 +361,9 @@ class DivisionExpression: public BinaryExpression
 public:
 	DivisionExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~DivisionExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::DivOperation(this->left_store, this->right_store);
+		return Operation::DivOperation(left_store, right_store);
 	}
 };
 
@@ -292,9 +372,9 @@ class GTExpression: public BinaryExpression
 public:
 	GTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~GTExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::GTOperation(this->left_store, this->right_store);
+		return Operation::GTOperation(left_store, right_store);
 	}
 };
 
@@ -303,9 +383,9 @@ class LTExpression: public BinaryExpression
 public:
 	LTExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~LTExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::LTOperation(this->left_store, this->right_store);
+		return Operation::LTOperation(left_store, right_store);
 	}
 };
 
@@ -314,9 +394,9 @@ class EQExpression: public BinaryExpression
 public:
 	EQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
 	~EQExpression(){}
-	ConstValue * CarryOut()
+	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return Operation::EQOperation(this->left_store, this->right_store);
+		return Operation::EQOperation(left_store, right_store);
 	}
 };
 
@@ -325,9 +405,9 @@ class NEQExpression: public BinaryExpression
 public:
         NEQExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~NEQExpression(){}
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-                return Operation::NEQOperation(this->left_store, this->right_store);
+                return Operation::NEQOperation(left_store, right_store);
         }
 };
 
@@ -336,9 +416,9 @@ class GEExpression: public BinaryExpression
 public:
         GEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~GEExpression(){}
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-                return Operation::GEOperation(this->left_store, this->right_store);
+                return Operation::GEOperation(left_store, right_store);
         }
 };
 
@@ -347,9 +427,9 @@ class LEExpression: public BinaryExpression
 public:
         LEExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~LEExpression(){}
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-                return Operation::LEOperation(this->left_store, this->right_store);
+                return Operation::LEOperation(left_store, right_store);
         }
 };
 
@@ -358,9 +438,9 @@ class ANDExpression: public BinaryExpression
 public:
 	ANDExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~ANDExpression(){}
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-                return Operation::ANDOperation(this->left_store, this->right_store);
+                return Operation::ANDOperation(left_store, right_store);
         }
 };
 
@@ -369,9 +449,9 @@ class ORExpression: public BinaryExpression
 public:
         ORExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
         ~ORExpression(){}
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-                return Operation::OROperation(this->left_store, this->right_store);
+                return Operation::OROperation(left_store, right_store);
         }
 };
 
@@ -383,9 +463,9 @@ public:
 		this->left = new ConstValueExpression(new BooleanValue(true));
 	}
         ~NOTExpression(){}
-        ConstValue * CarryOut()
+        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
         {
-                return Operation::NOTOperation(this->right_store);
+                return Operation::NOTOperation(right_store);
         }
 };
 
