@@ -200,6 +200,7 @@ public:
                 }
 
 		ForeachLoopCtx * ctx = new ForeachLoopCtx;
+		ctx->Keeper         = keeper;
 		ctx->SetValueHolder = static_cast<SetValue*>(keeper)->GetValue();
 		ctx->ValueHandle    = ctx->SetValueHolder->begin();
 
@@ -246,6 +247,7 @@ public:
         void Swipe(NodeContext * context)
         {
 		ForeachLoopCtx * ctx = context->ForeachCtx.top();
+		delete ctx->Keeper;
 		delete ctx;
                 context->ForeachCtx.pop();
 
