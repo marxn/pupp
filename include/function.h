@@ -34,6 +34,14 @@ public:
         {
                 this->Name = *name;
         }
+	int Invoke(NodeContext * context)
+	{
+		return NODE_RET_NORMAL;
+	}
+	int Run(NodeContext * context)
+	{
+		return ContainerNode::Invoke(context);
+	}
 	
         void SetRtnType(DataType type)
         {

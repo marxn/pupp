@@ -93,6 +93,34 @@ class BranchNode :public ContainerNode
 
                         return true;
                 }
+		bool CheckElseStmt(ErrorStack * errstack)
+		{
+			list<Node*>::iterator i;
+                        for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
+                        {
+                                if((*i)->Check(errstack)!=true)
+                                {
+                                        return false;
+                                }
+                        }
+                        return true;
+		}
+		bool Check(ErrorStack * errstack)
+		{
+			if(condition->Check(errstack)==false)
+                        {
+                                return false;
+                        }
+			if(ContainerNode::Check(errstack)==false)
+                        {
+                                return false;
+                        }
+			if(this->elsenodelist!=NULL && CheckElseStmt(errstack)==false)
+                        {
+                                return false;
+                        }
+			return true;
+		}
         private:
                 int Evaluate(NodeContext * context)
                 {

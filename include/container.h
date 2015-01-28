@@ -43,6 +43,18 @@ class ContainerNode :public Node
                         }
 			return true;
                 }
+		bool Check(ErrorStack * errstack)
+		{
+			list<Node*>::iterator i;
+                        for(i = subnodelist->begin(); i != subnodelist->end(); i++)
+                        {
+                                if((*i)->Check(errstack)!=true)
+                                {
+                                        return false;
+                                }
+                        }
+                        return true;
+		}
 
                 list<Node*> * subnodelist;
 };

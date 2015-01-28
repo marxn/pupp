@@ -1,3 +1,8 @@
+Jan 28th 2015
+---------------------------
+1. Make a right way to get the instances of global/local variables.
+2. Fixed some bug from function node.
+
 Jan 23rd 2015
 ---------------------------
 1. Fixed some memory leak problem

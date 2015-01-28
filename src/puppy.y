@@ -86,7 +86,7 @@
 %type  <puppy_function_argdef> func_arg
 %type  <puppy_function_arg_list> arg_list
 %type  <puppy_function_node> function_node
-%type  <puppy_node>  program_node simple_node loop_node while_loop for_loop foreach_loop branch_node
+%type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node
 %type  <puppy_nodelist>  optional_else_list node_list
 
 %type  <puppy_identlist> identifier_list qualified_object
@@ -106,6 +106,7 @@ puppybean:
 		{
 			final = new PuppyBean;
 			final->SetNodeList($1);
+			final->ParentNode = NULL;
 		}
 	;
 
@@ -126,6 +127,10 @@ arg_list:
 		{
 			$$ = new list<FuncArgDef*>;
                         $$->push_back($1);
+		}
+	|
+		{
+			$$ = new list<FuncArgDef*>;
 		}
 	;
 
@@ -155,7 +160,7 @@ node_list:
 	;
 	
 program_node:
-	simple_node ';'
+	statement_node ';'
 		{
 			$$ = $1;
 		}
@@ -173,7 +178,7 @@ program_node:
 		}
 	;
 
-simple_node:
+statement_node:
     assign_statement
 		{
 			$$ = $1;
@@ -225,7 +230,7 @@ while_loop:
 	;
 
 for_loop:
-	FOR '(' simple_node ';' expr ';' simple_node ')' '{' node_list '}'
+	FOR '(' statement_node ';' expr ';' statement_node ')' '{' node_list '}'
                 {
 			ForLoopNode * node = new ForLoopNode;
 			node->SetPreLoopStatement($3);

@@ -34,15 +34,6 @@ public:
 	virtual ~Node()
 	{
 	}
-	void display()
-        {
-                cerr<<"size="<<this->VariableDefTable.size();
-                map<string, VariableDef*>::iterator i;
-                for(i=this->VariableDefTable.begin(); i!=this->VariableDefTable.end();i++)
-                {
-                        cerr<<" displaying:"<<i->first<<" var="<<i->second<<endl;
-                }
-        }
 
 	int Execute(NodeContext * context)
 	{
@@ -60,6 +51,11 @@ public:
 		this->ParentNode = node;
 	}
 	virtual bool Provision(ErrorStack * errstack) = 0;
+	virtual bool Check(ErrorStack * errstack)
+	{
+		return true;
+	}
+
 	virtual int Invoke(NodeContext * context) = 0;
 	virtual void Swipe(NodeContext * context) = 0;
 
@@ -139,6 +135,19 @@ public:
                         frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
                 }
 		this->Frames.push_front(frame);
+	}
+	void LinkFrame(Node * snapshot)
+	{
+		map<string, Variable*> * frame = new map<string, Variable*>;
+
+                map<string, VariableDef*>::iterator i;
+                for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
+                {
+                        string name = i->first;
+                        VariableDef * def = i->second;
+                        frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
+                }
+                this->Frames.push_back(frame);
 	}
 	void PopFrame()
 	{

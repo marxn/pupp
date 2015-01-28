@@ -77,17 +77,27 @@ public:
                 {
                         if(ContainerNode::Provision(errstack)==false)
                         {
-                                errstack->PushFrame(0, "Failed to transform container.");
                                 return false;
                         }
                         condition->SetParentNode(this->GetParentNode());
                         if(condition->Provision(errstack)==false)
                         {
-                                errstack->PushFrame(0, "Failed to transform condition expression.");
                                 return false;
                         }
                         return true;
                 }
+		bool Check(ErrorStack * errstack)
+		{
+			if(ContainerNode::Check(errstack)==false)
+                        {
+                                return false;
+                        }
+			if(condition->Check(errstack)==false)
+                        {
+                                return false;
+                        }
+                        return true;
+		}
         private:
                 //1 - true, 0 - false, -1 - error
                 virtual int Evaluate(NodeContext * context)
@@ -162,7 +172,6 @@ public:
 			this->PreLoop->SetParentNode(this->GetParentNode());
 			if(this->PreLoop->Provision(errstack)!=true)
         	        {
-	                        errstack->PushFrame(0, "Cannot identify pre-loop statement");
                         	return false;
                 	}
 		}
@@ -171,12 +180,34 @@ public:
 			this->PerOnce->SetParentNode(this->GetParentNode());
         	        if(this->PerOnce->Provision(errstack)!=true)
 	                {
-                	        errstack->PushFrame(0, "Cannot identify per-once statement");
         	                return false;
 	                }
 		}
                 return true;
         }
+	bool Check(ErrorStack * errstack)
+        {
+                if(LoopNode::Check(errstack)!=true)
+                {
+                        return false;
+                }
+                if(this->PreLoop)
+                {
+                        if(this->PreLoop->Check(errstack)!=true)
+                        {
+                                return false;
+                        }
+                }
+                if(this->PerOnce)
+                {
+                        if(this->PerOnce->Check(errstack)!=true)
+                        {
+                                return false;
+                        }
+                }
+                return true;
+        }
+
         void Swipe(NodeContext * context)
         {
         }
@@ -290,12 +321,24 @@ public:
                 CollectionExpr->SetParentNode(this->GetParentNode());
                 if(CollectionExpr->Provision(errstack)==false)
                 {
-                        errstack->PushFrame(0, "Failed to transform condition expression.");
                         return false;
                 }
 
                 return true;
         }
+	bool Check(ErrorStack * errstack)
+	{
+		if(ForLoopNode::Check(errstack)!=true)
+                {
+                        return false;
+                }
+                if(CollectionExpr->Check(errstack)==false)
+                {
+                        return false;
+                }
+
+                return true;
+	}
 private:
         string Key;
         string Value;

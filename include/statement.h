@@ -45,13 +45,21 @@ public:
 class AssignStatement: public StatementNode
 {
 public:
+	AssignStatement():VarDef(NULL){}
+
         int Invoke(NodeContext * context)
         {
 		Variable * var = context->GetVariable(this->VarName);
 		if(var==NULL)
 		{
-			return NODE_RET_ERROR;
+			var = this->VarDef->GetInstance();
+			if(var==NULL)
+			{
+				cerr<<"Puppy runtime error: cannot find variable: "<<this->VarName<<endl;
+				return NODE_RET_ERROR;
+			}
 		}
+
 		ConstValue * value = Expr->Calculate(context);
 		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
 		{
@@ -79,12 +87,6 @@ public:
         bool Provision(ErrorStack * errstack)
         {
 		Node * parent = this->GetParentNode();
-                VariableDef * vardef = parent->FindVariable(VarName);
-                if(vardef==NULL)
-                {
-                        errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
-                        return false;
-                }
 
 		this->Expr->SetParentNode(parent);
                 if(this->Expr->Provision(errstack)==false)
@@ -94,8 +96,21 @@ public:
 		}
 		return true;
         }
+	bool Check(ErrorStack * errstack)
+	{
+		Node * parent = this->GetParentNode();
+                VariableDef * vardef = parent->FindVariable(VarName);
+                if(vardef==NULL)
+                {
+                        errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
+                        return false;
+                }
+		this->VarDef = vardef;
+		return true;
+	}
 private:
         string VarName;
+	VariableDef * VarDef;
         Expression * Expr;
 };
 
@@ -249,13 +264,6 @@ public:
         }
 	bool Provision(ErrorStack * errstack)
         {
-		this->Var = this->FindVariable(this->Reference->GetVarName());
-                if(this->Var==NULL)
-                {
-                        errstack->PushFrame(0, "Variable "+this->Reference->GetVarName()+" not defined");
-                        return false;
-                }
-
 		list<Expression*>* exprlist = this->Reference->GetExpList();
 
 		list<Expression*>::iterator i;
@@ -276,6 +284,34 @@ public:
 
                 return true;
         }
+	bool Check(ErrorStack * errstack)
+	{
+		this->Var = this->FindVariable(this->Reference->GetVarName());
+                if(this->Var==NULL)
+                {
+                        errstack->PushFrame(0, "Variable "+this->Reference->GetVarName()+" not defined");
+                        return false;
+                }
+
+		list<Expression*>* exprlist = this->Reference->GetExpList();
+
+                list<Expression*>::iterator i;
+                for(i=exprlist->begin(); i!=exprlist->end(); i++)
+                {
+                        if((*i)->Check(errstack)==false)
+                        {
+                                return false;
+                        }
+                }
+
+                if(this->Expr->Check(errstack)==false)
+                {
+                        return false;
+                }
+
+                return true;
+
+	}
 private:
 	CollectionElementRef * Reference;
         Expression * Expr;
@@ -351,6 +387,19 @@ public:
 		}
 		return true;
         }
+	bool Check(ErrorStack * errstack)
+        {
+                list<Expression*>::iterator i;
+                for(i = ExprList->begin(); i!= ExprList->end(); i++)
+                {
+                        if((*i)->Check(errstack)==false)
+                        {
+                                return false;
+                        }
+                }
+                return true;
+        }
+
 private:
         list<Expression*> * ExprList;
 };
@@ -380,12 +429,13 @@ public:
         bool Provision(ErrorStack * errstack)
         {
 		this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Provision(errstack)==false)
-                {
-                        return false;
-                }
-                return true;
+                return this->Expr->Provision(errstack);
         }
+	bool Check(ErrorStack * errstack)
+        {
+                return this->Expr->Check(errstack);
+        }
+
 private:
 	Expression * Expr;
 };
@@ -408,11 +458,11 @@ public:
         bool Provision(ErrorStack * errstack)
         {
                 this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Provision(errstack)==false)
-                {
-                        return false;
-                }
-                return true;
+                return this->Expr->Provision(errstack);
+	}
+	bool Check(ErrorStack * errstack)
+	{
+		return this->Expr->Check(errstack);
 	}
 private:
         Expression * Expr;
@@ -434,12 +484,13 @@ public:
         bool Provision(ErrorStack * errstack)
         {
                 this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Provision(errstack)==false)
-                {
-                        return false;
-                }
-                return true;
+                return this->Expr->Provision(errstack);
         }
+	bool Check(ErrorStack * errstack)
+        {
+                return this->Expr->Check(errstack);
+        }
+
 	ConstValue * GetRetVal()
 	{
 		return this->RetVal;

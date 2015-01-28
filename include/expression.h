@@ -30,6 +30,10 @@ public:
 	}
 
 	virtual bool Provision(ErrorStack * errstack) = 0;
+	virtual bool Check(ErrorStack * errstack) 
+	{
+		return true;
+	}
 
 protected:
 	Node * ParentNode;
@@ -93,6 +97,20 @@ public:
 
 		return true;
 	}
+	bool Check(ErrorStack * errstack)
+        {
+                if(left->Check(errstack)==false)
+                {
+                        return false;
+                }
+                if(right->Check(errstack)==false)
+                {
+                        return false;
+                }
+
+                return true;
+        }
+
 
 protected:
 	Expression * left;
@@ -104,14 +122,6 @@ class KVExpression: public BinaryExpression
 public:
 	KVExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2)
 	{
-	}
-	bool Provision(ErrorStack * errstack)
-	{
-		if(BinaryExpression::Provision(errstack)==false)
-                {
-                        return false;
-                }
-		return true;
 	}
 
 	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
@@ -175,6 +185,20 @@ public:
 
 		return true;
 	}
+	bool Check(ErrorStack * errstack)
+        {
+                list<Expression*>::iterator i;
+                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
+                {
+                        if((*i)->Check(errstack)!=true)
+                        {
+                                return false;
+                        }
+                }
+
+                return true;
+        }
+
 private:
 	list<Expression*> * ExprList;
 };
@@ -223,15 +247,30 @@ public:
 		{
 			return var->GetValue();
 		}
-		cerr<<"Variable "+*VarName+" not defined"<<endl;
-		return new NullValue;
+		else if(this->VarDef!=NULL)
+		{
+			var = this->VarDef->GetInstance();
+			return var->GetValue();
+		}
 	}
 	bool Provision(ErrorStack * errstack)
 	{
 		return true;
 	}
+	bool Check(ErrorStack * errstack)
+	{
+		VariableDef * vardef = this->ParentNode->FindVariable(*VarName);
+		if(vardef==NULL)
+		{
+			errstack->PushFrame(this->GetObjLoc(), "Variable "+*VarName+" has not been defined");	
+			return false;
+		}
+		this->VarDef = vardef;
+		return Expression::Check(errstack);
+	}
 private:
 	string * VarName;
+	VariableDef * VarDef;
 };
 
 class FunctionExpression: public Expression
@@ -276,7 +315,7 @@ public:
 				delete value;
 			}
 
-			int rtn = this->Func->Execute(new_ctx);
+			int rtn = this->Func->Run(new_ctx);
 
 			if(rtn==NODE_RET_NEEDRETURN)
 			{
@@ -286,19 +325,13 @@ public:
 			{
 				result = new NullValue;
 			}
-			
+
 			delete new_ctx;
                 }
                 return result;
         }
         bool Provision(ErrorStack * errstack)
         {
-                this->Func = static_cast<FunctionNode*>(this->ParentNode->FindFunctionDef(this->FuncName));
-                if(this->Func==NULL)
-                {
-                        errstack->PushFrame(this->GetObjLoc(), "Function "+this->FuncName+"() has not been defined");
-                        return false;
-                }
 		list<Expression*>::iterator i;
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
@@ -309,13 +342,23 @@ public:
                         }
                 }
 
-		if(this->Func->GetArgList()->size()!=this->ExprList->size())
-		{
-			errstack->PushFrame(0, "Number of arguments mismatch");	
-			return false;
-		}
                 return true;
         }
+	bool Check(ErrorStack * errstack)
+	{
+		this->Func = static_cast<FunctionNode*>(this->ParentNode->FindFunctionDef(this->FuncName));
+		if(this->Func==NULL)
+                {
+                        errstack->PushFrame(this->GetObjLoc(), "Function "+this->FuncName+"() has not been defined");
+                        return false;
+                }
+		if(this->Func->GetArgList()->size()!=this->ExprList->size())
+                {
+                        errstack->PushFrame(0, "Number of arguments mismatch");
+                        return false;
+                }
+		return Expression::Check(errstack);
+	}
 private:
 	string FuncName;
 	FunctionNode * Func;

@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
 {
 	FILE * fp = NULL;
 
-	if(argc!=2)
+	if(argc==1)
 	{
 		fp = stdin;
 	}
@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
 
 	PuppyBean * bean = parse();
 
-	int ret = -1;
+	int ret = 0;
 
 	if(bean == NULL)
 	{
@@ -73,15 +73,21 @@ int main(int argc, char * argv[])
 		callstmt->SetExpression(payload);
 		bean->subnodelist->push_back(callstmt);
 
-		if(bean->Provision(&errstack))
+		if(bean->Provision(&errstack) && bean->Check(&errstack))
 	        {
 			NodeContext * context = new NodeContext;
 			context->AddFrame(bean);
-			ret = callstmt->Execute(context);
+			callstmt->Execute(context);
+			ConstValue * retval = callstmt->GetRetVal();
+			if(retval->GetType()==Integer)
+			{
+				ret = static_cast<int>(static_cast<IntegerValue*>(retval)->GetValue());
+			}
+			delete retval;
         	}
 	        else
         	{
-			cerr<<"provision failed."<<endl;
+			cerr<<"Precompile failed."<<endl;
 	                errstack.PrintStack();
         	}
 	}
