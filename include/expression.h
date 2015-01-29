@@ -305,7 +305,6 @@ public:
 				}
 
 				string argname = (*j)->GetName();
-
 				Variable * localvar = new_ctx->GetVariable(argname);
 				if(localvar)
 				{

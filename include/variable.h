@@ -8,11 +8,14 @@
 
 using namespace std;
 
+class VariableDef;
+
 class Variable
 {
 public:
 	Variable(string name, DataType type)
 	{
+		this->Source = NULL;
 		this->Value = NULL;
 		this->VarName = name;
 		this->VarType = type;
@@ -29,6 +32,15 @@ public:
         {
                 return VarName;
         }
+
+	void SetSource(VariableDef * def)
+	{
+		this->Source = def;
+	}
+	VariableDef * GetSource()
+	{
+		return this->Source;
+	}
 
 	void SetValue(ConstValue * value)
         {
@@ -56,6 +68,7 @@ public:
         }
 
 private:
+	VariableDef * Source;
 	ConstValue * Value;
 	DataType VarType;
 	string VarName;
@@ -88,6 +101,8 @@ public:
 		Variable * ret = new Variable(this->VarName, this->VarType);
 		NullValue * value = new NullValue;
 		ret->SetValue(value);
+		ret->SetSource(this);
+
 		delete value;
 		
 		this->Instance = ret;
@@ -110,5 +125,6 @@ private:
 	string VarName;
 	DataType VarType;
 };
+
 
 #endif

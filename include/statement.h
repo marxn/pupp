@@ -147,6 +147,15 @@ public:
 	int Invoke(NodeContext * context)
         {
 		Variable * var = context->GetVariable(this->Var->GetVarName());
+                if(var==NULL)
+                {
+                        var = this->Var->GetInstance();
+                        if(var==NULL)
+                        {
+                                cerr<<"Puppy runtime error: cannot find variable: "<<this->Var->GetVarName()<<endl;
+                                return NODE_RET_ERROR;
+                        }
+                }
 
 		if(var->GetValueType()!=Set && var->GetValueType()!=Any)
 		{

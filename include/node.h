@@ -155,6 +155,8 @@ public:
 		map<string, Variable*>::iterator i;
                 for(i = frame->begin(); i!=frame->end(); i++)
                 {
+			VariableDef * def = i->second->GetSource();
+			def->Reset();
                         delete i->second;
                 }
 		delete frame;
