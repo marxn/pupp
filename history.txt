@@ -1,3 +1,11 @@
+Feb 2nd 2015
+---------------------------
+1. Fixed a if-else node bug.
+
+Jan 29th 2015
+---------------------------
+1. Fixed a bug from locating a global variable in inner node.
+
 Jan 28th 2015
 ---------------------------
 1. Make a right way to get the instances of global/local variables.

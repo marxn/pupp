@@ -291,9 +291,15 @@ branch_node:
 			BranchNode * node = new BranchNode;
 			
 			node->SetCondition($3);
-			node->SetNodeList($6);
-			node->SetElseNodeList($8);
-			$$ = (Node *)node;
+
+			ContainerNode * ifnode = new ContainerNode;
+			ifnode->SetNodeList($6);
+			node->SetIfNode(ifnode);
+
+			ContainerNode * elsenode = new ContainerNode;
+			elsenode->SetNodeList($8);
+			node->SetElseNode(elsenode);
+			$$ = static_cast<Node*>(node);
 		}
 	;
 

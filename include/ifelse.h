@@ -16,63 +16,32 @@ class BranchNode :public ContainerNode
 			
                         if(ret==EVA_TRUE)
                         {
-                                list<Node*>::iterator i;
-                                for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-                                {
-					context->AddFrame(*i);
-					int ret = (*i)->Execute(context);
-					context->PopFrame();
-
-                                        if(ret!=NODE_RET_NORMAL)
-                                        {
-                                                return ret;
-                                        }
-                                }
+				context->AddFrame(this->ifnode);
+				int ret = this->ifnode->Execute(context);
+				context->PopFrame();
+				return ret;
                         }
                         else if(ret==EVA_FALSE)
                         {
-                                list<Node*>::iterator i;
-                                for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
-				{
-					context->AddFrame(*i);
-                                        int ret = (*i)->Execute(context);
-					context->PopFrame();
-
-					if(ret!=NODE_RET_NORMAL)
-                                        {
-                                                return ret;
-                                        }
-				}
-
+				context->AddFrame(this->elsenode);
+				int ret = this->elsenode->Execute(context);
+				context->PopFrame();
+				return ret;
                         }
-                        else
-                        {
-                                return NODE_RET_ERROR;
-                        }
-                        return NODE_RET_NORMAL;
+                        return NODE_RET_ERROR;
                 }
-                void SetElseNodeList(list<Node*> * nodelist)
+		void SetIfNode(Node * node)
+		{
+			this->ifnode = node;
+		}
+                void SetElseNode(Node * node)
                 {
-                        elsenodelist = nodelist;
+                        this->elsenode = node;
                 }
 
                 void SetCondition(Expression * condition)
                 {
                         this->condition = condition;
-                }
-                bool ProvisionElseStmt(ErrorStack * errstack)
-                {
-                        list<Node*>::iterator i;
-                        for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
-                        {
-                                (*i)->SetParentNode(this);
-                                if((*i)->Provision(errstack)!=true)
-                                {
-                                        return false;
-                                }
-                        }
-                        return true;
-
                 }
                 bool Provision(ErrorStack * errstack)
                 {
@@ -81,44 +50,38 @@ class BranchNode :public ContainerNode
                         {
                                 return false;
                         }
-
-                        if(ContainerNode::Provision(errstack)==false)
+			this->ifnode->SetParentNode(this->GetParentNode());
+                        if(this->ifnode->Provision(errstack)==false)
                         {
                                 return false;
                         }
-                        if(this->elsenodelist!=NULL && ProvisionElseStmt(errstack)==false)
-                        {
-                                return false;
-                        }
-
+                        if(this->elsenode!=NULL)
+			{
+				this->elsenode->SetParentNode(this->GetParentNode());
+				if(this->elsenode->Provision(errstack)==false)
+                        	{
+                                	return false;
+	                        }
+			}
                         return true;
                 }
-		bool CheckElseStmt(ErrorStack * errstack)
-		{
-			list<Node*>::iterator i;
-                        for(i = elsenodelist->begin(); i != elsenodelist->end(); i++)
-                        {
-                                if((*i)->Check(errstack)!=true)
-                                {
-                                        return false;
-                                }
-                        }
-                        return true;
-		}
 		bool Check(ErrorStack * errstack)
 		{
 			if(condition->Check(errstack)==false)
                         {
                                 return false;
                         }
-			if(ContainerNode::Check(errstack)==false)
+			if(this->ifnode->Check(errstack)==false)
                         {
                                 return false;
                         }
-			if(this->elsenodelist!=NULL && CheckElseStmt(errstack)==false)
-                        {
-                                return false;
-                        }
+			if(this->elsenode!=NULL)
+			{
+				if(this->elsenode->Check(errstack)==false)
+                        	{
+                                	return false;
+	                        }
+			}
 			return true;
 		}
         private:
@@ -139,7 +102,8 @@ class BranchNode :public ContainerNode
                 }
 
                 Expression * condition;
-                list<Node*> * elsenodelist;
+		Node * ifnode;
+		Node * elsenode;
 };
 
 #endif
