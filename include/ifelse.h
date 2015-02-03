@@ -10,6 +10,7 @@ using namespace std;
 class BranchNode :public ContainerNode
 {
         public:
+		BranchNode():ifnode(NULL),elsenode(NULL){}
                 int Invoke(NodeContext * context)
                 {
 			int ret = this->Evaluate(context);

@@ -296,9 +296,13 @@ branch_node:
 			ifnode->SetNodeList($6);
 			node->SetIfNode(ifnode);
 
-			ContainerNode * elsenode = new ContainerNode;
-			elsenode->SetNodeList($8);
-			node->SetElseNode(elsenode);
+                        if($8!=NULL)
+                        {
+                                ContainerNode * elsenode = new ContainerNode;
+                                elsenode->SetNodeList($8);
+                                node->SetElseNode(elsenode);
+                        }
+
 			$$ = static_cast<Node*>(node);
 		}
 	;
