@@ -30,9 +30,8 @@ def function test1(arg as integer) as integer
 
 def function main(args as collection) as integer
 {
-	while(true)
+	if(true)
 	{
-		print test(5),NL;
-		sleep 1000;
+		print test(1),NL;
 	}
 }
