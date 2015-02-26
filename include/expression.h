@@ -12,6 +12,7 @@
 #include "node.h"
 #include "errstack.h"
 #include "function.h"
+#include "portal.h"
 
 using namespace std;
 
@@ -243,15 +244,16 @@ public:
 	ConstValue * Calculate(NodeContext * context)
 	{
 		Variable * var = context->GetVariable(*VarName);
-		if(var)
+		if(var==NULL)
 		{
-			return var->GetValue();
+			var = context->GetPortal()->GetSharedVariable(this->VarDef);
+			if(var==NULL)
+			{
+				cerr<<"puppy runtime error: cannot find variable:"<<*VarName<<endl;
+				return NULL; 
+			}
 		}
-		else if(this->VarDef!=NULL)
-		{
-			var = this->VarDef->GetInstance();
-			return var->GetValue();
-		}
+		return var->GetValue();
 	}
 	bool Provision(ErrorStack * errstack)
 	{
@@ -287,7 +289,7 @@ public:
 
                 if(this->Func)
                 {
-			NodeContext * new_ctx = new NodeContext;
+			NodeContext * new_ctx = new NodeContext(context->GetPortal());
 			new_ctx->AddFrame(this->Func);
 
 			list<Expression*>::iterator i;

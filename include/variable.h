@@ -80,24 +80,13 @@ public:
 	VariableDef(Identifier * ident):VarType(Any)
 	{
 		this->VarName = ident->GetName();
-		this->Instance = NULL;
 	}
 	VariableDef(string VarName):VarType(Any)
 	{
 		this->VarName = VarName;
-		this->Instance = NULL;
-	}
-	void Reset()
-	{
-		this->Instance = NULL;
 	}
 	Variable * GetInstance()
 	{
-		if(this->Instance!=NULL)
-		{
-			return this->Instance;
-		}
-
 		Variable * ret = new Variable(this->VarName, this->VarType);
 		NullValue * value = new NullValue;
 		ret->SetValue(value);
@@ -105,7 +94,6 @@ public:
 
 		delete value;
 		
-		this->Instance = ret;
 		return ret;
 	}
 	void SetVarType(DataType type)
@@ -121,7 +109,6 @@ public:
 		return VarName;
 	}
 private:
-	Variable * Instance;
 	string VarName;
 	DataType VarType;
 };

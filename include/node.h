@@ -24,6 +24,7 @@ using namespace std;
 #define EVA_ERROR -1
 
 class NodeContext;
+class Portal;
 
 class Node: public PuppyObject
 {
@@ -115,13 +116,17 @@ struct ForeachLoopCtx
 class NodeContext
 {
 public:
-	NodeContext(){}
+	NodeContext(Portal * portal):thePortal(portal){}
 	~NodeContext()
 	{
 		while(this->Frames.size()>0)
 		{
 			this->PopFrame();
 		}
+	}
+	Portal * GetPortal()
+	{
+		return this->thePortal;
 	}
 	void AddFrame(Node * snapshot)
 	{
@@ -155,8 +160,6 @@ public:
 		map<string, Variable*>::iterator i;
                 for(i = frame->begin(); i!=frame->end(); i++)
                 {
-			VariableDef * def = i->second->GetSource();
-			def->Reset();
                         delete i->second;
                 }
 		delete frame;
@@ -173,7 +176,8 @@ public:
 				return j->second;
 			}
 		}
-                return NULL;
+
+		return NULL;
         }
 
         stack<ForeachLoopCtx*> ForeachCtx;
@@ -181,6 +185,7 @@ public:
 
 private:
         list<map<string, Variable*>* > Frames;
+	Portal * thePortal;
 };
 
 #endif

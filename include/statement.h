@@ -5,6 +5,7 @@
 #include <iostream>
 #include "node.h"
 #include "expression.h"
+#include "portal.h"
 
 using namespace std;
 
@@ -52,7 +53,7 @@ public:
 		Variable * var = context->GetVariable(this->VarName);
 		if(var==NULL)
 		{
-			var = this->VarDef->GetInstance();
+			var = context->GetPortal()->GetSharedVariable(this->VarDef);
 			if(var==NULL)
 			{
 				cerr<<"Puppy runtime error: cannot find variable: "<<this->VarName<<endl;
@@ -146,15 +147,15 @@ public:
 	SetElementAssignStatement(CollectionElementRef * ref):Reference(ref){}
 	int Invoke(NodeContext * context)
         {
-		Variable * var = context->GetVariable(this->Var->GetVarName());
+		Variable * var = context->GetVariable(this->VarDef->GetVarName());
                 if(var==NULL)
                 {
-                        var = this->Var->GetInstance();
+			var = context->GetPortal()->GetSharedVariable(this->VarDef);
                         if(var==NULL)
-                        {
-                                cerr<<"Puppy runtime error: cannot find variable: "<<this->Var->GetVarName()<<endl;
-                                return NODE_RET_ERROR;
-                        }
+			{
+                        	cerr<<"Puppy runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
+                        	return NODE_RET_ERROR;
+			}
                 }
 
 		if(var->GetValueType()!=Set && var->GetValueType()!=Any)
@@ -295,8 +296,8 @@ public:
         }
 	bool Check(ErrorStack * errstack)
 	{
-		this->Var = this->FindVariable(this->Reference->GetVarName());
-                if(this->Var==NULL)
+		this->VarDef = this->FindVariable(this->Reference->GetVarName());
+                if(this->VarDef==NULL)
                 {
                         errstack->PushFrame(0, "Variable "+this->Reference->GetVarName()+" not defined");
                         return false;
@@ -324,7 +325,7 @@ public:
 private:
 	CollectionElementRef * Reference;
         Expression * Expr;
-	VariableDef * Var;
+	VariableDef * VarDef;
 };
 
 class VarDefinitionStatement: public StatementNode
