@@ -1,6 +1,7 @@
 Feb 27th 2015
 ---------------------------
 1. Fixed a bug from Check() from FunctionExpression.
+2. Optimized puppy.y to support empty body of code segment.
 
 Feb 26th 2015
 ---------------------------

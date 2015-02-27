@@ -87,7 +87,7 @@
 %type  <puppy_function_arg_list> arg_list
 %type  <puppy_function_node> function_node
 %type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node
-%type  <puppy_nodelist>  optional_else_list node_list
+%type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
 %type  <puppy_identlist> identifier_list qualified_object
 %type  <puppy_exprlist>  expr_list
@@ -102,7 +102,7 @@
 %%
 
 puppybean: 
-	node_list
+	program_node_list
 		{
 			final = new PuppyBean;
 			final->SetNodeList($1);
@@ -110,44 +110,19 @@ puppybean:
 		}
 	;
 
-func_arg:
-	IDENTIFIER AS def_data_type
+program_node_block:
+	'{' program_node_list '}'
 		{
-			$$ = new FuncArgDef($1, $3);
+			$$ = $2;
 		}
- 	;
-
-arg_list:
-	arg_list ',' func_arg
+	| '{' '}'
 		{
-			$1->push_back($3);
-                        $$ = $1;
-		}
-	| func_arg
-		{
-			$$ = new list<FuncArgDef*>;
-                        $$->push_back($1);
-		}
-	|
-		{
-			$$ = new list<FuncArgDef*>;
+			$$ = new list<Node*>;
 		}
 	;
 
-function_node:
-	DEF FUNCTION IDENTIFIER '(' arg_list ')' AS def_data_type '{' node_list '}'
-		{
-			FunctionNode * fun = new FunctionNode($3);
-			fun->SetArgList($5);
-			fun->SetRtnType($8);
-			fun->SetNodeList($10);
-
-			$$ = fun;
-		}
-	;
-	
-node_list: 
-	node_list program_node
+program_node_list: 
+	program_node_list program_node
 		{
 			$1->push_back($2);
 			$$ = $1;
@@ -218,32 +193,32 @@ statement_node:
     ;
 
 while_loop:
-	WHILE '(' expr ')' '{' node_list '}'
+	WHILE '(' expr ')' program_node_block
                 {
                         WhileLoopNode * node = new WhileLoopNode;
 
                         node->SetCondition($3);
-                        node->SetNodeList($6);
+                        node->SetNodeList($5);
 
                         $$ = static_cast<Node*>(node);
                 }
 	;
 
 for_loop:
-	FOR '(' statement_node ';' expr ';' statement_node ')' '{' node_list '}'
+	FOR '(' statement_node ';' expr ';' statement_node ')' program_node_block 
                 {
 			ForLoopNode * node = new ForLoopNode;
 			node->SetPreLoopStatement($3);
 			node->SetCondition($5);
 			node->SetPerOnceStatement($7);
-			node->SetNodeList($10);
+			node->SetNodeList($9);
 
 			$$ = static_cast<Node*>(node);
                 }
 	;
 
 foreach_loop:
-	FOREACH '(' '<' IDENTIFIER ',' IDENTIFIER '>' IN expr ')' '{' node_list '}' 
+	FOREACH '(' '<' IDENTIFIER ',' IDENTIFIER '>' IN expr ')' program_node_block 
 		{
 			ForeachLoopNode * node = new ForeachLoopNode;
 
@@ -253,7 +228,7 @@ foreach_loop:
 			node->SetCondition(new ConstValueExpression(new BooleanValue(true)));
 			node->SetKV(*($4), *($6));
 			node->SetCollectionExpr(static_cast<SetExpression*>($9));
-                        node->SetNodeList($12);
+                        node->SetNodeList($11);
 
                         $$ = static_cast<Node*>(node);
 		}
@@ -274,10 +249,10 @@ loop_node:
 		}
 	;
 
-optional_else_list:
-	ELSE '{' node_list '}'
+optional_else_block:
+	ELSE program_node_block 
 		{
-			$$ = $3;
+			$$ = $2;
 		}
 	| /*empty*/
 		{
@@ -286,26 +261,62 @@ optional_else_list:
 	;
 
 branch_node:
-	IF '(' expr ')' '{' node_list '}' optional_else_list
+	IF '(' expr ')' program_node_block optional_else_block
 		{
 			BranchNode * node = new BranchNode;
 			
 			node->SetCondition($3);
 
 			ContainerNode * ifnode = new ContainerNode;
-			ifnode->SetNodeList($6);
+			ifnode->SetNodeList($5);
 			node->SetIfNode(ifnode);
 
-                        if($8!=NULL)
+                        if($6!=NULL)
                         {
                                 ContainerNode * elsenode = new ContainerNode;
-                                elsenode->SetNodeList($8);
+                                elsenode->SetNodeList($6);
                                 node->SetElseNode(elsenode);
                         }
 
 			$$ = static_cast<Node*>(node);
 		}
 	;
+
+func_arg:
+        IDENTIFIER AS def_data_type
+                {
+                        $$ = new FuncArgDef($1, $3);
+                }
+        ;
+
+arg_list:
+        arg_list ',' func_arg
+                {
+                        $1->push_back($3);
+                        $$ = $1;
+                }
+        | func_arg
+                {
+                        $$ = new list<FuncArgDef*>;
+                        $$->push_back($1);
+                }
+        |
+                {
+                        $$ = new list<FuncArgDef*>;
+                }
+        ;
+
+function_node:
+        DEF FUNCTION IDENTIFIER '(' arg_list ')' AS def_data_type program_node_block 
+                {
+                        FunctionNode * fun = new FunctionNode($3);
+                        fun->SetArgList($5);
+                        fun->SetRtnType($8);
+                        fun->SetNodeList($9);
+
+                        $$ = fun;
+                }
+        ;
 
 assign_statement:
 	IDENTIFIER '=' expr
