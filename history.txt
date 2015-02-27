@@ -1,3 +1,7 @@
+Feb 27th 2015
+---------------------------
+1. Fixed a bug from Check() from FunctionExpression.
+
 Feb 26th 2015
 ---------------------------
 1. Introduced Portal Object to keep track of all global/shared variables.

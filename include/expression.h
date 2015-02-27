@@ -358,6 +358,16 @@ public:
                         errstack->PushFrame(0, "Number of arguments mismatch");
                         return false;
                 }
+
+		list<Expression*>::iterator i;
+                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
+                {
+                        if((*i)->Check(errstack)!=true)
+                        {
+                                return false;
+                        }
+                }
+
 		return Expression::Check(errstack);
 	}
 private:
