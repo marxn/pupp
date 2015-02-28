@@ -92,7 +92,7 @@
 %type  <puppy_identlist> identifier_list qualified_object
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
-%type  <puppy_datatype>  def_data_type
+%type  <puppy_datatype>  def_data_type function_return_prototype
 
 %type  <puppy_collection_eleref> collection_element_ref
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
@@ -306,13 +306,23 @@ arg_list:
                 }
         ;
 
+function_return_prototype:
+	AS def_data_type
+		{
+			$$ = $2;
+		}
+	|
+		{
+			$$ = Any; 
+		}
+
 function_node:
-        DEF FUNCTION IDENTIFIER '(' arg_list ')' AS def_data_type program_node_block 
+        DEF FUNCTION IDENTIFIER '(' arg_list ')' function_return_prototype program_node_block 
                 {
                         FunctionNode * fun = new FunctionNode($3);
                         fun->SetArgList($5);
-                        fun->SetRtnType($8);
-                        fun->SetNodeList($9);
+                        fun->SetRtnType($7);
+                        fun->SetNodeList($8);
 
                         $$ = fun;
                 }

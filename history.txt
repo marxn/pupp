@@ -1,3 +1,7 @@
+Feb 28th 2015
+---------------------------
+1. Support function which does not return any value.
+
 Feb 27th 2015
 ---------------------------
 1. Fixed a bug from Check() from FunctionExpression.
