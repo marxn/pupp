@@ -19,6 +19,7 @@ public:
 		this->Value = NULL;
 		this->VarName = name;
 		this->VarType = type;
+		this->Ref = NULL;
 	}
 	~Variable()
 	{
@@ -44,6 +45,11 @@ public:
 
 	void SetValue(ConstValue * value)
         {
+		if(this->Ref)
+                {
+                        this->Ref->SetValue(value);
+                }
+
                 if(this->Value)
                 {
                         delete this->Value;
@@ -52,26 +58,58 @@ public:
         }
         ConstValue * GetValue()
         {
+		if(this->Ref)
+                {
+                        return this->Ref->GetValue();
+                }
+
                 return Value->DupValue();
         }
 	DataType GetVarType()
 	{
+		if(this->Ref)
+                {
+                        return this->Ref->GetVarType();
+                }
+
 		return this->VarType;
 	}
 	DataType GetValueType()
         {
+		if(this->Ref)
+                {
+                        return this->Ref->GetValueType();
+                }
+
                 return this->Value->GetType();
         }
         ConstValue * GetReference()
         {
+		if(this->Ref)
+                {
+                        return this->Ref->GetReference();
+                }
+
                 return this->Value;
         }
-
+	void SetRefVar(Variable * var)
+	{
+		this->Ref = var;
+	}
+	Variable * GetRealVar()
+	{
+		if(this->Ref)
+		{
+			return this->Ref;
+		}
+		return this;
+	}
 private:
 	VariableDef * Source;
 	ConstValue * Value;
 	DataType VarType;
 	string VarName;
+	Variable * Ref;
 };
 
 class VariableDef: public PuppyObject

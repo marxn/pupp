@@ -19,7 +19,7 @@ using namespace std;
 class Expression: public PuppyObject
 {
 public:
-	Expression()
+	Expression():lValue(false)
 	{
 	}
 	virtual ~Expression(){}
@@ -35,8 +35,16 @@ public:
 	{
 		return true;
 	}
-
+	void LValue(bool flag)
+	{
+		this->lValue = flag;
+	}
+	bool isLValue()
+	{
+		return this->lValue;
+	}
 protected:
+	bool lValue;
 	Node * ParentNode;
 };
 
@@ -238,8 +246,14 @@ public:
 class VarExpression: public Expression
 {
 public:
-	VarExpression(){}
-	VarExpression(string * varname):VarName(varname){}
+	VarExpression()
+	{
+		this->lValue = true;
+	}
+	VarExpression(string * varname):VarName(varname)
+	{
+		this->lValue = true;
+	}
 	~VarExpression(){}
 	ConstValue * Calculate(NodeContext * context)
 	{
@@ -254,6 +268,14 @@ public:
 			}
 		}
 		return var->GetValue();
+	}
+	string GetVarName()
+	{
+		return *VarName;
+	}
+	VariableDef * GetVarDef()
+	{
+		return this->VarDef;
 	}
 	bool Provision(ErrorStack * errstack)
 	{
@@ -289,6 +311,8 @@ public:
 
                 if(this->Func)
                 {
+			int rtn = 0;
+
 			NodeContext * new_ctx = new NodeContext(context->GetPortal());
 			new_ctx->AddFrame(this->Func);
 
@@ -298,26 +322,49 @@ public:
 			for(i = this->ExprList->begin(), j = this->Func->GetArgList()->begin(); 
 				i!=this->ExprList->end() && j!=this->Func->GetArgList()->end(); i++,j++)
 			{
-				ConstValue * value = (*i)->Calculate(context);
-				if(value->GetType()!=(*j)->GetType() && (*j)->GetType()!=Any)
+				if((*j)->isRef())
 				{
-					delete new_ctx;
-					cerr<<"puppy runtime error: data type mismatch when calling a function."<<endl;
-					return new NullValue;
-				}
+					VarExpression * exp = static_cast<VarExpression*>(*i);
 
-				string argname = (*j)->GetName();
-				Variable * localvar = new_ctx->GetVariable(argname);
-				if(localvar)
+					Variable * var = context->GetVariable(exp->GetVarName());
+					if(var==NULL)
+			                {
+                        			var = context->GetPortal()->GetSharedVariable(exp->GetVarDef());
+			                        if(var==NULL)
+                        			{
+			                                cerr<<"Puppy runtime error: cannot find variable: "<<exp->GetVarName()<<endl;
+                        			        return new NullValue;
+			                        }
+			                }
+
+					Variable * avatar = new_ctx->GetVariable((*j)->GetName());
+					if(avatar)
+					{
+						avatar->SetRefVar(var->GetRealVar());
+					}
+				}
+				else
 				{
-					localvar->SetValue(value);
-				}
+					ConstValue * value = (*i)->Calculate(context);
+					if(value->GetType()!=(*j)->GetType() && (*j)->GetType()!=Any)
+					{
+						delete new_ctx;
+						cerr<<"puppy runtime error: data type mismatch when calling a function."<<endl;
+						return new NullValue;
+					}
 
-				delete value;
+					string argname = (*j)->GetName();
+					Variable * localvar = new_ctx->GetVariable(argname);
+					if(localvar)
+					{
+						localvar->SetValue(value);
+					}
+
+					delete value;
+				}
 			}
 
-			int rtn = this->Func->Run(new_ctx);
-
+			rtn = this->Func->Run(new_ctx);
 			if(rtn==NODE_RET_NEEDRETURN)
 			{
 				result = new_ctx->FunctionRet;
@@ -360,12 +407,23 @@ public:
                 }
 
 		list<Expression*>::iterator i;
-                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
+                list<FuncArgDef*>::iterator j;
+
+		for(i = this->ExprList->begin(), j = this->Func->GetArgList()->begin();
+                        i!=this->ExprList->end() && j!=this->Func->GetArgList()->end(); i++,j++)
                 {
                         if((*i)->Check(errstack)!=true)
                         {
                                 return false;
                         }
+			if((*j)->isRef())
+			{
+				if((*i)->isLValue()==false)
+				{
+					errstack->PushFrame(0, "Must pass a lvalue to a reference:" + (*j)->GetName());
+					return false;
+				}
+			}
                 }
 
 		return Expression::Check(errstack);

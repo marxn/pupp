@@ -9,11 +9,16 @@ using namespace std;
 class FuncArgDef
 {
 public:
-        FuncArgDef(string * name, DataType type)
+        FuncArgDef(string * name, DataType type, bool isref)
         {
                 this->Name = *name;
                 this->Type = type;
+		this->isref = isref;
         }
+	bool isRef()
+	{
+		return this->isref;
+	}
         string GetName()
         {
                 return this->Name;
@@ -25,6 +30,7 @@ public:
 private:
         string Name;
         DataType Type;
+	bool isref;
 };
 
 class FunctionNode:public ContainerNode

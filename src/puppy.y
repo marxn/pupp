@@ -285,8 +285,12 @@ branch_node:
 func_arg:
         IDENTIFIER AS def_data_type
                 {
-                        $$ = new FuncArgDef($1, $3);
+                        $$ = new FuncArgDef($1, $3, false);
                 }
+	| IDENTIFIER '&' AS def_data_type
+		{
+			$$ = new FuncArgDef($1, $4, true);
+		}
         ;
 
 arg_list:
