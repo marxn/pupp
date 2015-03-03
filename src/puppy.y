@@ -14,13 +14,12 @@
     #include "ifelse.h"
     #include "function.h"
     #include "transaction.h"
-    #include "bean.h"
 
     using namespace std;
     
     int yyerror(char *);
     int yylex(void);
-    PuppyBean * final;
+    ContainerNode * final;
 %}
 
 %union
@@ -106,7 +105,7 @@
 puppybean: 
 	program_node_list
 		{
-			final = new PuppyBean;
+			final = new ContainerNode;
 			final->SetNodeList($1);
 			final->ParentNode = NULL;
 		}
@@ -715,7 +714,7 @@ int yyerror(char *s)
     return 0;
 }
 
-PuppyBean * parse()
+ContainerNode * parse()
 {
     yyparse();
 	

@@ -7,11 +7,10 @@
 #include "container.h"
 #include "constval.h"
 #include "expression.h"
-#include "bean.h"
 #include "statement.h"
 #include "portal.h"
 
-extern PuppyBean * parse();
+extern ContainerNode * parse();
 extern FILE * yyin;
 
 using namespace std;
@@ -88,7 +87,7 @@ int main(int argc, char * argv[])
 
 	ErrorStack errstack;
 
-	PuppyBean * bean = parse();
+	ContainerNode * bean = parse();
 
 	int ret = 0;
 

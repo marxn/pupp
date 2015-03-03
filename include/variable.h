@@ -3,7 +3,6 @@
 
 #include <string>
 #include "constval.h"
-#include "identifier.h"
 #include "puppybase.h"
 
 using namespace std;
@@ -123,10 +122,6 @@ private:
 class VariableDef: public PuppyObject
 {
 public:
-	VariableDef(Identifier * ident):VarType(Any)
-	{
-		this->VarName = ident->GetName();
-	}
 	VariableDef(string VarName):VarType(Any)
 	{
 		this->VarName = VarName;
