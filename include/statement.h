@@ -107,7 +107,8 @@ public:
                         return false;
                 }
 		this->VarDef = vardef;
-		return true;
+
+		return this->Expr->Check(errstack);
 	}
 private:
         string VarName;
@@ -476,6 +477,34 @@ public:
 	}
 private:
         Expression * Expr;
+
+};
+
+class RollbackStatement: public StatementNode
+{
+public:
+	int Invoke(NodeContext * context)
+	{
+		return NODE_RET_NEEDROLLBACK;
+	}
+	bool Provision(ErrorStack * errstack)
+        {
+                return true;
+        }
+
+};
+
+class CommitStatement: public StatementNode
+{
+public:
+        int Invoke(NodeContext * context)
+        {
+                return NODE_RET_NEEDCOMMIT;
+        }
+	bool Provision(ErrorStack * errstack)
+        {
+                return true;
+        }
 
 };
 

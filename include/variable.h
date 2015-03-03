@@ -92,6 +92,14 @@ public:
 
                 return this->Value;
         }
+	void SetReference(ConstValue * refvalue)
+	{
+		if(this->Value)
+                {
+                        delete this->Value;
+                }
+                this->Value = refvalue;
+	}
 	void SetRefVar(Variable * var)
 	{
 		this->Ref = var;

@@ -19,6 +19,9 @@ using namespace std;
 #define NODE_RET_NEEDCONTINUE 2
 #define NODE_RET_NEEDRETURN   3
 
+#define NODE_RET_NEEDROLLBACK 4
+#define NODE_RET_NEEDCOMMIT   5
+
 #define EVA_TRUE 1
 #define EVA_FALSE 0
 #define EVA_ERROR -1
@@ -179,6 +182,25 @@ public:
 
 		return NULL;
         }
+	Variable * GetVariableFromOuterLayer(string name)
+	{
+		int count = 0;
+		list<map<string, Variable*>* >::iterator i;
+                for(i=this->Frames.begin(); i!=this->Frames.end();i++)
+                {
+			if(count++==0)
+			{
+				continue;
+			}
+                        map<string, Variable*>::iterator j = (*i)->find(name);
+                        if(j!=(*i)->end())
+                        {
+                                return j->second;
+                        }
+                }
+
+                return NULL;
+	}
 
         stack<ForeachLoopCtx*> ForeachCtx;
         ConstValue * FunctionRet;

@@ -13,6 +13,7 @@
     #include "loop.h"
     #include "ifelse.h"
     #include "function.h"
+    #include "transaction.h"
     #include "bean.h"
 
     using namespace std;
@@ -67,6 +68,7 @@
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_ANY TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
 %token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
+%token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
 %token NIL NL PI
 
@@ -86,7 +88,7 @@
 %type  <puppy_function_argdef> func_arg
 %type  <puppy_function_arg_list> arg_list
 %type  <puppy_function_node> function_node
-%type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node
+%type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
 %type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
 %type  <puppy_identlist> identifier_list qualified_object
@@ -97,7 +99,7 @@
 %type  <puppy_collection_eleref> collection_element_ref
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
 %type  <puppy_statement> vardefstatement sleep_statement element_assign_statement object_statement
-%type  <puppy_statement> returnstatement
+%type  <puppy_statement> returnstatement rollback_statement commit_statement
 
 %%
 
@@ -151,6 +153,10 @@ program_node:
 		{
 			$$ = $1;
 		}
+	| transaction_node
+		{
+			$$ = $1;
+		}
 	;
 
 statement_node:
@@ -179,6 +185,14 @@ statement_node:
 			$$ = $1;
 		}
 	| returnstatement
+		{
+			$$ = $1;
+		}
+	| rollback_statement
+		{
+			$$ = $1;
+		}
+	| commit_statement
 		{
 			$$ = $1;
 		}
@@ -248,6 +262,15 @@ loop_node:
 			$$ = $1;
 		}
 	;
+
+transaction_node:
+	TRANSACTION '(' identifier_list ')' program_node_block
+		{
+			TransNode * node = new TransNode;
+			node->SetIdentList($3);
+			node->SetNodeList($5);
+			$$ = node;
+		}
 
 optional_else_block:
 	ELSE program_node_block 
@@ -489,7 +512,22 @@ print_statement:
 			$$ = stmt;
 		}
 	;
-	
+
+rollback_statement:
+	ROLLBACK
+		{
+			RollbackStatement * stmt = new RollbackStatement;
+			$$ = stmt;
+		}
+	;
+
+commit_statement:
+	COMMIT
+		{
+			CommitStatement * stmt = new CommitStatement;
+			$$ = stmt;
+		}
+	;
 variable:
 	IDENTIFIER
 		{

@@ -102,6 +102,12 @@ identifier [a-zA-Z]+[0-9]*
                                         return SLEEP;
 				if(strcasecmp(yytext,"function")==0)
                                         return FUNCTION;
+				if(strcasecmp(yytext,"transaction")==0)
+                                        return TRANSACTION;
+				if(strcasecmp(yytext,"rollback")==0)
+                                        return ROLLBACK;
+				if(strcasecmp(yytext,"commit")==0)
+                                        return COMMIT;
 				if(strcasecmp(yytext,"return")==0)
                                         return RETURN;
 				//Variable Type
