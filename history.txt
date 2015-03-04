@@ -2,6 +2,7 @@ March 4th 2015
 ---------------------------
 1. Regular error message.
 2. Remove useless code.
+3. Fixed a if-else bug.
 
 March 2nd 2015
 ---------------------------

@@ -24,10 +24,14 @@ class BranchNode :public ContainerNode
                         }
                         else if(ret==EVA_FALSE)
                         {
-				context->AddFrame(this->elsenode);
-				int ret = this->elsenode->Execute(context);
-				context->PopFrame();
-				return ret;
+				if(this->elsenode!=NULL)
+				{
+					context->AddFrame(this->elsenode);
+					int ret = this->elsenode->Execute(context);
+					context->PopFrame();
+					return ret;
+				}
+				return NODE_RET_NORMAL;
                         }
                         return NODE_RET_ERROR;
                 }
