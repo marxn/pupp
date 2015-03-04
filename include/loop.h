@@ -73,26 +73,26 @@ public:
                 {
                         this->condition = condition;
                 }
-                bool Provision(ErrorStack * errstack)
+                bool Provision()
                 {
-                        if(ContainerNode::Provision(errstack)==false)
+                        if(ContainerNode::Provision()==false)
                         {
                                 return false;
                         }
                         condition->SetParentNode(this->GetParentNode());
-                        if(condition->Provision(errstack)==false)
+                        if(condition->Provision()==false)
                         {
                                 return false;
                         }
                         return true;
                 }
-		bool Check(ErrorStack * errstack)
+		bool Check()
 		{
-			if(ContainerNode::Check(errstack)==false)
+			if(ContainerNode::Check()==false)
                         {
                                 return false;
                         }
-			if(condition->Check(errstack)==false)
+			if(condition->Check()==false)
                         {
                                 return false;
                         }
@@ -106,7 +106,7 @@ public:
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO
-                                cerr<<"Wrong data type in while expression - expect a boolean expression."<<endl;
+                                cerr<<"puppy runtime error: Wrong data type in while expression - expect a boolean expression."<<endl;
                                 return -1;
                         }
 
@@ -161,16 +161,16 @@ public:
                 }
                 return true;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
-                if(LoopNode::Provision(errstack)!=true)
+                if(LoopNode::Provision()!=true)
                 {
                         return false;
                 }
 		if(this->PreLoop)
 		{
 			this->PreLoop->SetParentNode(this->GetParentNode());
-			if(this->PreLoop->Provision(errstack)!=true)
+			if(this->PreLoop->Provision()!=true)
         	        {
                         	return false;
                 	}
@@ -178,29 +178,29 @@ public:
 		if(this->PerOnce)
 		{
 			this->PerOnce->SetParentNode(this->GetParentNode());
-        	        if(this->PerOnce->Provision(errstack)!=true)
+        	        if(this->PerOnce->Provision()!=true)
 	                {
         	                return false;
 	                }
 		}
                 return true;
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
         {
-                if(LoopNode::Check(errstack)!=true)
+                if(LoopNode::Check()!=true)
                 {
                         return false;
                 }
                 if(this->PreLoop)
                 {
-                        if(this->PreLoop->Check(errstack)!=true)
+                        if(this->PreLoop->Check()!=true)
                         {
                                 return false;
                         }
                 }
                 if(this->PerOnce)
                 {
-                        if(this->PerOnce->Check(errstack)!=true)
+                        if(this->PerOnce->Check()!=true)
                         {
                                 return false;
                         }
@@ -303,7 +303,7 @@ public:
                 this->Value = value;
         }
 
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
                 VariableDef * key = new VariableDef(this->Key);
                 VariableDef * value = new VariableDef(this->Value);
@@ -314,25 +314,25 @@ public:
                 this->AddVariable(key);
                 this->AddVariable(value);
 
-                if(ForLoopNode::Provision(errstack)!=true)
+                if(ForLoopNode::Provision()!=true)
                 {
                         return false;
                 }
                 CollectionExpr->SetParentNode(this->GetParentNode());
-                if(CollectionExpr->Provision(errstack)==false)
+                if(CollectionExpr->Provision()==false)
                 {
                         return false;
                 }
 
                 return true;
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
 	{
-		if(ForLoopNode::Check(errstack)!=true)
+		if(ForLoopNode::Check()!=true)
                 {
                         return false;
                 }
-                if(CollectionExpr->Check(errstack)==false)
+                if(CollectionExpr->Check()==false)
                 {
                         return false;
                 }

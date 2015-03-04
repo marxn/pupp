@@ -9,7 +9,6 @@
 #include <string>
 #include "puppybase.h"
 #include "variable.h"
-#include "errstack.h"
 
 using namespace std;
 
@@ -54,8 +53,8 @@ public:
 	{
 		this->ParentNode = node;
 	}
-	virtual bool Provision(ErrorStack * errstack) = 0;
-	virtual bool Check(ErrorStack * errstack)
+	virtual bool Provision() = 0;
+	virtual bool Check()
 	{
 		return true;
 	}

@@ -67,7 +67,7 @@ public:
                 		                origin = context->GetPortal()->GetSharedVariable(*vd);
                                 		if(origin==NULL)
 		                                {
-                		                        cerr<<"Puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                		                        cerr<<"puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
                                 		        return NODE_RET_ERROR;
 		                                }
                 		        }
@@ -92,7 +92,7 @@ public:
 		this->IdList = idlist;
 	}
 
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
         {
 		Node * parent = this->GetParentNode();
 
@@ -103,18 +103,14 @@ public:
                         VariableDef * vardef = parent->FindVariable(**i);
                         if(vardef==NULL)
                         {
-                                errstack->PushFrame(0, "Variable "+**i+" not defined");
+                                cerr<<"puppy provision error: Variable "<<**i<<"has not been defined"<<endl;
                                 return false;
                         }
                         this->VarDefList.push_back(vardef);
 			this->AddVariable(vardef);
                 }
 
-                return ContainerNode::Provision(errstack);
-        }
-        bool Check(ErrorStack * errstack)
-        {
-                return ContainerNode::Check(errstack);
+                return ContainerNode::Provision();
         }
 
 private:

@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include "puppybase.h"
-#include "errstack.h"
 #include "container.h"
 #include "constval.h"
 #include "expression.h"
@@ -42,8 +41,7 @@ int StartFromMain(Node * bean, char *argv[], int argc)
         callstmt->SetExpression(payload);
         callstmt->SetParentNode(bean);
 
-        ErrorStack errstack;
-        if(callstmt->Provision(&errstack) && callstmt->Check(&errstack))
+        if(callstmt->Provision() && callstmt->Check())
         {
 		Portal portal(bean);
 
@@ -59,8 +57,7 @@ int StartFromMain(Node * bean, char *argv[], int argc)
         }
 	else
         {
-                cerr<<"Precompile failed."<<endl;
-                errstack.PrintStack();
+		ret = -1;
         }
 	return ret;
 }
@@ -85,20 +82,17 @@ int main(int argc, char * argv[])
 
 	yyin = fp;
 
-	ErrorStack errstack;
-
 	ContainerNode * bean = parse();
 
 	int ret = 0;
 
 	if(bean == NULL)
 	{
-		fprintf(stderr, "Failed to parse the source code.");
+		fprintf(stderr, "Failed to parse the source code.\n");
 		return -1;
 	}
-	if(bean->Provision(&errstack)==false || bean->Check(&errstack)==false)
+	if(bean->Provision()==false || bean->Check()==false)
 	{
-		errstack.PrintStack();
                 return -2;
 	}
 

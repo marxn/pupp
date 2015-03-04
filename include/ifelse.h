@@ -44,41 +44,41 @@ class BranchNode :public ContainerNode
                 {
                         this->condition = condition;
                 }
-                bool Provision(ErrorStack * errstack)
+                bool Provision()
                 {
                         condition->SetParentNode(this->GetParentNode());
-                        if(condition->Provision(errstack)==false)
+                        if(condition->Provision()==false)
                         {
                                 return false;
                         }
 			this->ifnode->SetParentNode(this->GetParentNode());
-                        if(this->ifnode->Provision(errstack)==false)
+                        if(this->ifnode->Provision()==false)
                         {
                                 return false;
                         }
                         if(this->elsenode!=NULL)
 			{
 				this->elsenode->SetParentNode(this->GetParentNode());
-				if(this->elsenode->Provision(errstack)==false)
+				if(this->elsenode->Provision()==false)
                         	{
                                 	return false;
 	                        }
 			}
                         return true;
                 }
-		bool Check(ErrorStack * errstack)
+		bool Check()
 		{
-			if(condition->Check(errstack)==false)
+			if(condition->Check()==false)
                         {
                                 return false;
                         }
-			if(this->ifnode->Check(errstack)==false)
+			if(this->ifnode->Check()==false)
                         {
                                 return false;
                         }
 			if(this->elsenode!=NULL)
 			{
-				if(this->elsenode->Check(errstack)==false)
+				if(this->elsenode->Check()==false)
                         	{
                                 	return false;
 	                        }
@@ -92,7 +92,7 @@ class BranchNode :public ContainerNode
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO
-                                cerr<<"Wrong data type in if statement - expect a boolean expression."<<endl;
+                                cerr<<"puppy runtime error: Wrong data type in if statement - expect a boolean expression."<<endl;
                                 return EVA_ERROR;
                         }
 

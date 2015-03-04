@@ -24,7 +24,7 @@ public:
         {
 		return NODE_RET_NEEDBREAK;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
 	{
 		return true;
         }
@@ -37,7 +37,7 @@ public:
         {
 		return NODE_RET_NEEDCONTINUE;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
 		return true;
         }
@@ -64,7 +64,7 @@ public:
 		ConstValue * value = Expr->Calculate(context);
 		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
 		{
-			cerr<<"Data type mismatch"<<endl;
+			cerr<<"puppy runtime error: Data type mismatch"<<endl;
 
 			delete value;
 			return false;
@@ -85,30 +85,29 @@ public:
         {
                 this->Expr = expr;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
 		Node * parent = this->GetParentNode();
 
 		this->Expr->SetParentNode(parent);
-                if(this->Expr->Provision(errstack)==false)
+                if(this->Expr->Provision()==false)
 		{
-			errstack->PushFrame(0, "Provision expression falied.");
 			return false;
 		}
 		return true;
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
 	{
 		Node * parent = this->GetParentNode();
                 VariableDef * vardef = parent->FindVariable(VarName);
                 if(vardef==NULL)
                 {
-                        errstack->PushFrame(0, "Variable "+this->VarName+" not defined");
+                        cerr<<"puppy provision error: Variable "<<this->VarName+"has not defined."<<endl;
                         return false;
                 }
 		this->VarDef = vardef;
 
-		return this->Expr->Check(errstack);
+		return this->Expr->Check();
 	}
 private:
         string VarName;
@@ -154,14 +153,14 @@ public:
 			var = context->GetPortal()->GetSharedVariable(this->VarDef);
                         if(var==NULL)
 			{
-                        	cerr<<"Puppy runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
+                        	cerr<<"puppy runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
                         	return NODE_RET_ERROR;
 			}
                 }
 
 		if(var->GetValueType()!=Set && var->GetValueType()!=Any)
 		{
-			cerr<<"puppy warning: Cannot accept a non-collection variable."<<endl;
+			cerr<<"puppy runtime error: Cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
 			return NODE_RET_ERROR;
 		}
 
@@ -199,7 +198,7 @@ public:
 				}
 				else
 				{
-					cerr<<"puppy warning: Cannot use a scalar value as a collection."<<endl;
+					cerr<<"puppy runtime warning: Cannot use a scalar value as a collection."<<endl;
 
 					if(need_clear)
                         		{
@@ -273,7 +272,7 @@ public:
         {
                 this->Expr = expr;
         }
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
         {
 		list<Expression*>* exprlist = this->Reference->GetExpList();
 
@@ -281,26 +280,26 @@ public:
 		for(i=exprlist->begin(); i!=exprlist->end(); i++)
 		{
 			(*i)->SetParentNode(this->GetParentNode());
-			if((*i)->Provision(errstack)==false)
+			if((*i)->Provision()==false)
 	                {
                         	return false;
                 	}
 		}
 
                 this->Expr->SetParentNode(this->GetParentNode());
-                if(this->Expr->Provision(errstack)==false)
+                if(this->Expr->Provision()==false)
                 {
                         return false;
                 }
 
                 return true;
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
 	{
 		this->VarDef = this->FindVariable(this->Reference->GetVarName());
                 if(this->VarDef==NULL)
                 {
-                        errstack->PushFrame(0, "Variable "+this->Reference->GetVarName()+" not defined");
+                        cerr<<"puppy provision error: Variable "<<this->Reference->GetVarName()<<"has not defined"<<endl;
                         return false;
                 }
 
@@ -309,13 +308,13 @@ public:
                 list<Expression*>::iterator i;
                 for(i=exprlist->begin(); i!=exprlist->end(); i++)
                 {
-                        if((*i)->Check(errstack)==false)
+                        if((*i)->Check()==false)
                         {
                                 return false;
                         }
                 }
 
-                if(this->Expr->Check(errstack)==false)
+                if(this->Expr->Check()==false)
                 {
                         return false;
                 }
@@ -339,7 +338,7 @@ public:
         {
 		return NODE_RET_NORMAL;
         }
-        bool Provision(ErrorStack * errstack)        
+        bool Provision()
 	{
                 list<string*>::iterator i;
                 Node * parent = this->GetParentNode();
@@ -349,7 +348,7 @@ public:
                         {
 				if(parent->FindVariable(*(*i)))
 				{
-					errstack->PushFrame(0, "Duplicated variable: "+*(*i));
+					cerr<<"puppy provision error: Duplicated variable: "<<**i<<endl;
         		                return false;
 				}
 
@@ -374,7 +373,7 @@ public:
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
 			ConstValue * value = (*i)->Calculate(context);
-	                printf("%s",value->toString().c_str());
+	                fprintf(stdout, "%s", value->toString().c_str());
 			fflush(stdout);
 			
 			delete value;
@@ -385,25 +384,25 @@ public:
         {
                 this->ExprList = exprlist;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
 		list<Expression*>::iterator i;
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
 			(*i)->SetParentNode(this->GetParentNode());
-                	if((*i)->Provision(errstack)==false)
+                	if((*i)->Provision()==false)
 			{
                         	return false;
 			}
 		}
 		return true;
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
         {
                 list<Expression*>::iterator i;
                 for(i = ExprList->begin(); i!= ExprList->end(); i++)
                 {
-                        if((*i)->Check(errstack)==false)
+                        if((*i)->Check()==false)
                         {
                                 return false;
                         }
@@ -424,7 +423,7 @@ public:
 		if(value->GetType()!=Integer)
                 {
                         //TODO
-			cerr<<"SLEEP Statement MUST have a Integer parameter "<<endl;
+			cerr<<"puppy runtime error: SLEEP Statement need a Integer parameter. "<<endl;
 			return NODE_RET_ERROR;
                 }
 
@@ -437,14 +436,14 @@ public:
         {
                 this->Expr = expr;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
 		this->Expr->SetParentNode(this->GetParentNode());
-                return this->Expr->Provision(errstack);
+                return this->Expr->Provision();
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
         {
-                return this->Expr->Check(errstack);
+                return this->Expr->Check();
         }
 
 private:
@@ -466,14 +465,14 @@ public:
         {
                 this->Expr = expr;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
                 this->Expr->SetParentNode(this->GetParentNode());
-                return this->Expr->Provision(errstack);
+                return this->Expr->Provision();
 	}
-	bool Check(ErrorStack * errstack)
+	bool Check()
 	{
-		return this->Expr->Check(errstack);
+		return this->Expr->Check();
 	}
 private:
         Expression * Expr;
@@ -487,7 +486,7 @@ public:
 	{
 		return NODE_RET_NEEDROLLBACK;
 	}
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
         {
                 return true;
         }
@@ -501,7 +500,7 @@ public:
         {
                 return NODE_RET_NEEDCOMMIT;
         }
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
         {
                 return true;
         }
@@ -520,14 +519,14 @@ public:
         {
                 this->Expr = expr;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
                 this->Expr->SetParentNode(this->GetParentNode());
-                return this->Expr->Provision(errstack);
+                return this->Expr->Provision();
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
         {
-                return this->Expr->Check(errstack);
+                return this->Expr->Check();
         }
 
 	ConstValue * GetRetVal()
@@ -539,44 +538,5 @@ private:
         Expression * Expr;
 };
 
-class ObjectStatement: public StatementNode
-{
-public:
-	ObjectStatement(string * objname, string * method_name, list<Expression*> * expr_list): ObjName(*objname), ExprList(expr_list)
-	{
-		this->MethodName = *method_name;
-	}
-	int Invoke(NodeContext * context)
-	{
-		//this->FindMethodMapping(this->ObjName, this->MethodName);
-		return NODE_RET_NORMAL;
-	}
-	bool Provision(ErrorStack * errstack)
-	{
-		list<Expression*>::iterator i;
-                for(i = ExprList->begin(); i!= ExprList->end(); i++)
-                {
-                        (*i)->SetParentNode(this->GetParentNode());
-                        if((*i)->Provision(errstack)==false)
-                        {
-                                errstack->PushFrame(0, "PRINT Statement failed in transforming expressions ");
-                                return false;
-                        }
-                }
-
-		VariableDef * vardef = this->FindVariable(this->ObjName);
-                if(vardef==NULL)
-                {
-                        errstack->PushFrame(0, "Object "+this->ObjName+" not defined");
-                        return false;
-                }
-
-                return true;
-	}
-private:
-	list<Expression*> * ExprList;
-	string ObjName;
-	string MethodName;
-};
 #endif
 

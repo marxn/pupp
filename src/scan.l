@@ -19,7 +19,7 @@ le_op      "<="
 digit      [0-9]
 integer    {digit}+
 float      (({digit}*\.{digit}+)|({digit}+\.{digit}*))
-string     '(\\.|''|[^'\n])*'
+string     \"([^\\"]|\\.)*\"
 self       [-+\*\/();\:\=\#\&\{\}\[\]\<\>\.,]
 space      [ \t\r\f\n]
 identifier [a-zA-Z]+[0-9]*

@@ -22,6 +22,8 @@
     ContainerNode * final;
 %}
 
+%locations
+
 %union
 {
 	DataType                      puppy_datatype;

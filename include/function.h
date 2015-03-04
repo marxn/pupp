@@ -65,7 +65,7 @@ public:
         {
                 return this->Name;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
 		list<FuncArgDef*>::iterator i;
                 for(i = this->ArgList->begin(); i!=this->ArgList->end(); i++)
@@ -76,21 +76,17 @@ public:
                         localvar->SetVarType(argtype);
                         this->AddVariable(localvar);
                 }
+
                 Node * parent = this->GetParentNode();
                 if(parent==NULL)
                 {
-                        errstack->PushFrame(0, "Function cannot be defined without container.");
+                        cerr<<"puppy provision error: A function cannot be defined without a context."<<endl;
                         return false;
                 }
+
                 parent->AddFunctionDef(this->Name, this);
 
-		if(ContainerNode::Provision(errstack)==false)
-                {
-                        errstack->PushFrame(0, "Failed to transform container.");
-                        return false;
-                }
-
-                return true;
+		return ContainerNode::Provision();
         }
 
 private:

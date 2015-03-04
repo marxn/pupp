@@ -10,7 +10,6 @@
 #include "constval.h"
 #include "variable.h"
 #include "node.h"
-#include "errstack.h"
 #include "function.h"
 #include "portal.h"
 
@@ -30,8 +29,8 @@ public:
 		this->ParentNode = node;
 	}
 
-	virtual bool Provision(ErrorStack * errstack) = 0;
-	virtual bool Check(ErrorStack * errstack) 
+	virtual bool Provision() = 0;
+	virtual bool Check() 
 	{
 		return true;
 	}
@@ -60,7 +59,7 @@ public:
         {
                 return Value->DupValue();
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
                 return true;
         }
@@ -90,36 +89,30 @@ public:
 
 	virtual ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store) = 0;
 
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
 	{
 		left->SetParentNode(this->ParentNode);
 		right->SetParentNode(this->ParentNode);
 
-		if(left->Provision(errstack)==false)
+		if(left->Provision()==false)
 		{
 			return false;
 		}
-		if(right->Provision(errstack)==false)
+		if(right->Provision()==false)
 		{
                         return false;
 		}
 
 		return true;
 	}
-	bool Check(ErrorStack * errstack)
+	bool Check()
         {
-                if(left->Check(errstack)==false)
+                if(left->Check() && right->Check())
                 {
-                        return false;
+                        return true;
                 }
-                if(right->Check(errstack)==false)
-                {
-                        return false;
-                }
-
-                return true;
+                return false;
         }
-
 
 protected:
 	Expression * left;
@@ -180,13 +173,13 @@ public:
 
 		return result;
 	}
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
 	{
 		list<Expression*>::iterator i;
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                	{
 			(*i)->SetParentNode(this->ParentNode);
-       	                if((*i)->Provision(errstack)!=true)
+       	                if((*i)->Provision()!=true)
                         {
                                	return false;
                        	}
@@ -194,12 +187,12 @@ public:
 
 		return true;
 	}
-	bool Check(ErrorStack * errstack)
+	bool Check()
         {
                 list<Expression*>::iterator i;
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
-                        if((*i)->Check(errstack)!=true)
+                        if((*i)->Check()!=true)
                         {
                                 return false;
                         }
@@ -222,7 +215,7 @@ public:
 		if(left_store->GetType()!=Set)
 		{
 			//TODO
-                        //errstack->PushFrame(0, "Expect a collection to the left of '['.");
+			cerr<<"puppy runtime error: Expect a collection to the left of '['."<<endl;
                         return new NullValue;
                 }
 
@@ -277,20 +270,20 @@ public:
 	{
 		return this->VarDef;
 	}
-	bool Provision(ErrorStack * errstack)
+	bool Provision()
 	{
 		return true;
 	}
-	bool Check(ErrorStack * errstack)
+	bool Check()
 	{
 		VariableDef * vardef = this->ParentNode->FindVariable(*VarName);
 		if(vardef==NULL)
 		{
-			errstack->PushFrame(this->GetObjLoc(), "Variable "+*VarName+" has not been defined");	
+			cerr<<"puppy provision error: Variable "<<*VarName<<" has not been defined"<<endl;
 			return false;
 		}
 		this->VarDef = vardef;
-		return Expression::Check(errstack);
+		return Expression::Check();
 	}
 private:
 	string * VarName;
@@ -332,7 +325,7 @@ public:
                         			var = context->GetPortal()->GetSharedVariable(exp->GetVarDef());
 			                        if(var==NULL)
                         			{
-			                                cerr<<"Puppy runtime error: cannot find variable: "<<exp->GetVarName()<<endl;
+			                                cerr<<"puppy runtime error: cannot find variable: "<<exp->GetVarName()<<endl;
                         			        return new NullValue;
 			                        }
 			                }
@@ -378,13 +371,13 @@ public:
                 }
                 return result;
         }
-        bool Provision(ErrorStack * errstack)
+        bool Provision()
         {
 		list<Expression*>::iterator i;
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
                         (*i)->SetParentNode(this->ParentNode);
-                        if((*i)->Provision(errstack)!=true)
+                        if((*i)->Provision()!=true)
                         {
                                 return false;
                         }
@@ -392,17 +385,17 @@ public:
 
                 return true;
         }
-	bool Check(ErrorStack * errstack)
+	bool Check()
 	{
 		this->Func = static_cast<FunctionNode*>(this->ParentNode->FindFunctionDef(this->FuncName));
 		if(this->Func==NULL)
                 {
-                        errstack->PushFrame(this->GetObjLoc(), "Function "+this->FuncName+"() has not been defined");
+                        cerr<<"puppy provision error: Function "<<this->FuncName<<"() has not been defined"<<endl;
                         return false;
                 }
 		if(this->Func->GetArgList()->size()!=this->ExprList->size())
                 {
-                        errstack->PushFrame(0, "Number of arguments mismatch");
+                        cerr<<"puppy provision error: The number of arguments does not mismatch"<<endl;
                         return false;
                 }
 
@@ -412,7 +405,7 @@ public:
 		for(i = this->ExprList->begin(), j = this->Func->GetArgList()->begin();
                         i!=this->ExprList->end() && j!=this->Func->GetArgList()->end(); i++,j++)
                 {
-                        if((*i)->Check(errstack)!=true)
+                        if((*i)->Check()!=true)
                         {
                                 return false;
                         }
@@ -420,13 +413,13 @@ public:
 			{
 				if((*i)->isLValue()==false)
 				{
-					errstack->PushFrame(0, "Must pass a lvalue to a reference:" + (*j)->GetName());
+					cerr<<"puppy runtime error: Cannot pass any expression other than a variable to a reference:"<<(*j)->GetName()<<endl;
 					return false;
 				}
 			}
                 }
 
-		return Expression::Check(errstack);
+		return Expression::Check();
 	}
 private:
 	string FuncName;

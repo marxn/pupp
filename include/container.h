@@ -30,25 +30,25 @@ class ContainerNode :public Node
                 {
                         subnodelist = nodelist;
                 }
-                bool Provision(ErrorStack * errstack)
+                bool Provision()
                 {
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                         {
                                 (*i)->SetParentNode(this);
-                                if((*i)->Provision(errstack)!=true)
+                                if((*i)->Provision()!=true)
 				{
 					return false;
 				}
                         }
 			return true;
                 }
-		bool Check(ErrorStack * errstack)
+		bool Check()
 		{
 			list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                         {
-                                if((*i)->Check(errstack)!=true)
+                                if((*i)->Check()!=true)
                                 {
                                         return false;
                                 }

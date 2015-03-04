@@ -1,3 +1,8 @@
+March 4th 2015
+---------------------------
+1. Regular error message.
+
+
 March 2nd 2015
 ---------------------------
 1. Implemented transaction.
