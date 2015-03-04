@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include "puppybase.h"
 #include "container.h"
 #include "constval.h"
 #include "expression.h"

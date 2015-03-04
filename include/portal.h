@@ -5,7 +5,6 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include "puppybase.h"
 #include "variable.h"
 
 class Portal

@@ -62,6 +62,11 @@ public:
 		}
 
 		ConstValue * value = Expr->Calculate(context);
+		if(value==NULL)
+		{
+			return NODE_RET_ERROR;
+		}
+
 		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
 		{
 			cerr<<"puppy runtime error: Data type mismatch"<<endl;
@@ -181,6 +186,11 @@ public:
                 for(i=exprlist->begin(); i!=exprlist->end(); i++, listsize--)
                 {
 			ConstValue * offset_value = (*i)->Calculate(context);
+			if(offset_value==NULL)
+			{
+				return NODE_RET_ERROR;
+			}
+
                         string offstr = offset_value->toString();
 
 			if(vref->GetType()!=Set)
@@ -207,7 +217,7 @@ public:
 		                        }
 
 					delete offset_value;
-					return true;
+					return NODE_RET_NORMAL;
 				}
 			}
 
@@ -236,6 +246,11 @@ public:
 				else
 				{
 					ConstValue * target_value = Expr->Calculate(context);
+					if(target_value==NULL)
+					{
+						return NODE_RET_ERROR;
+					}
+
 					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
 					vref->AddKV(kv);
 
@@ -255,6 +270,11 @@ public:
 				else
 				{
 					ConstValue * target_value = Expr->Calculate(context);
+					if(target_value==NULL)
+                                        {
+                                                return NODE_RET_ERROR;
+                                        }
+
                                         KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
                                         vref->AddKV(kv);
 
@@ -373,6 +393,11 @@ public:
 		for(i = ExprList->begin(); i!= ExprList->end(); i++)
 		{
 			ConstValue * value = (*i)->Calculate(context);
+			if(value==NULL)
+                        {
+ 	                       return NODE_RET_ERROR;
+                        }
+
 	                fprintf(stdout, "%s", value->toString().c_str());
 			fflush(stdout);
 			
@@ -420,6 +445,11 @@ public:
         int Invoke(NodeContext * context)
         {
 		ConstValue * value = this->Expr->Calculate(context);
+		if(value==NULL)
+                {
+	                return NODE_RET_ERROR;
+                }
+
 		if(value->GetType()!=Integer)
                 {
                         //TODO
@@ -456,6 +486,11 @@ public:
 	int Invoke(NodeContext * context)
         {
                 ConstValue * value = this->Expr->Calculate(context);
+		if(value==NULL)
+                {
+	                return NODE_RET_ERROR;
+                }
+
 		context->FunctionRet = value->DupValue();
 
 		delete value;
@@ -510,9 +545,16 @@ public:
 class CallStatement: public StatementNode
 {
 public:
+	CallStatement():RetVal(NULL){}
+
         int Invoke(NodeContext * context)
         {
                 this->RetVal = this->Expr->Calculate(context);
+		if(this->RetVal==NULL)
+                {
+	                return NODE_RET_ERROR;
+                }
+
                 return NODE_RET_NORMAL;
         }
         void SetExpression(Expression * expr)

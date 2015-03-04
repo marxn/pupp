@@ -89,6 +89,11 @@ class BranchNode :public ContainerNode
                 int Evaluate(NodeContext * context)
                 {
                         ConstValue * eva = this->condition->Calculate(context);
+			if(eva==NULL)
+			{
+				return EVA_ERROR;
+			}
+
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO

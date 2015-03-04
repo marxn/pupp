@@ -7,7 +7,6 @@
 #include <sstream>
 #include <list>
 #include <string>
-#include "puppybase.h"
 #include "variable.h"
 
 using namespace std;
@@ -28,7 +27,7 @@ using namespace std;
 class NodeContext;
 class Portal;
 
-class Node: public PuppyObject
+class Node
 {
 public:
 	Node()

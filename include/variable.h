@@ -3,7 +3,6 @@
 
 #include <string>
 #include "constval.h"
-#include "puppybase.h"
 
 using namespace std;
 
@@ -119,7 +118,7 @@ private:
 	Variable * Ref;
 };
 
-class VariableDef: public PuppyObject
+class VariableDef
 {
 public:
 	VariableDef(string VarName):VarType(Any)

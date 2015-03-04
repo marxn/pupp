@@ -103,6 +103,10 @@ public:
                 virtual int Evaluate(NodeContext * context)
                 {
                         ConstValue * eva = this->condition->Calculate(context);
+			if(eva==NULL)
+			{
+				return -1;
+			}
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO
@@ -222,10 +226,14 @@ public:
         bool PreLoopStatement(NodeContext * context)
         {
 		ConstValue * keeper = this->CollectionExpr->Calculate(context);
+		if(keeper==NULL)
+		{
+			return false;
+		}
 
                 if(keeper->GetType()!=Set)
                 {
-                        cerr<<"puppy warning: FOREACH need a collection as input."<<endl;
+                        cerr<<"puppy runtime warning: FOREACH need a collection as input."<<endl;
 			context->ForeachCtx.push(NULL);
 			return true;
                 }

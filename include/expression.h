@@ -15,7 +15,7 @@
 
 using namespace std;
 
-class Expression: public PuppyObject
+class Expression
 {
 public:
 	Expression():lValue(false)
@@ -215,7 +215,7 @@ public:
 		if(left_store->GetType()!=Set)
 		{
 			//TODO
-			cerr<<"puppy runtime error: Expect a collection to the left of '['."<<endl;
+			cerr<<"puppy runtime error: Expect a non-null collection."<<endl;
                         return new NullValue;
                 }
 
@@ -326,7 +326,7 @@ public:
 			                        if(var==NULL)
                         			{
 			                                cerr<<"puppy runtime error: cannot find variable: "<<exp->GetVarName()<<endl;
-                        			        return new NullValue;
+                        			        return NULL;
 			                        }
 			                }
 
@@ -343,7 +343,7 @@ public:
 					{
 						delete new_ctx;
 						cerr<<"puppy runtime error: data type mismatch when calling a function."<<endl;
-						return new NullValue;
+						return NULL;
 					}
 
 					string argname = (*j)->GetName();

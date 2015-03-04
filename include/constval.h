@@ -4,7 +4,6 @@
 #include <map>
 #include <string>
 #include <stdio.h>
-#include "puppybase.h"
 
 using namespace std;
 
@@ -13,7 +12,7 @@ enum DataType
         Null = 0, Any, Integer, Float, Boolean, String, KeyValue, Set
 };
 
-class ConstValue: public PuppyObject
+class ConstValue
 {
 public:
 	ConstValue():Type(Null){}
