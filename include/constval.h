@@ -49,6 +49,10 @@ public:
 	{
 		return new IntegerValue(this->Value);
 	}
+	void SetValue(long value)
+	{
+		this->Value = value;
+	}
 	long GetValue() {return this->Value;}
 	string toString()
 	{

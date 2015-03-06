@@ -554,6 +554,11 @@ const_value:
 		{
 			$$ = $1;
 		}
+	| '-' INTEGER
+		{
+			$2->SetValue(0-$2->GetValue());
+			$$ = $2;
+		}
 	| FLOAT                    
 		{
 			$$ = $1;
@@ -712,7 +717,7 @@ expr:
 
 int yyerror(char *s)
 {
-    fprintf(stderr, "puppy grammar error: %s\n", s);
+    fprintf(stderr, "puppy parsing error: %s\n", s);
     return 0;
 }
 
