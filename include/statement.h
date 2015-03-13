@@ -67,13 +67,21 @@ public:
 			return NODE_RET_ERROR;
 		}
 
-		//if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
-		//{
-		//	cerr<<"puppy runtime error: Data type mismatch"<<endl;
-//
-//			delete value;
-//			return false;
-//		}
+		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
+		{
+			ConstValueCaster caster(value, var->GetVarType());
+			ConstValue * thevalue = caster.Cast();
+			delete value;
+			value = thevalue;
+
+			if(value==NULL)
+                	{
+				cerr<<"Puppy runtime error: cannot convert data type:"<<this->VarName<<endl;
+        	                return NODE_RET_ERROR;
+	                }
+
+		}
+
 		var->SetValue(value);
 		delete value;
 		return NODE_RET_NORMAL;

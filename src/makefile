@@ -2,7 +2,7 @@ all: puppy
 	@echo all done.
 
 puppy: puppy.o scan.o main.o 
-	g++ -g -o puppy puppy.o scan.o main.o
+	g++ -g -o puppy puppy.o scan.o main.o -lgmp
 
 puppy.o: puppy.y
 	bison -d -o puppy.cpp puppy.y
