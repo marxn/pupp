@@ -67,13 +67,13 @@ public:
 			return NODE_RET_ERROR;
 		}
 
-		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
-		{
-			cerr<<"puppy runtime error: Data type mismatch"<<endl;
-
-			delete value;
-			return false;
-		}
+		//if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
+		//{
+		//	cerr<<"puppy runtime error: Data type mismatch"<<endl;
+//
+//			delete value;
+//			return false;
+//		}
 		var->SetValue(value);
 		delete value;
 		return NODE_RET_NORMAL;

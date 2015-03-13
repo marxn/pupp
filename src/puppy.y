@@ -28,7 +28,7 @@
 {
 	DataType                      puppy_datatype;
 	IntegerValue                * puppy_const_integer;
-	FloatValue                  * puppy_const_float;
+	DecimalValue                * puppy_const_decimal;
 	BooleanValue                * puppy_const_boolean;
 	StringValue                 * puppy_const_string;
 	ConstValue                  * puppy_const;
@@ -62,12 +62,12 @@
 %left '*' '/'
 
 %token <puppy_const_integer> INTEGER 
-%token <puppy_const_float> FLOAT
+%token <puppy_const_decimal> DECIMAL
 %token <puppy_const_boolean> BOOLEAN
 %token <puppy_const_string> STRING
 
 %token <puppy_ident> IDENTIFIER 
-%token TYPE_ANY TYPE_INTEGER TYPE_FLOAT TYPE_STRING TYPE_BOOLEAN TYPE_SET
+%token TYPE_ANY TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
 %token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
@@ -410,9 +410,9 @@ def_data_type:
 		{
 			$$ = Integer;
 		}
-	| TYPE_FLOAT
+	| TYPE_DECIMAL
 		{
-			$$ = Float;
+			$$ = Decimal;
 		}
 	| TYPE_STRING
 		{
@@ -542,7 +542,7 @@ symbolic_constant:
 		}
 	| PI
 		{
-			$$ = new FloatValue(3.1415926);
+			$$ = new DecimalValue(3.1415926);
 		}
 	| NIL
 		{
@@ -559,7 +559,7 @@ const_value:
 			$2->SetValue(0-$2->GetValue());
 			$$ = $2;
 		}
-	| FLOAT                    
+	| DECIMAL                    
 		{
 			$$ = $1;
 		}

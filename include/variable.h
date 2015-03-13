@@ -52,7 +52,16 @@ public:
                 {
                         delete this->Value;
                 }
-                this->Value = value->DupValue();
+		if(this->VarType==value->GetType() || this->VarType==Any)
+		{
+			this->Value = value->DupValue();
+		}
+		else
+		{
+			ConstValueCaster caster(value, this->VarType);
+			ConstValue * newvalue = caster.Cast();
+			this->Value = newvalue;
+		}
         }
         ConstValue * GetValue()
         {

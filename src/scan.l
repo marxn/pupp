@@ -18,11 +18,11 @@ ge_op      ">="
 le_op      "<="
 digit      [0-9]
 integer    {digit}+
-float      (({digit}*\.{digit}+)|({digit}+\.{digit}*))
+decimal    (({digit}*\.{digit}+)|({digit}+\.{digit}*))
 string     \"([^\\"]|\\.)*\"
 self       [-+\*\/();\:\=\#\&\{\}\[\]\<\>\.,]
 space      [ \t\r\f\n]
-identifier [a-zA-Z]+[0-9]*
+identifier [a-zA-Z_]+[0-9]*
 
 %%
 
@@ -52,12 +52,14 @@ identifier [a-zA-Z]+[0-9]*
 		}
 		
 {integer}	{
-				yylval.puppy_const_integer = new IntegerValue(atoi(yytext));
+				yylval.puppy_const_integer = new IntegerValue(atol(yytext));
 				return INTEGER;
 		}
-{float}		{
-				yylval.puppy_const_float = new FloatValue(atof(yytext));
-				return FLOAT;
+{decimal}	{
+				StringValue temp(yytext);
+				yylval.puppy_const_decimal = new DecimalValue(temp.toString());
+				yylval.puppy_const_decimal->SetPrec(temp.GetNumPrec());
+				return DECIMAL;
 		}
 {identifier}	{
 				//Boolean constant value
@@ -114,8 +116,8 @@ identifier [a-zA-Z]+[0-9]*
                                         return TYPE_ANY;
 				if(strcasecmp(yytext,"integer")==0)
 					return TYPE_INTEGER;
-				if(strcasecmp(yytext,"float")==0)
-					return TYPE_FLOAT;
+				if(strcasecmp(yytext,"decimal")==0)
+					return TYPE_DECIMAL;
 				if(strcasecmp(yytext,"string")==0)
 					return TYPE_STRING;
 				if(strcasecmp(yytext,"boolean")==0)

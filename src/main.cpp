@@ -87,7 +87,6 @@ int main(int argc, char * argv[])
 
 	if(bean == NULL)
 	{
-		fprintf(stderr, "Failed to parse the source code.\n");
 		return -1;
 	}
 	if(bean->Provision()==false || bean->Check()==false)
