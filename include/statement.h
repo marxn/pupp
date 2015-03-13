@@ -557,6 +557,10 @@ public:
 
                 return NODE_RET_NORMAL;
         }
+	void Swipe(NodeContext * context)
+	{
+		delete this->RetVal;
+	}
         void SetExpression(Expression * expr)
         {
                 this->Expr = expr;

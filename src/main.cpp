@@ -46,13 +46,14 @@ int StartFromMain(Node * bean, char *argv[], int argc)
 
                 NodeContext * context = new NodeContext(&portal);
                 context->AddFrame(bean);
-                callstmt->Execute(context);
+                callstmt->Invoke(context);
                 ConstValue * retval = callstmt->GetRetVal();
                 if(retval->GetType()==Integer)
                 {
                         ret = static_cast<int>(static_cast<IntegerValue*>(retval)->GetValue());
                 }
-                delete retval;
+                callstmt->Swipe(context);
+		delete context;
         }
 	else
         {

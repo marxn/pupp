@@ -92,14 +92,14 @@
 %type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
 %type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
-%type  <puppy_identlist> identifier_list qualified_object
+%type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type function_return_prototype
 
 %type  <puppy_collection_eleref> collection_element_ref
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
-%type  <puppy_statement> vardefstatement sleep_statement element_assign_statement object_statement
+%type  <puppy_statement> vardefstatement sleep_statement element_assign_statement call_statement
 %type  <puppy_statement> returnstatement rollback_statement commit_statement
 
 %%
@@ -201,7 +201,7 @@ statement_node:
 		{
 			$$ = $1;
 		}
-	| object_statement
+	| call_statement
 		{
 			$$ = $1;
 		}
@@ -467,24 +467,12 @@ returnstatement:
 		}
 	;
 
-qualified_object:
-	qualified_object '.' IDENTIFIER
+call_statement:
+	func_expr
 		{
-			$1->push_back($3);
-                        $$ = $1;
-		}
-	| IDENTIFIER
-		{
-			$$ = new list<string*>;
-                        $$->push_back($1);
-		}
-	;
-
-object_statement:
-	qualified_object expr_list
-		{
-			//ObjectStatement * stmt = new ObjectStatement($1, $3, $4);
-			//$$ = static_cast<StatementNode*>(stmt);
+			CallStatement * stmt = new CallStatement;
+			stmt->SetExpression($1);
+			$$ = static_cast<StatementNode*>(stmt);
 		}
 	;
 
@@ -574,9 +562,9 @@ const_value:
 	;
 
 set_expr:
-	'{' expr_list '}'
+	TYPE_SET '{' expr_list '}'
 		{
-			$$ = new SetExpression($2);
+			$$ = new SetExpression($3);
 		}
 	;
 
