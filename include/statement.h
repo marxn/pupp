@@ -581,7 +581,7 @@ public:
                 Node * node = this->ParentNode;
                 while(node!=NULL)
                 {
-                        if(node->Type==Loop)
+                        if(node->Type==Transaction)
                         {
                                 return true;
                         }
@@ -610,7 +610,7 @@ public:
                 Node * node = this->ParentNode;
                 while(node!=NULL)
                 {
-                        if(node->Type==Loop)
+                        if(node->Type==Transaction)
                         {
                                 return true;
                         }
