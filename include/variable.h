@@ -70,6 +70,11 @@ public:
                         return this->Ref->GetValue();
                 }
 
+		if(this->Value==NULL)
+		{
+			DefaultValueFactory defvalue(this->VarType);
+			this->Value = defvalue.GetValue();
+		}
                 return Value->DupValue();
         }
 	DataType GetVarType()
@@ -137,12 +142,8 @@ public:
 	Variable * GetInstance()
 	{
 		Variable * ret = new Variable(this->VarName, this->VarType);
-		NullValue * value = new NullValue;
-		ret->SetValue(value);
 		ret->SetSource(this);
 
-		delete value;
-		
 		return ret;
 	}
 	void SetVarType(DataType type)

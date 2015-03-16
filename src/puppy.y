@@ -562,9 +562,9 @@ const_value:
 	;
 
 set_expr:
-	TYPE_SET '{' expr_list '}'
+	'{' expr_list '}'
 		{
-			$$ = new SetExpression($3);
+			$$ = new SetExpression($2);
 		}
 	;
 

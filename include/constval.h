@@ -433,6 +433,43 @@ private:
 	DataType Type;
 };
 
+class DefaultValueFactory
+{
+public:
+	DefaultValueFactory(DataType type):Type(type)
+	{
+	}
+
+	ConstValue * GetValue()
+	{
+		ConstValue * result = NULL;
+		switch(this->Type)
+		{
+			case Integer:
+				result = new IntegerValue(0);
+			break;
+			case String:
+                                result = new StringValue("");
+                        break;
+			case Boolean:
+                                result = new BooleanValue(false);
+                        break;
+			case Decimal:
+                                result = new DecimalValue("0");
+                        break;
+			case Set:
+                                result = new SetValue;
+                        break;
+			default:
+				result = new NullValue;
+		}
+		return result;
+	}
+	
+private:
+	DataType Type;
+};
+
 class Operation
 {
 public:
