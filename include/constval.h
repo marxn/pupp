@@ -1483,6 +1483,10 @@ public:
                                 result = new NullValue;
                         }
 		}
+		else if(left->GetType()==Boolean && right->GetType()==Boolean)
+		{
+			result = new BooleanValue(static_cast<BooleanValue*>(left)->GetValue() == static_cast<BooleanValue*>(right)->GetValue());
+		}
 		else
 		{
 			result = new NullValue;

@@ -106,6 +106,12 @@ public:
         }
 	void SetReference(ConstValue * refvalue)
 	{
+		if(this->Ref)
+                {
+			this->Ref->SetReference(refvalue);
+			return;
+		}
+
 		if(this->Value)
                 {
                         delete this->Value;

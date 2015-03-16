@@ -333,6 +333,11 @@ public:
 					Variable * avatar = new_ctx->GetVariable((*j)->GetName());
 					if(avatar)
 					{
+						if(var->GetVarType() != avatar->GetVarType())
+						{
+							cerr<<"puppy runtime error: variable type mismatch when passing args to the function."<<endl;
+	                                                return NULL;
+						}
 						avatar->SetRefVar(var->GetRealVar());
 					}
 				}
