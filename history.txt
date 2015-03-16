@@ -1,3 +1,9 @@
+March 16th 2015
+--------------------------
+1. Optimized div operation.
+2. Support string joining.
+3. Checking for break/continue/return/rollback/commit.
+
 March 13th 2015
 --------------------------
 1. Support Decimal data type.

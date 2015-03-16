@@ -28,6 +28,21 @@ public:
 	{
 		return true;
         }
+	bool Check()
+	{
+		Node * node = this->ParentNode;
+		while(node!=NULL)
+		{
+			if(node->Type==Loop)
+			{
+				return true;
+			}
+			node = node->ParentNode;
+		}
+
+		cerr<<"puppy provision error: break statement must appear in a loop."<<endl;
+                return false;
+	}
 };
 
 class ContinueStatement: public StatementNode
@@ -41,6 +56,22 @@ public:
         {
 		return true;
         }
+	bool Check()
+        {
+                Node * node = this->ParentNode;
+                while(node!=NULL)
+                {
+                        if(node->Type==Loop)
+                        {
+                                return true;
+                        }
+                        node = node->ParentNode;
+                }
+
+                cerr<<"puppy provision error: continue statement must appear in a loop."<<endl;
+                return false;
+        }
+
 };
 
 class AssignStatement: public StatementNode
@@ -514,9 +545,21 @@ public:
                 return this->Expr->Provision();
 	}
 	bool Check()
-	{
-		return this->Expr->Check();
-	}
+        {
+                Node * node = this->ParentNode;
+                while(node!=NULL)
+                {
+                        if(node->Type==Function)
+                        {
+                                return this->Expr->Check();
+                        }
+                        node = node->ParentNode;
+                }
+
+                cerr<<"puppy provision error: return statement must appear in a function."<<endl;
+                return false;
+        }
+
 private:
         Expression * Expr;
 
@@ -533,6 +576,21 @@ public:
         {
                 return true;
         }
+	bool Check()
+        {
+                Node * node = this->ParentNode;
+                while(node!=NULL)
+                {
+                        if(node->Type==Loop)
+                        {
+                                return true;
+                        }
+                        node = node->ParentNode;
+                }
+
+                cerr<<"puppy provision error: rollback statement must appear in a transaction."<<endl;
+                return false;
+        }
 
 };
 
@@ -546,6 +604,21 @@ public:
 	bool Provision()
         {
                 return true;
+        }
+	bool Check()
+        {
+                Node * node = this->ParentNode;
+                while(node!=NULL)
+                {
+                        if(node->Type==Loop)
+                        {
+                                return true;
+                        }
+                        node = node->ParentNode;
+                }
+
+                cerr<<"puppy provision error: commit statement must appear in a transaction."<<endl;
+                return false;
         }
 
 };

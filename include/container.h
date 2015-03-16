@@ -8,6 +8,9 @@ using namespace std;
 class ContainerNode :public Node
 {
         public:
+		ContainerNode():Node(Generic){}
+		ContainerNode(NodeType type):Node(type){}
+
                 int Invoke(NodeContext * context)
                 {
                         list<Node*>::iterator i;

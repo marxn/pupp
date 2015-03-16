@@ -10,6 +10,8 @@ using namespace std;
 class LoopNode :public ContainerNode
 {
 public:
+		LoopNode():ContainerNode(Loop){}
+
                 virtual bool PreLoopStatement(NodeContext * context)
 		{
 			return true;

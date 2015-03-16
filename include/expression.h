@@ -361,6 +361,13 @@ public:
 			if(rtn==NODE_RET_NEEDRETURN)
 			{
 				result = new_ctx->FunctionRet;
+				if(this->Func->GetRtnType()!=result->GetType())
+				{
+					ConstValueCaster caster(result, this->Func->GetRtnType());
+					ConstValue * ret = caster.Cast();
+					delete result;
+					result = ret;
+				}
 			}
 			else
 			{

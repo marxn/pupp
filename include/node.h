@@ -27,10 +27,22 @@ using namespace std;
 class NodeContext;
 class Portal;
 
+enum NodeType
+{
+	Generic,
+	Function,
+	IfElse,
+	Loop,
+	Transaction
+};
+
 class Node
 {
 public:
-	Node()
+	Node():Type(Generic)
+	{
+	}
+	Node(NodeType type):Type(type)
 	{
 	}
 	virtual ~Node()
@@ -101,6 +113,7 @@ public:
                 return result;
         }
 
+	NodeType Type;
 	Node * ParentNode;
 	map<string, VariableDef*> VariableDefTable;
 	map<string, Node*> FunctionDefTable;

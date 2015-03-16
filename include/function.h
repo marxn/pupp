@@ -36,7 +36,7 @@ private:
 class FunctionNode:public ContainerNode
 {
 public:
-        FunctionNode(string * name)
+        FunctionNode(string * name):ContainerNode(Function)
         {
                 this->Name = *name;
         }
@@ -65,6 +65,10 @@ public:
         {
                 return this->Name;
         }
+	DataType GetRtnType()
+	{
+		return this->RtnType;
+	}
         bool Provision()
         {
 		list<FuncArgDef*>::iterator i;

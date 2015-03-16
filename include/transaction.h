@@ -9,6 +9,8 @@ using namespace std;
 class TransNode: public ContainerNode
 {
 public:
+	TransNode():ContainerNode(Transaction){}
+
 	int Invoke(NodeContext * context)
         {
 		list<VariableDef*>::iterator vd;
