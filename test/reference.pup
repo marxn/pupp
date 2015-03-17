@@ -1,0 +1,19 @@
+def g as integer;
+
+def function test2(x& as integer)
+{
+	transaction(x)
+	{
+		x=11;
+		commit;
+	}
+}
+
+def function main(args as collection) as integer
+{
+	g=10;
+	print g,NL;
+	test2(g);
+	print g,NL;
+	return 0;
+}

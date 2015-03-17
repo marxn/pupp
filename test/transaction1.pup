@@ -1,0 +1,40 @@
+def function transfer(user1& as collection, user2& as collection, amount as decimal) as boolean
+{
+	def ret as boolean;
+	ret = false;
+
+	transaction(user1, user2)
+	{
+		user1["balance"] = user1["balance"] - amount;
+
+		if(user1["balance"] < 0)
+		{
+			print "insufficient funds",NL;
+			rollback;
+		}
+
+		user2["balance"] = user2["balance"] + amount;
+		ret = true;
+		commit;
+	}
+	return ret;
+}
+
+def function main(args as collection) as integer
+{
+	def a,b as collection;
+	def result as boolean;
+
+	a={<"name","Jack">,<"balance",100.00>};
+	b={<"name","Rose">,<"balance",0.00>};
+
+	print a,b,NL;
+	result = transfer(a,b,20.00);
+
+	if(result==true)
+	{
+		print a,b,NL;
+	}
+
+	return 0;
+}

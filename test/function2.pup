@@ -1,0 +1,25 @@
+def sss as string;
+
+def function main(args as collection) as integer
+{
+        def function xxx(a as string) as integer
+        {
+		print a,NL;
+                return 0;
+        }
+	if(true)
+	{
+		//def q as string;
+		//q = '1234';
+		//print q,NL;
+        	//print xxx(q),NL;
+		//print q,NL;
+		sss="abcd";
+		//print sss,NL;
+		print xxx(sss),NL;
+		
+		
+	}
+        return 11;
+}
+

@@ -1,9 +1,0 @@
-def a as integer;
-def b as float;
-def c as integer;
-
-a=10;
-b=a;
-
-print a,b,NL;
-

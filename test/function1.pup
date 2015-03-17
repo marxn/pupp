@@ -1,0 +1,22 @@
+def function main(args as collection) as integer
+{
+	def a as collection;
+	a = {5,6,7,8,<"xxx",{<"zzz","qqq">}>};
+
+	transaction(a)
+	{
+		test1(a);
+	}
+	print a,NL;
+}
+
+def function test() as collection
+{
+	return {1,2,3,4};
+}
+
+def function test1(a& as collection)
+{
+	a[123]=123;
+	print a,NL;
+}

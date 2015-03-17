@@ -4,6 +4,7 @@ March 16th 2015
 2. Support string joining.
 3. Checking for break/continue/return/rollback/commit.
 4. Default values for variable.
+5. Fixed a reference bug.
 
 March 13th 2015
 --------------------------

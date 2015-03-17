@@ -1,0 +1,102 @@
+def function main(args as collection) as integer
+{
+	if(true)
+{
+	print 1+1,NL;
+	print 1+"1",NL;
+	print 1+"1.1",NL;
+	print 1+"1.11",NL;
+
+	print 1.1+1,NL;
+	print 1.1+1.1,NL;
+	print 1.1+"1",NL;
+	print 1.1+"1.1",NL;
+	print 1.1+"1.11",NL;
+
+	print "1"+1,NL;
+	print "1"+1.1,NL;
+	print "1"+"1",NL;
+	print "1"+"1.1",NL;
+	print "1"+"1.11",NL;
+
+	print "1.1"+1,NL;
+	print "1.1"+1.1,NL;
+	print "1.1"+"1.11",NL;
+
+	print "1.111"+1.1,NL;
+print NL;
+	print 1*1,NL;
+        print 1*"1",NL;
+        print 1*"1.1",NL;
+        print 1*"1.11",NL;
+
+        print 1.1*1,NL;
+        print 1.1*1.1,NL;
+        print 1.1*"1",NL;
+        print 1.1*"1.1",NL;
+        print 1.1*"1.11",NL;
+
+        print "1"*1,NL;
+        print "1"*1.1,NL;
+        print "1"*"1",NL;
+        print "1"*"1.1",NL;
+        print "1"*"1.11",NL;
+
+        print "1.1"*1,NL;
+        print "1.1"*1.1,NL;
+        print "1.1"*"1.11",NL;
+
+        print "1.111"*1.1,NL;
+print NL;
+	print 1/1,NL;
+        print 1/"1",NL;
+        print 1/"1.1",NL;
+        print 1/"1.11",NL;
+
+        print 1.1/1,NL;
+        print 1.1/1.1,NL;
+        print 1.1/"1",NL;
+        print 1.1/"1.1",NL;
+        print 1.1/"1.11",NL;
+
+        print "1"/1,NL;
+        print "1"/1.1,NL;
+        print "1"/"1",NL;
+        print "1"/"1.1",NL;
+        print "1"/"1.11",NL;
+
+        print "1.1"/1,NL;
+        print "1.1"/1.1,NL;
+        print "1.1"/"1.11",NL;
+
+        print "1.111"/1.1,NL;
+
+print NL;
+        print 1>1,NL;
+        print 1>"1",NL;
+        print 1>"1.1",NL;
+        print 1>"1.11",NL;
+
+        print 1.1>1,NL;
+        print 1.1>1.1,NL;
+        print 1.1>"1",NL;
+        print 1.1>"1.1",NL;
+        print 1.1>"1.11",NL;
+
+        print "1">1,NL;
+        print "1">1.1,NL;
+        print "1">"1",NL;
+        print "1">"1.1",NL;
+        print "1">"1.11",NL;
+
+        print "1.1">1,NL;
+        print "1.1">1.1,NL;
+        print "1.1">"1.11",NL;
+
+        print "1.111">1.1,NL;
+
+}
+	
+        return 0;
+}
+

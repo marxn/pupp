@@ -1,9 +1,0 @@
-def i as integer;
-def b as boolean;
-
-while(i<10)
-{
-	i=i+1;
-	print i;print ' ';
-}
-
