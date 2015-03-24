@@ -123,8 +123,8 @@ public:
 struct ForeachLoopCtx 
 {
 	ConstValue * Keeper;
-	map<string, ConstValue*> * SetValueHolder;
-	map<string, ConstValue*>::iterator ValueHandle;
+	map<string, ValueBox*> * SetValueHolder;
+	map<string, ValueBox*>::iterator ValueHandle;
 };
 
 class NodeContext

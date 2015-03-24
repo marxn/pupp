@@ -13,20 +13,70 @@ using namespace std;
 
 enum DataType
 {
-        Null = 0, Any, Integer, Decimal, Boolean, String, KeyValue, Set
+        Null = 0, Any, Integer, Decimal, Boolean, String, KeyValue, Set, Message
 };
 
 class ConstValue
 {
 public:
-	ConstValue():Type(Null){}
-	ConstValue(DataType type):Type(type){}
-	virtual ~ConstValue(){}
-	virtual ConstValue * DupValue() = 0;
-	DataType GetType() {return this->Type;}
-	virtual string toString() = 0;
+        ConstValue():Type(Null){}
+        ConstValue(DataType type):Type(type){}
+        virtual ~ConstValue(){}
+        virtual ConstValue * DupValue() = 0;
+        DataType GetType() {return this->Type;}
+        virtual string toString() = 0;
 protected:
-	DataType Type;
+        DataType Type;
+};
+
+class ValueBox
+{
+public:
+        ValueBox():Value(NULL), RefCount(1){}
+	ValueBox(ConstValue * value):Value(value->DupValue()), RefCount(1){}
+        ~ValueBox()
+        {
+                this->Clear();
+        }
+        void IncRefCount()
+        {
+                this->RefCount++;
+        }
+        void Destroy()
+        {
+                if(this->RefCount==1)
+                {
+                        delete this;
+                }
+                else
+                {
+                        this->RefCount--;
+                }
+        }
+        void SetVal(ConstValue * val)
+        {
+                if(this->Value!=NULL)
+                {
+                        delete this->Value;
+                }
+                this->Value = val;
+        }
+        ConstValue * GetVal()
+        {
+                return this->Value;
+        }
+        void Clear()
+        {
+                delete this->Value;
+                this->Value = NULL;
+        }
+	ValueBox * Dup()
+	{
+		return new ValueBox(this->Value);
+	}
+private:
+        ConstValue * Value;
+        unsigned long RefCount;
 };
 
 class NullValue: public ConstValue
@@ -41,6 +91,42 @@ public:
 	{
 		return "Null";
 	}
+};
+
+class Node;
+
+class MessageValue: public ConstValue
+{
+public:
+	MessageValue(string type):ConstValue(Message),MsgType(type){}
+	ConstValue * DupValue()
+	{
+		return new MessageValue(this->MsgType);
+	}
+	string toString()
+	{
+		return this->MsgType;
+	}
+	string GetMsgType()
+	{
+		return this->MsgType;
+	}
+	void ClearData()
+	{
+		map<string, ConstValue*>::iterator i;
+                for(i=this->Data.begin(); i!=this->Data.end(); i++)
+                {
+			delete i->second;
+		}
+		this->Data.clear();
+	}
+	void SetData(map<string, ConstValue*>& data)
+	{
+	}
+private:
+	string MsgType;
+	map<string, ConstValue*> Data;
+	map<string, Node*> actions;
 };
 
 class StringValue: public ConstValue
@@ -289,79 +375,93 @@ class KVValue: public ConstValue
 {
 public:
 	KVValue():ConstValue(KeyValue){}
-	KVValue(pair<ConstValue*, ConstValue*> kv):ConstValue(KeyValue)
+	KVValue(ConstValue * key, ValueBox* valuebox):ConstValue(KeyValue)
 	{
-		this->Value.first = kv.first->DupValue();
-		this->Value.second = kv.second->DupValue();
+		this->Key   = key->DupValue();
+		this->Value = valuebox->Dup();
 	}
 	~KVValue()
 	{
-		delete this->Value.first;
-		delete this->Value.second;
+		delete this->Key;
+		this->Value->Destroy();
 	}
 	ConstValue * DupValue()
         {
-                return new KVValue(this->Value);
+                return new KVValue(this->Key, this->Value);
         }
 
-        pair<ConstValue*, ConstValue*> GetValue() {return this->Value;}
+        ConstValue * GetKey()
+	{
+		return this->Key;
+	}
+	ValueBox * GetValueBox()
+	{
+		return this->Value;
+	}
+
         string toString()
         {
 		string ret = "<";
-		ret.append(this->Value.first->toString());
+		ret.append(this->Key->toString());
 		ret.append(",");
-		ret.append(this->Value.second->toString());
+		ret.append(this->Value->GetVal()->toString());
 		ret.append(">");
                 return ret;
         }
 
 protected:
-	pair<ConstValue*, ConstValue*> Value;
+	ConstValue * Key;
+	ValueBox * Value;
 };
 
 class SetValue: public ConstValue
 {
 public:
         SetValue():ConstValue(Set){}
-        SetValue(map<string, ConstValue*>& value):ConstValue(Set)
+        SetValue(map<string, ValueBox*>& value):ConstValue(Set)
 	{
-		map<string, ConstValue*>::iterator i;
+		map<string, ValueBox*>::iterator i;
 		for(i=value.begin();i!=value.end();i++)
 		{
-			this->Value.insert(pair<string, ConstValue*>(i->first, i->second->DupValue()));
+			this->Value.insert(pair<string, ValueBox*>(i->first, i->second->Dup()));
 		}
 	}
 	~SetValue()
 	{
-		map<string, ConstValue*>::iterator i;
+		map<string, ValueBox*>::iterator i;
                 for(i=this->Value.begin();i!=this->Value.end();i++)
                 {
-			delete i->second;
+			i->second->Destroy();
                 }
 		this->Value.clear();
 	}
 	void AddKV(KVValue * kv)
 	{
-		string key = kv->GetValue().first->toString();
-		map<string, ConstValue*>::iterator i = this->Value.find(key);
+		string key = kv->GetKey()->toString();
+		map<string, ValueBox*>::iterator i = this->Value.find(key);
 
         	if(i!=this->Value.end())
                 {
-			delete i->second;	
+			i->second->Destroy();
                         this->Value.erase(key);
                 }
-                this->Value.insert(pair<string, ConstValue*>(key, kv->GetValue().second->DupValue()));
+                this->Value.insert(pair<string, ValueBox*>(key, kv->GetValueBox()->Dup()));
 	}
 	void RemoveKV(string key)
 	{
 		this->Value.erase(key);
 	}
 
-	ConstValue * FindByKey(string key)
+	ValueBox * FindByKey(string key)
 	{
-		return this->Value[key];
+		map<string, ValueBox*>::iterator i = this->Value.find(key);
+		if(i!=this->Value.end())
+                {
+			return i->second;
+		}
+		return NULL;
 	}
-	map<string, ConstValue*> * GetValue()
+	map<string, ValueBox*> * GetValue()
 	{
 		return &this->Value;
 	}	
@@ -375,13 +475,13 @@ public:
 		string ret="{";
 
 		int size = this->Value.size();
-		map<string, ConstValue*>::iterator i;
+		map<string, ValueBox*>::iterator i;
 		for(i=this->Value.begin(); i!=this->Value.end(); i++, size--)
 		{
 			ret.append("<");
 			ret.append(i->first);
 			ret.append(",");
-			ret.append(i->second->toString());
+			ret.append(i->second->GetVal()->toString());
 			ret.append(">");
 			if(size>1)
 			{
@@ -392,7 +492,7 @@ public:
                 return ret;
         }
 protected:
-        map<string, ConstValue*> Value;
+        map<string, ValueBox*> Value;
 };
 
 class ConstValueCaster

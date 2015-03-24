@@ -282,14 +282,17 @@ public:
                 delete tmpkey;
 
 
-                ConstValue * tmpvalue = ctx->ValueHandle->second;
-                value->SetValue(tmpvalue);
+                ValueBox * tmpvalue = ctx->ValueHandle->second;
+                value->SetValue(tmpvalue->GetVal());
         }
         void Swipe(NodeContext * context)
         {
 		ForeachLoopCtx * ctx = context->ForeachCtx.top();
-		delete ctx->Keeper;
-		delete ctx;
+		if(ctx!=NULL)
+		{
+			delete ctx->Keeper;
+			delete ctx;
+		}
                 context->ForeachCtx.pop();
 
                 ForLoopNode::Swipe(NULL);
@@ -299,6 +302,11 @@ public:
         int Evaluate(NodeContext * context)
         {
 		ForeachLoopCtx * ctx = context->ForeachCtx.top();
+		if(ctx==NULL)
+		{
+			return EVA_FALSE;
+		}
+
                 bool ret = ctx->ValueHandle!=ctx->SetValueHolder->end();
                 return ret?EVA_TRUE:EVA_FALSE;
         }

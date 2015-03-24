@@ -74,99 +74,13 @@ public:
 
 };
 
-class AssignStatement: public StatementNode
+class LValue 
 {
 public:
-	AssignStatement():VarDef(NULL){}
-
-        int Invoke(NodeContext * context)
-        {
-		Variable * var = context->GetVariable(this->VarName);
-		if(var==NULL)
-		{
-			var = context->GetPortal()->GetSharedVariable(this->VarDef);
-			if(var==NULL)
-			{
-				cerr<<"Puppy runtime error: cannot find variable: "<<this->VarName<<endl;
-				return NODE_RET_ERROR;
-			}
-		}
-
-		ConstValue * value = Expr->Calculate(context);
-		if(value==NULL)
-		{
-			return NODE_RET_ERROR;
-		}
-
-		if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
-		{
-			ConstValueCaster caster(value, var->GetVarType());
-			ConstValue * thevalue = caster.Cast();
-			delete value;
-			value = thevalue;
-
-			if(value==NULL)
-                	{
-				cerr<<"Puppy runtime error: cannot convert data type:"<<this->VarName<<endl;
-        	                return NODE_RET_ERROR;
-	                }
-
-		}
-
-		var->SetValue(value);
-		delete value;
-		return NODE_RET_NORMAL;
-        }
-        void SetVariableName(string name)
-        {
-                this->VarName = name;
-        }
-        string GetVariableName()
-        {
-                return this->VarName;
-        }
-        void SetExpression(Expression * expr)
-        {
-                this->Expr = expr;
-        }
-        bool Provision()
-        {
-		Node * parent = this->GetParentNode();
-
-		this->Expr->SetParentNode(parent);
-                if(this->Expr->Provision()==false)
-		{
-			return false;
-		}
-		return true;
-        }
-	bool Check()
-	{
-		Node * parent = this->GetParentNode();
-                VariableDef * vardef = parent->FindVariable(VarName);
-                if(vardef==NULL)
-                {
-                        cerr<<"puppy provision error: Variable "<<this->VarName+"has not defined."<<endl;
-                        return false;
-                }
-		this->VarDef = vardef;
-
-		return this->Expr->Check();
-	}
-private:
-        string VarName;
-	VariableDef * VarDef;
-        Expression * Expr;
-};
-
-class CollectionElementRef
-{
-public:
-	CollectionElementRef(string * id, Expression * exp)
+	LValue(string * id)
 	{
 		this->Var = *id;
 		this->ExpList = new list<Expression*>;
-		this->ExpList->push_back(exp);
 	}
 	string GetVarName()
 	{
@@ -185,10 +99,10 @@ private:
 	list<Expression*> * ExpList;
 };
 
-class SetElementAssignStatement: public StatementNode
+class AssignStatement: public StatementNode
 {
 public:
-	SetElementAssignStatement(CollectionElementRef * ref):Reference(ref){}
+	AssignStatement(LValue * ref):Reference(ref){}
 	int Invoke(NodeContext * context)
         {
 		Variable * var = context->GetVariable(this->VarDef->GetVarName());
@@ -202,25 +116,53 @@ public:
 			}
                 }
 
+		if(this->Reference->GetExpList()->size()==0)
+		{
+			ConstValue * value = Expr->Calculate(context);
+	                if(value==NULL)
+        	        {
+                	        return NODE_RET_ERROR;
+	                }
+
+        	        if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
+                	{
+                        	ConstValueCaster caster(value, var->GetVarType());
+	                        ConstValue * thevalue = caster.Cast();
+        	                delete value;
+                	        value = thevalue;
+
+                        	if(value==NULL)
+	                        {
+        	                        cerr<<"Puppy runtime error: cannot convert data type:"<<var->GetVarName()<<endl;
+                	                return NODE_RET_ERROR;
+                        	}
+
+	                }
+
+        	        var->SetValue(value);
+        		delete value;
+	                return NODE_RET_NORMAL;
+		}
+
 		if(var->GetValueType()!=Set && var->GetValueType()!=Any)
 		{
 			cerr<<"puppy runtime error: Cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
 			return NODE_RET_ERROR;
 		}
 
-		if(var->GetReference()->GetType()==Null)
+		if(var->GetValueType()==Null)
 		{
 			var->SetValue(new SetValue);
 		}
 
-		SetValue * vref = static_cast<SetValue*>(var->GetReference());
+		ValueBox * vref = var->GetVBox();
 		list<Expression*>* exprlist = this->Reference->GetExpList();
-
 		int listsize = exprlist->size();
 
 		bool need_clear = false;
-		SetValue * last_set = NULL;
+		ValueBox * last_set = NULL;
 		ConstValue * last_offset_value = NULL;
+
 		list<Expression*>::iterator i;
                 for(i=exprlist->begin(); i!=exprlist->end(); i++, listsize--)
                 {
@@ -232,18 +174,19 @@ public:
 
                         string offstr = offset_value->toString();
 
-			if(vref->GetType()!=Set)
+			if(vref->GetVal()->GetType()!=Set)
 			{
-				if(vref->GetType()==Null)
+				if(vref->GetVal()->GetType()==Null)
 				{
-					SetValue * stub = new SetValue;
-					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(last_offset_value, stub));
-					last_set->AddKV(kv);
+					ValueBox * stub = new ValueBox(new SetValue);
+
+					KVValue * kv = new KVValue(last_offset_value, stub);
+					static_cast<SetValue*>(last_set->GetVal())->AddKV(kv);
 
 					delete kv;
 					delete stub;
 
-					vref = static_cast<SetValue*>(last_set->FindByKey(last_offset_value->toString()));
+					vref = static_cast<SetValue*>(last_set->GetVal())->FindByKey(last_offset_value->toString());
 				}
 				else
 				{
@@ -266,17 +209,17 @@ public:
 				need_clear = false;
 			}
 
-			ConstValue * value = vref->FindByKey(offstr);
+			ValueBox * value = static_cast<SetValue*>(vref->GetVal())->FindByKey(offstr);
 
 			if(value==NULL)
 			{
 				if(listsize>1)
 				{
-					SetValue * stub = new SetValue;
-					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, stub));
-					vref->AddKV(kv);
+					ValueBox * stub = new ValueBox(new SetValue);
+					KVValue * kv = new KVValue(offset_value, stub);
+					static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
 
-					vref = static_cast<SetValue*>(vref->FindByKey(offstr));
+					vref = static_cast<SetValue*>(vref->GetVal())->FindByKey(offstr);
 
 					delete kv;
 					delete value;
@@ -290,9 +233,11 @@ public:
 						return NODE_RET_ERROR;
 					}
 
-					KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
-					vref->AddKV(kv);
+					ValueBox * vb = new ValueBox(target_value);
+					KVValue * kv = new KVValue(offset_value, vb);
+					static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
 
+					delete vb;
 					delete kv;
 					delete target_value;
 				}
@@ -303,7 +248,7 @@ public:
 				{
 					last_set = vref;
 					last_offset_value = offset_value->DupValue();
-					vref = static_cast<SetValue*>(value);
+					vref = value;
 					need_clear = true;
 				}
 				else
@@ -314,9 +259,11 @@ public:
                                                 return NODE_RET_ERROR;
                                         }
 
-                                        KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(offset_value, target_value));
-                                        vref->AddKV(kv);
+					ValueBox * vb = new ValueBox(target_value);
+                                        KVValue * kv = new KVValue(offset_value, vb);
+                                        static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
 
+					delete vb;
                                         delete kv;
                                         delete target_value;
 				}
@@ -382,7 +329,7 @@ public:
 
 	}
 private:
-	CollectionElementRef * Reference;
+	LValue * Reference;
         Expression * Expr;
 	VariableDef * VarDef;
 };

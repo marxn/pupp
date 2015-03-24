@@ -1,3 +1,9 @@
+March 24th 2015
+-------------------------
+1. Optimized reference operation.
+2. Optimized grammar description.
+3. Now you can pass a element of collection to a function by reference.
+
 March 16th 2015
 --------------------------
 1. Optimized div operation.

@@ -32,21 +32,20 @@
 	BooleanValue                * puppy_const_boolean;
 	StringValue                 * puppy_const_string;
 	ConstValue                  * puppy_const;
-	string                      * puppy_variable;
 	Expression                  * puppy_expr;
 	BinaryExpression            * puppy_relexpr;
 	BinaryExpression            * puppy_arithexpr;
 	BinaryExpression            * puppy_logicalexpr;
 	KVExpression                * puppy_kvexpr;
 	SetExpression               * puppy_setexpr;
-	OffsetExpression            * puppy_offsetexpr;
+	LValueExpression            * puppy_lvalueexpr;
 	FunctionExpression          * puppy_funcexpr;
         string                      * puppy_ident;
 	Node                        * puppy_node;
 	list<Node*>                 * puppy_nodelist;
 	list<string*>               * puppy_identlist;
 	list<Expression*>           * puppy_exprlist;
-	CollectionElementRef        * puppy_collection_eleref;
+	LValue                      * puppy_lvalue;
 	StatementNode               * puppy_statement;
 	FunctionNode                * puppy_function_node;
 	FuncArgDef                  * puppy_function_argdef;
@@ -82,7 +81,7 @@
 
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
-%type  <puppy_offsetexpr> offset_expr
+%type  <puppy_lvalueexpr> lvalue_expr
 %type  <puppy_funcexpr> func_expr
 
 %type  <puppy_node>  puppybean
@@ -94,12 +93,11 @@
 
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
-%type  <puppy_variable>  variable
 %type  <puppy_datatype>  def_data_type function_return_prototype
 
-%type  <puppy_collection_eleref> collection_element_ref
+%type  <puppy_lvalue> lvalue 
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
-%type  <puppy_statement> vardefstatement sleep_statement element_assign_statement call_statement
+%type  <puppy_statement> vardefstatement sleep_statement call_statement
 %type  <puppy_statement> returnstatement rollback_statement commit_statement
 
 %%
@@ -197,10 +195,6 @@ statement_node:
 		{
 			$$ = $1;
 		}
-	| element_assign_statement
-		{
-			$$ = $1;
-		}
 	| call_statement
 		{
 			$$ = $1;
@@ -233,7 +227,7 @@ for_loop:
 	;
 
 foreach_loop:
-	FOREACH '(' '<' IDENTIFIER ',' IDENTIFIER '>' IN expr ')' program_node_block 
+	FOREACH '<' IDENTIFIER ',' IDENTIFIER '>' IN expr program_node_block 
 		{
 			ForeachLoopNode * node = new ForeachLoopNode;
 
@@ -241,9 +235,9 @@ foreach_loop:
 			node->SetPerOnceStatement(NULL);
 
 			node->SetCondition(new ConstValueExpression(new BooleanValue(true)));
-			node->SetKV(*($4), *($6));
-			node->SetCollectionExpr(static_cast<SetExpression*>($9));
-                        node->SetNodeList($11);
+			node->SetKV(*($3), *($5));
+			node->SetCollectionExpr(static_cast<SetExpression*>($8));
+                        node->SetNodeList($9);
 
                         $$ = static_cast<Node*>(node);
 		}
@@ -356,32 +350,22 @@ function_node:
                 }
         ;
 
-assign_statement:
-	IDENTIFIER '=' expr
-		{
-			AssignStatement * stmt = new AssignStatement;
-			stmt->SetVariableName(*($1));
-			stmt->SetExpression($3);
-			$$ = stmt;
-		}
-	;
-
-collection_element_ref:
-	collection_element_ref '[' expr ']'
+lvalue:
+	lvalue '[' expr ']'
                 {
                         $1->AddOffsetExpr($3);
                         $$ = $1;
                 }
-	| IDENTIFIER '[' expr ']'
+	| IDENTIFIER
 		{
-			$$ = new CollectionElementRef($1, $3);
+			$$ = new LValue($1);
 		}
 	;
 
-element_assign_statement:
-	collection_element_ref '=' expr
+assign_statement:
+	lvalue '=' expr
 		{
-			SetElementAssignStatement * stmt = new SetElementAssignStatement($1);
+			AssignStatement * stmt = new AssignStatement($1);
 			stmt->SetExpression($3);
 			$$ = stmt;
 		}
@@ -517,12 +501,6 @@ commit_statement:
 			$$ = stmt;
 		}
 	;
-variable:
-	IDENTIFIER
-		{
-			$$ = new string(*($1));
-		}
-	;
 symbolic_constant:
 	NL
 		{
@@ -562,9 +540,9 @@ const_value:
 	;
 
 set_expr:
-	'{' expr_list '}'
+	TYPE_SET '{' expr_list '}'
 		{
-			$$ = new SetExpression($2);
+			$$ = new SetExpression($3);
 		}
 	;
 
@@ -643,16 +621,17 @@ kvexpr:
 		}
     ;
 
-offset_expr:
-    variable '[' expr ']' 
+lvalue_expr:
+    lvalue_expr '[' expr ']'
 		{
-			VarExpression * var = new VarExpression($1);
-			$$ = new OffsetExpression(var,$3);
+			$1->AddOffsetExpr($3);
+			$$ = $1;;
 		}
-    | offset_expr '[' expr ']'
-		{
-			$$ = new OffsetExpression($1, $3);
-		}
+    | IDENTIFIER 
+                {
+                        LValueExpression * expr = new LValueExpression($1);
+                        $$ = expr;
+                }
     ;
 
 expr:
@@ -663,10 +642,6 @@ expr:
     | const_value
 		{
 			$$ = static_cast<Expression*>(new ConstValueExpression($1));
-		}
-    | variable
-		{
-			$$ = static_cast<Expression*>(new VarExpression($1));
 		}
     | arith_expr
 		{
@@ -688,7 +663,7 @@ expr:
 		{
 			$$ = static_cast<Expression*>($1);
 		}
-    | offset_expr
+    | lvalue_expr
 		{
 			$$ = static_cast<Expression*>($1);
 		}

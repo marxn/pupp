@@ -128,7 +128,10 @@ public:
 
 	ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
 	{
-		return new KVValue(pair<ConstValue*, ConstValue*>(left_store, right_store));
+		ValueBox * vb = new ValueBox(right_store);
+		KVValue * result = new KVValue(left_store, vb);
+		vb->Destroy();
+		return result;
 	}
 };
 
@@ -153,9 +156,12 @@ public:
 			else
 			{
 				IntegerValue * key = new IntegerValue(index);
-				KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(key, value));
+				ValueBox * vb = new ValueBox(value);
+
+				KVValue * kv = new KVValue(key, vb);
 				result->AddKV(kv);
 
+				vb->Destroy();
                                 delete kv;
 				delete key;
 				delete value;
@@ -205,89 +211,116 @@ private:
 	list<Expression*> * ExprList;
 };
 
-class OffsetExpression: public BinaryExpression
+class LValueExpression: public Expression
 {
 public:
-	OffsetExpression(Expression * arg1, Expression * arg2):BinaryExpression(arg1, arg2){}
+	LValueExpression(string * arg)
+	{
+		this->VarName = *arg;
+		this->lValue = true;
+	}
 
-        ConstValue * CarryOut(ConstValue * left_store, ConstValue * right_store)
+	ValueBox * GetLValueRef(NodeContext * context)
         {
-		if(left_store->GetType()!=Set)
-		{
-			//TODO
-			cerr<<"puppy runtime error: Expect a non-null collection."<<endl;
-                        return new NullValue;
-                }
+		Variable * var = context->GetVariable(VarName);
+       	        if(var==NULL)
+                {
+               	        var = context->GetPortal()->GetSharedVariable(this->VarDef);
+       	                if(var==NULL)
+                        {
+                               	cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
+                       	        return NULL;
+               	        }
+       	        }
 
-		SetValue * collection = static_cast<SetValue*>(left_store);
-		ConstValue * key = right_store;
-
-                ConstValue * result = collection->FindByKey(key->toString());
-		if(result == NULL)
+		if(this->ExprList.size()==0)
 		{
-			result = new NullValue;
+	                return var->GetVBox();
 		}
-		else
-		{
-			result = result->DupValue();
+
+		ValueBox * result = var->GetVBox();
+
+		list<Expression*>::iterator i;
+                for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
+                {
+			if(result->GetVal()->GetType()!=Set)
+	                {
+                	        cerr<<"puppy runtime error: Expect a collection."<<endl;
+        	                return NULL;
+	                }
+
+			SetValue * local = static_cast<SetValue*>(result->GetVal());
+			
+			ConstValue * key = (*i)->Calculate(context);
+
+			result = local->FindByKey(key->toString());
+			delete key;
+
+			if(result==NULL)
+			{
+				return NULL;
+			}
 		}
 
                 return result;
         }
-};
 
-class VarExpression: public Expression
-{
-public:
-	VarExpression()
-	{
-		this->lValue = true;
-	}
-	VarExpression(string * varname):VarName(varname)
-	{
-		this->lValue = true;
-	}
-	~VarExpression(){}
 	ConstValue * Calculate(NodeContext * context)
 	{
-		Variable * var = context->GetVariable(*VarName);
-		if(var==NULL)
+		ValueBox * result = this->GetLValueRef(context);
+		if(result==NULL)
 		{
-			var = context->GetPortal()->GetSharedVariable(this->VarDef);
-			if(var==NULL)
-			{
-				cerr<<"puppy runtime error: cannot find variable:"<<*VarName<<endl;
-				return NULL; 
-			}
+			return new NullValue;
 		}
-		return var->GetValue();
+
+		return result->GetVal()->DupValue();
 	}
-	string GetVarName()
-	{
-		return *VarName;
-	}
-	VariableDef * GetVarDef()
-	{
-		return this->VarDef;
-	}
+
 	bool Provision()
 	{
+		list<Expression*>::iterator i;
+                for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
+                {
+                        (*i)->SetParentNode(this->ParentNode);
+                        if((*i)->Provision()!=true)
+                        {
+                                return false;
+                        }
+                }
+
 		return true;
 	}
+
 	bool Check()
-	{
-		VariableDef * vardef = this->ParentNode->FindVariable(*VarName);
-		if(vardef==NULL)
+        {
+                VariableDef * vardef = this->ParentNode->FindVariable(this->VarName);
+                if(vardef==NULL)
+                {
+                        cerr<<"puppy provision error: Variable "<<this->VarName<<" has not been defined"<<endl;
+                        return false;
+                }
+                this->VarDef = vardef;
+
+		list<Expression*>::iterator i;
+		for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
 		{
-			cerr<<"puppy provision error: Variable "<<*VarName<<" has not been defined"<<endl;
-			return false;
+                        if((*i)->Check()!=true)
+                        {
+                                return false;
+                        }
 		}
-		this->VarDef = vardef;
-		return Expression::Check();
+
+                return Expression::Check();
+        }
+
+	void AddOffsetExpr(Expression * expr)
+	{
+		this->ExprList.push_back(expr);
 	}
 private:
-	string * VarName;
+	string VarName;
 	VariableDef * VarDef;
+	list<Expression*> ExprList;
 };
 
 class FunctionExpression: public Expression
@@ -317,28 +350,19 @@ public:
 			{
 				if((*j)->isRef())
 				{
-					VarExpression * exp = static_cast<VarExpression*>(*i);
-
-					Variable * var = context->GetVariable(exp->GetVarName());
-					if(var==NULL)
-			                {
-                        			var = context->GetPortal()->GetSharedVariable(exp->GetVarDef());
-			                        if(var==NULL)
-                        			{
-			                                cerr<<"puppy runtime error: cannot find variable: "<<exp->GetVarName()<<endl;
-                        			        return NULL;
-			                        }
-			                }
-
+					LValueExpression * exp = static_cast<LValueExpression*>(*i);
+					ValueBox * vbox = exp->GetLValueRef(context);
 					Variable * avatar = new_ctx->GetVariable((*j)->GetName());
+
 					if(avatar)
 					{
-						if(var->GetVarType() != avatar->GetVarType())
+						if(vbox->GetVal()->GetType() != avatar->GetVarType())
 						{
 							cerr<<"puppy runtime error: variable type mismatch when passing args to the function."<<endl;
 	                                                return NULL;
 						}
-						avatar->SetRefVar(var->GetRealVar());
+						avatar->SetVBox(vbox);
+						avatar->GetVBox()->IncRefCount();
 					}
 				}
 				else

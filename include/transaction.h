@@ -36,7 +36,8 @@ public:
 	                }
 
 			ConstValue * value = origin->GetValue();
-			var->SetReference(value);
+			var->SetValue(value);
+			delete value;
 		}
 
                 list<Node*>::iterator i;
@@ -75,7 +76,8 @@ public:
                 		        }
 
 		                        ConstValue * value = var->GetValue();
-                		        origin->SetReference(value);
+                		        origin->SetValue(value);
+					delete value;
 		                }
 
 				return NODE_RET_NORMAL;

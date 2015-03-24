@@ -23,9 +23,12 @@ int StartFromMain(Node * bean, char *argv[], int argc)
         {
                 IntegerValue * key = new IntegerValue(i);
                 StringValue * value = new StringValue(string(argv[i]));
-                KVValue * kv = new KVValue(pair<ConstValue*, ConstValue*>(key, value));
+
+		ValueBox * vb = new ValueBox(value->DupValue());
+                KVValue * kv = new KVValue(key, new ValueBox(value->DupValue()));
                 para->AddKV(kv);
 
+		delete vb;
                 delete kv;
                 delete value;
                 delete key;

@@ -14,16 +14,15 @@ public:
 	Variable(string name, DataType type)
 	{
 		this->Source = NULL;
-		this->Value = NULL;
+		this->VBox = NULL;
 		this->VarName = name;
 		this->VarType = type;
-		this->Ref = NULL;
 	}
 	~Variable()
 	{
-		if(this->Value)
+		if(this->VBox)
                 {
-                        delete this->Value;
+                        this->VBox->Destroy();
                 }
 	}
 
@@ -41,101 +40,74 @@ public:
 		return this->Source;
 	}
 
+	void SetVBox(ValueBox * box)
+	{
+		this->VBox = box;
+	}
+
+	ValueBox * GetVBox()
+	{
+		return this->VBox;
+	}
+
 	void SetValue(ConstValue * value)
         {
-		if(this->Ref)
-                {
-                        this->Ref->SetValue(value);
-                }
+		if(this->VBox==NULL)
+		{
+			this->VBox = new ValueBox;
+		}
 
-                if(this->Value)
-                {
-                        delete this->Value;
-                }
 		if(this->VarType==value->GetType() || this->VarType==Any)
 		{
-			this->Value = value->DupValue();
+			this->VBox->SetVal(value->DupValue());
 		}
 		else
 		{
 			ConstValueCaster caster(value, this->VarType);
 			ConstValue * newvalue = caster.Cast();
-			this->Value = newvalue;
+			this->VBox->SetVal(newvalue);
 		}
         }
         ConstValue * GetValue()
         {
-		if(this->Ref)
-                {
-                        return this->Ref->GetValue();
-                }
+		ConstValue * value = NULL;
 
-		if(this->Value==NULL)
+		if(this->VBox==NULL)
 		{
+			this->VBox = new ValueBox;
 			DefaultValueFactory defvalue(this->VarType);
-			this->Value = defvalue.GetValue();
+			value = defvalue.GetValue();
+			this->VBox->SetVal(value);
 		}
-                return Value->DupValue();
+		else
+		{
+			value = this->VBox->GetVal()->DupValue();
+		}
+
+                return value;
         }
+
 	DataType GetVarType()
 	{
-		if(this->Ref)
-                {
-                        return this->Ref->GetVarType();
-                }
-
 		return this->VarType;
 	}
 	DataType GetValueType()
-        {
-		if(this->Ref)
+	{
+		if(this->VBox==NULL)
                 {
-                        return this->Ref->GetValueType();
+                        this->VBox = new ValueBox;
+                        DefaultValueFactory defvalue(this->VarType);
+                        ConstValue * value = defvalue.GetValue();
+                        this->VBox->SetVal(value);
                 }
 
-                return this->Value->GetType();
-        }
-        ConstValue * GetReference()
-        {
-		if(this->Ref)
-                {
-                        return this->Ref->GetReference();
-                }
-
-                return this->Value;
-        }
-	void SetReference(ConstValue * refvalue)
-	{
-		if(this->Ref)
-                {
-			this->Ref->SetReference(refvalue);
-			return;
-		}
-
-		if(this->Value)
-                {
-                        delete this->Value;
-                }
-                this->Value = refvalue;
-	}
-	void SetRefVar(Variable * var)
-	{
-		this->Ref = var;
-	}
-	Variable * GetRealVar()
-	{
-		if(this->Ref)
-		{
-			return this->Ref;
-		}
-		return this;
+		return this->VBox->GetVal()->GetType();
 	}
 private:
 	VariableDef * Source;
-	ConstValue * Value;
 	DataType VarType;
 	string VarName;
-	Variable * Ref;
+	ValueBox * VBox;
 };
 
 class VariableDef
@@ -168,6 +140,5 @@ private:
 	string VarName;
 	DataType VarType;
 };
-
 
 #endif
