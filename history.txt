@@ -1,3 +1,7 @@
+March 26th 2015
+-------------------------
+1. Support give init value in def statement.
+
 March 24th 2015
 -------------------------
 1. Optimized reference operation.

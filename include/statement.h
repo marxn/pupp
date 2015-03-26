@@ -337,13 +337,56 @@ private:
 class VarDefinitionStatement: public StatementNode
 {
 public:
-	VarDefinitionStatement(list<string*> * list, DataType vartype):IdentList(list), VarType(vartype)
+	VarDefinitionStatement(list<string*> * list, DataType vartype):IdentList(list), VarType(vartype), InitValue(NULL), InitExpr(NULL)
 	{
 	}
         int Invoke(NodeContext * context)
         {
+		if(this->InitValue!=NULL)
+                {
+			string * name = this->IdentList->front();
+			Variable * var = context->GetVariable(*name);
+
+			if(var==NULL)
+			{
+				cerr<<"puppy runtime error: cannot find variable:"<<*name<<endl;
+				return NODE_RET_ERROR;
+			}
+
+			var->SetValue(this->InitValue);
+                }
+		else if(this->InitExpr!=NULL)
+		{
+			ConstValue * value = this->InitExpr->Calculate(context);
+			if(value==NULL)
+			{
+				return NODE_RET_ERROR;
+			}
+
+			string * name = this->IdentList->front();
+                        Variable * var = context->GetVariable(*name);
+
+                        if(var==NULL)
+                        {
+                                cerr<<"puppy runtime error: cannot find variable:"<<*name<<endl;
+                                return NODE_RET_ERROR;
+                        }
+
+                        var->SetValue(value);
+			delete value;
+		}
+
 		return NODE_RET_NORMAL;
         }
+	void SetInitValue(ConstValue * value)
+	{
+		this->InitValue = value;
+	}
+	void SetInitExpr(Expression * expr)
+	{
+		this->InitExpr = expr;
+	}
+
         bool Provision()
 	{
                 list<string*>::iterator i;
@@ -363,9 +406,17 @@ public:
                                 parent->AddVariable(vardef);
                         }
                 }
-		return true;
+
+		if(this->InitExpr==NULL)
+		{
+			return true;
+		}
+
+		return this->InitExpr->Provision();
         }
 private:
+	ConstValue * InitValue;
+	Expression * InitExpr;
         list<string*> * IdentList;
         DataType VarType;
 };

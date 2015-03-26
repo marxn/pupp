@@ -411,12 +411,30 @@ def_data_type:
 			$$ = Set;
 		}
 	;
-	
+
 vardefstatement:
 	DEF identifier_list AS def_data_type
 		{
 			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, $4);
 			$$ = stmt;
+		}
+	| DEF IDENTIFIER '=' const_value
+		{
+			list<string*> * identlist = new list<string*>;
+			identlist->push_back($2);
+	
+			VarDefinitionStatement * stmt = new VarDefinitionStatement(identlist, $4->GetType());
+			stmt->SetInitValue($4);
+			$$ = stmt;
+		} 
+	| DEF IDENTIFIER '=' set_expr
+		{
+			list<string*> * identlist = new list<string*>;
+                        identlist->push_back($2);
+
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement(identlist, Set);
+			stmt->SetInitExpr($4);
+                        $$ = stmt;
 		}
 	;
 
@@ -515,6 +533,7 @@ symbolic_constant:
 			$$ = new NullValue;
 		}
 	;
+
 const_value:
 	INTEGER                    
 		{
