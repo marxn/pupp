@@ -50,6 +50,16 @@ public:
 		return this->VBox;
 	}
 
+	void SetRef(ConstValue * ref)
+	{
+		if(this->VBox==NULL)
+                {
+                        this->VBox = new ValueBox;
+                }
+
+                this->VBox->SetVal(ref);
+	}
+
 	void SetValue(ConstValue * value)
         {
 		if(this->VBox==NULL)
@@ -57,7 +67,7 @@ public:
 			this->VBox = new ValueBox;
 		}
 
-		if(this->VarType==value->GetType() || this->VarType==Any)
+		if(this->VarType==value->GetType())
 		{
 			this->VBox->SetVal(value->DupValue());
 		}
@@ -87,6 +97,10 @@ public:
                 return value;
         }
 
+	void SetVarType(DataType type)
+	{
+		this->VarType = type;
+	}
 	DataType GetVarType()
 	{
 		return this->VarType;
@@ -113,7 +127,7 @@ private:
 class VariableDef
 {
 public:
-	VariableDef(string VarName):VarType(Any)
+	VariableDef(string VarName):VarType(Null)
 	{
 		this->VarName = VarName;
 	}

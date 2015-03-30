@@ -112,8 +112,6 @@ identifier [a-zA-Z_]+[0-9]*
 				if(strcasecmp(yytext,"return")==0)
                                         return RETURN;
 				//Variable Type
-				if(strcasecmp(yytext,"any")==0)
-                                        return TYPE_ANY;
 				if(strcasecmp(yytext,"integer")==0)
 					return TYPE_INTEGER;
 				if(strcasecmp(yytext,"decimal")==0)

@@ -27,6 +27,7 @@
 %union
 {
 	DataType                      puppy_datatype;
+	VariableType                * puppy_vartype;
 	IntegerValue                * puppy_const_integer;
 	DecimalValue                * puppy_const_decimal;
 	BooleanValue                * puppy_const_boolean;
@@ -66,7 +67,7 @@
 %token <puppy_const_string> STRING
 
 %token <puppy_ident> IDENTIFIER 
-%token TYPE_ANY TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
+%token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
 %token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
@@ -93,8 +94,8 @@
 
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
-%type  <puppy_datatype>  def_data_type function_return_prototype
-
+%type  <puppy_datatype>  data_type function_return_prototype
+%type  <puppy_vartype>  var_type
 %type  <puppy_lvalue> lvalue 
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
 %type  <puppy_statement> vardefstatement sleep_statement call_statement
@@ -301,11 +302,11 @@ branch_node:
 	;
 
 func_arg:
-        IDENTIFIER AS def_data_type
+        IDENTIFIER AS data_type
                 {
                         $$ = new FuncArgDef($1, $3, false);
                 }
-	| IDENTIFIER '&' AS def_data_type
+	| IDENTIFIER '&' AS data_type
 		{
 			$$ = new FuncArgDef($1, $4, true);
 		}
@@ -329,13 +330,13 @@ arg_list:
         ;
 
 function_return_prototype:
-	AS def_data_type
+	AS data_type
 		{
 			$$ = $2;
 		}
 	|
 		{
-			$$ = Any; 
+			$$ = Null; 
 		}
 
 function_node:
@@ -385,12 +386,8 @@ continue_statement:
 		}
 	;
 
-def_data_type:
-	TYPE_ANY
-		{
-			$$ = Any;
-		}
-	| TYPE_INTEGER
+data_type:
+	TYPE_INTEGER
 		{
 			$$ = Integer;
 		}
@@ -412,27 +409,34 @@ def_data_type:
 		}
 	;
 
+var_type:
+	var_type '[' expr ']'
+		{
+			$1->SetVarType(Array);
+			$1->AddDimention($3);
+			$$ = $1;
+		}
+	| data_type
+		{
+			$$ = new VariableType($1);
+		}
+	;
+
 vardefstatement:
-	DEF identifier_list AS def_data_type
+	DEF IDENTIFIER AS var_type
 		{
 			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, $4);
 			$$ = stmt;
 		}
 	| DEF IDENTIFIER '=' const_value
 		{
-			list<string*> * identlist = new list<string*>;
-			identlist->push_back($2);
-	
-			VarDefinitionStatement * stmt = new VarDefinitionStatement(identlist, $4->GetType());
+			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType($4->GetType()));
 			stmt->SetInitValue($4);
 			$$ = stmt;
 		} 
 	| DEF IDENTIFIER '=' set_expr
 		{
-			list<string*> * identlist = new list<string*>;
-                        identlist->push_back($2);
-
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement(identlist, Set);
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Set));
 			stmt->SetInitExpr($4);
                         $$ = stmt;
 		}

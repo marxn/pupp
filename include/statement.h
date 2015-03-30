@@ -118,13 +118,19 @@ public:
 
 		if(this->Reference->GetExpList()->size()==0)
 		{
+			if(var->GetVarType()==Array)
+			{
+				cerr<<"puppy runtime error: invalid l-value:"<<var->GetVarName()<<endl;
+                                return NODE_RET_ERROR;
+			}
+
 			ConstValue * value = Expr->Calculate(context);
 	                if(value==NULL)
         	        {
                 	        return NODE_RET_ERROR;
 	                }
 
-        	        if(var->GetVarType()!=value->GetType() && var->GetVarType()!=Any)
+        	        if(var->GetVarType()!=value->GetType())
                 	{
                         	ConstValueCaster caster(value, var->GetVarType());
 	                        ConstValue * thevalue = caster.Cast();
@@ -144,9 +150,51 @@ public:
 	                return NODE_RET_NORMAL;
 		}
 
-		if(var->GetValueType()!=Set && var->GetValueType()!=Any)
+		list<Expression*>* exprlist = this->Reference->GetExpList();
+
+		if(var->GetVarType()==Array)
+                {
+			if(static_cast<ArrayValue*>(var->GetVBox()->GetVal())->GetDimensionNum()!=exprlist->size())
+			{
+				cerr<<"puppy runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
+                                return NODE_RET_ERROR;
+			}
+
+			vector<long> desc;
+			list<Expression*>::iterator i;
+	                for(i=exprlist->begin(); i!=exprlist->end(); i++)
+        	        {
+				ConstValue * value = (*i)->Calculate(context);
+				if(value->GetType()!=Integer)
+				{
+					cerr<<"puppy runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
+					delete value;
+		                        return NODE_RET_ERROR;
+				}
+				desc.push_back(static_cast<IntegerValue*>(value)->GetValue());
+				delete value;
+			}
+
+			ArrayValue * val = static_cast<ArrayValue*>(var->GetVBox()->GetVal());
+
+			ConstValue * target_value = Expr->Calculate(context);
+                        if(target_value==NULL)
+                        {
+	                        return NODE_RET_ERROR;
+                        }
+			if(val->GetElementType()!=target_value->GetType())
+			{
+				cerr<<"puppy runtime error: data type mismatch for variable: "<<var->GetVarName()<<endl;
+				return NODE_RET_ERROR;
+			}
+
+			val->SetElementValue(desc, target_value);
+			return NODE_RET_NORMAL;
+		}
+
+		if(var->GetValueType()!=Set)
 		{
-			cerr<<"puppy runtime error: Cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
+			cerr<<"puppy runtime error: cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
 			return NODE_RET_ERROR;
 		}
 
@@ -156,7 +204,6 @@ public:
 		}
 
 		ValueBox * vref = var->GetVBox();
-		list<Expression*>* exprlist = this->Reference->GetExpList();
 		int listsize = exprlist->size();
 
 		bool need_clear = false;
@@ -334,26 +381,90 @@ private:
 	VariableDef * VarDef;
 };
 
+class VariableType
+{
+public:
+	VariableType(DataType type):VarType(type), ElementType(type){}
+
+        void SetVarType(DataType type)
+        {
+                this->VarType = type;
+        }
+	DataType GetVarType()
+	{
+		return this->VarType;
+	}
+	DataType GetElementType()
+	{
+		return this->ElementType;
+	}
+        void SetElementType(DataType type)
+        {
+                this->ElementType = type;
+        }
+        void AddDimention(Expression * exp)
+        {
+                this->Dimentions.push_back(exp);
+        }
+	list<Expression*> * GetDimentions()
+	{
+		return &Dimentions;
+	}
+private:
+        DataType VarType;
+        DataType ElementType;
+        list<Expression*> Dimentions;
+};
+
 class VarDefinitionStatement: public StatementNode
 {
 public:
-	VarDefinitionStatement(list<string*> * list, DataType vartype):IdentList(list), VarType(vartype), InitValue(NULL), InitExpr(NULL)
+	VarDefinitionStatement(string * ident, VariableType * vartype):Ident(ident), VarType(vartype), InitValue(NULL), InitExpr(NULL)
 	{
 	}
         int Invoke(NodeContext * context)
         {
-		if(this->InitValue!=NULL)
-                {
-			string * name = this->IdentList->front();
-			Variable * var = context->GetVariable(*name);
+		string name = *(this->Ident);
+                Variable * var = context->GetVariable(name);
 
-			if(var==NULL)
+                if(var==NULL)
+                {
+                        cerr<<"puppy runtime error: cannot find variable:"<<name<<endl;
+                        return NODE_RET_ERROR;
+                }
+
+		if(this->VarType->GetVarType()==Array)
+		{
+			list<Expression*> * dim = this->VarType->GetDimentions();
+			vector<long> desc;
+			long size = 1;
+
+			list<Expression*>::iterator i;
+			for(i = dim->begin(); i!= dim->end(); i++)
 			{
-				cerr<<"puppy runtime error: cannot find variable:"<<*name<<endl;
-				return NODE_RET_ERROR;
+				ConstValue * dsize = (*i)->Calculate(context);
+				if(dsize->GetType()!=Integer || static_cast<IntegerValue*>(dsize)->GetValue()<=0)
+				{
+					cerr<<"puppy runtime error: Size of an array must be a positive integer."<<endl;
+					delete dsize;
+					return NODE_RET_ERROR;
+				}
+
+				delete dsize;
+
+				long n = static_cast<IntegerValue*>(dsize)->GetValue();
+				size *= n;
+				desc.push_back(n);
 			}
 
-			var->SetValue(this->InitValue);
+			ArrayValue * val = new ArrayValue(this->VarType->GetElementType(), desc, size);
+			var->SetRef(val);
+			return NODE_RET_NORMAL;
+		}
+
+		if(this->InitValue!=NULL)
+                {
+			var->SetValue(this->InitValue->DupValue());
                 }
 		else if(this->InitExpr!=NULL)
 		{
@@ -362,15 +473,6 @@ public:
 			{
 				return NODE_RET_ERROR;
 			}
-
-			string * name = this->IdentList->front();
-                        Variable * var = context->GetVariable(*name);
-
-                        if(var==NULL)
-                        {
-                                cerr<<"puppy runtime error: cannot find variable:"<<*name<<endl;
-                                return NODE_RET_ERROR;
-                        }
 
                         var->SetValue(value);
 			delete value;
@@ -389,22 +491,19 @@ public:
 
         bool Provision()
 	{
-                list<string*>::iterator i;
                 Node * parent = this->GetParentNode();
                 if(parent)
                 {
-                        for(i = IdentList->begin(); i != IdentList->end(); i++)
-                        {
-				if(parent->FindVariable(*(*i)))
-				{
-					cerr<<"puppy provision error: Duplicated variable: "<<**i<<endl;
-        		                return false;
-				}
+			string varname = *(this->Ident);
+			if(parent->FindVariable(varname))
+			{
+				cerr<<"puppy provision error: Duplicated variable: "<<varname<<endl;
+        	                return false;
+			}
 
-                                VariableDef * vardef = new VariableDef(*(*i));
-				vardef->SetVarType(this->VarType);
-                                parent->AddVariable(vardef);
-                        }
+                        VariableDef * vardef = new VariableDef(varname);
+			vardef->SetVarType(this->VarType->GetVarType());
+                        parent->AddVariable(vardef);
                 }
 
 		if(this->InitExpr==NULL)
@@ -417,8 +516,8 @@ public:
 private:
 	ConstValue * InitValue;
 	Expression * InitExpr;
-        list<string*> * IdentList;
-        DataType VarType;
+        string * Ident;
+        VariableType * VarType;
 };
 
 class PrintStatement: public StatementNode

@@ -2,6 +2,7 @@
 #define _CONSTVAL_H_
 
 #include <iostream>
+#include <vector>
 #include <map>
 #include <string>
 #include <stdio.h>
@@ -13,7 +14,7 @@ using namespace std;
 
 enum DataType
 {
-        Null = 0, Any, Integer, Decimal, Boolean, String, KeyValue, Set, Message
+        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Set, Array, Message
 };
 
 class ConstValue
@@ -33,7 +34,13 @@ class ValueBox
 {
 public:
         ValueBox():Value(NULL), RefCount(1){}
-	ValueBox(ConstValue * value):Value(value->DupValue()), RefCount(1){}
+	ValueBox(ConstValue * value):Value(NULL), RefCount(1)
+	{
+		if(value!=NULL)
+		{
+			this->Value = value->DupValue();
+		}
+	}
         ~ValueBox()
         {
                 this->Clear();
@@ -495,6 +502,169 @@ protected:
         map<string, ValueBox*> Value;
 };
 
+class DefaultValueFactory
+{
+public:
+        DefaultValueFactory(DataType type):Type(type)
+        {
+        }
+
+        ConstValue * GetValue()
+        {
+                ConstValue * result = NULL;
+                switch(this->Type)
+                {
+                        case Integer:
+                                result = new IntegerValue(0);
+                        break;
+                        case String:
+                                result = new StringValue("");
+                        break;
+                        case Boolean:
+                                result = new BooleanValue(false);
+                        break;
+                        case Decimal:
+                                result = new DecimalValue("0");
+                        break;
+                        case Set:
+                                result = new SetValue;
+                        break;
+                        default:
+                                result = new NullValue;
+                }
+                return result;
+        }
+
+private:
+        DataType Type;
+};
+
+class ArrayValue: public ConstValue
+{
+public:
+	ArrayValue(DataType type, vector<long>& desc, long size)
+	{
+		DefaultValueFactory fac(type);
+
+		this->ElementType = type;
+		this->Value = new ValueBox*[size];
+		this->Dim = desc;
+		this->Size = size;
+
+		for(int i = 0; i < size; i++)
+		{
+			this->Value[i] = new ValueBox;
+			this->Value[i]->SetVal(fac.GetValue());
+		}
+	}
+	~ArrayValue()
+	{
+		for(int i = 0; i < this->Size; i++)
+		{
+			if(this->Value[i]!=NULL)
+			{
+				this->Value[i]->Destroy();
+			}
+		}
+
+		delete this->Value;
+	}
+	ValueBox * GetElementBox(vector<long>& keys)
+	{
+		int i = 0;
+                int j = 0;
+
+		if(keys.size()!=this->Dim.size())
+                {
+                        return NULL;
+                }
+                for(int i = 0; i < keys.size(); i++)
+                {
+                        if(keys[i]<0 || keys[i]>=this->Dim[i])
+                        {
+                                return NULL;
+                        }
+                }
+
+		long index = 0;
+
+		for(i = 0; i < keys.size() - 1; i++)
+                {
+			long weight = 1;
+			for(j = i + 1; j< keys.size(); j++)
+			{
+				weight *= this->Dim[j];
+			}
+
+			index += keys[i] * weight;
+		}
+
+		index+=keys[i];
+		return this->Value[index];
+	}
+	ConstValue * GetElementValue(vector<long>& keys)
+	{
+		ValueBox * box = this->GetElementBox(keys);
+		return box->GetVal()->DupValue();
+	}
+	void SetElementValue(vector<long>& keys, ConstValue * value)
+	{
+		ValueBox * box = this->GetElementBox(keys);
+                box->SetVal(value);
+	}
+
+	void SetValue(ValueBox ** values)
+	{
+		for(int i = 0; i < this->Size; i++)
+		{
+			this->Value[i]->Destroy();
+			this->Value[i] = values[i]->Dup();
+		}
+	}
+	DataType GetElementType()
+	{
+		return this->ElementType;
+	}
+	string toString()
+	{
+		string ret="{";
+
+                int size = this->Size;
+                for(int i = 0; i < size; i++)
+                {
+			if(this->Value[i]->GetVal()!=NULL)
+			{
+				ret.append(this->Value[i]->GetVal()->toString());
+			}
+			else
+			{
+				ret.append("nil");
+			}
+                        if(i<size-1)
+                        {
+                                ret.append(",");
+                        }
+                }
+                ret.append("}");
+                return ret;
+	}
+	ConstValue * DupValue()
+	{
+		ArrayValue * result = new ArrayValue(this->ElementType, this->Dim, this->Size);
+		result->SetValue(this->Value);
+		return result;
+	}
+	long GetDimensionNum()
+	{
+		return this->Dim.size();
+	}
+private:
+	DataType ElementType;
+	ValueBox ** Value;
+	vector<long> Dim;
+	long Size;
+};
+
 class ConstValueCaster
 {
 public:
@@ -519,54 +689,11 @@ public:
 			case Boolean:
 				return new BooleanValue(this->Value->toString());
 			break;
-			case KeyValue:
-				return new KVValue;
-			break;
-			case Set:
-				return new SetValue;
-			break;
 		}
 		return NULL;
 	}
 private:
 	ConstValue * Value;
-	DataType Type;
-};
-
-class DefaultValueFactory
-{
-public:
-	DefaultValueFactory(DataType type):Type(type)
-	{
-	}
-
-	ConstValue * GetValue()
-	{
-		ConstValue * result = NULL;
-		switch(this->Type)
-		{
-			case Integer:
-				result = new IntegerValue(0);
-			break;
-			case String:
-                                result = new StringValue("");
-                        break;
-			case Boolean:
-                                result = new BooleanValue(false);
-                        break;
-			case Decimal:
-                                result = new DecimalValue("0");
-                        break;
-			case Set:
-                                result = new SetValue;
-                        break;
-			default:
-				result = new NullValue;
-		}
-		return result;
-	}
-	
-private:
 	DataType Type;
 };
 

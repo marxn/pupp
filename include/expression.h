@@ -238,7 +238,37 @@ public:
 	                return var->GetVBox();
 		}
 
-		ValueBox * result = var->GetVBox();
+		ValueBox * result = NULL;
+
+		if(var->GetVarType()==Array)
+		{
+			if(static_cast<ArrayValue*>(var->GetVBox()->GetVal())->GetDimensionNum()!=this->ExprList.size())
+                        {
+                                cerr<<"puppy runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
+                                return NULL;
+                        }
+
+			vector<long> desc;
+			list<Expression*>::iterator i;
+        	        for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
+	                {
+				ConstValue * value = (*i)->Calculate(context);
+                                if(value->GetType()!=Integer)
+                                {
+                                        cerr<<"puppy runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
+					delete value;
+                                        return NULL;
+                                }
+                                desc.push_back(static_cast<IntegerValue*>(value)->GetValue());
+				delete value;
+			}
+
+			ArrayValue * value = static_cast<ArrayValue*>(var->GetVBox()->GetVal());
+			result = value->GetElementBox(desc);
+			return result;
+		}
+
+		result = var->GetVBox();
 
 		list<Expression*>::iterator i;
                 for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
@@ -368,7 +398,7 @@ public:
 				else
 				{
 					ConstValue * value = (*i)->Calculate(context);
-					if(value->GetType()!=(*j)->GetType() && (*j)->GetType()!=Any)
+					if(value->GetType()!=(*j)->GetType())
 					{
 						delete new_ctx;
 						cerr<<"puppy runtime error: data type mismatch when calling a function."<<endl;

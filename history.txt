@@ -1,3 +1,8 @@
+March 30th 2015
+------------------------
+1. Implemented array.
+2. Removed ANY type from datatype.
+
 March 26th 2015
 -------------------------
 1. Support give init value in def statement.

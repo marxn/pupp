@@ -283,6 +283,8 @@ public:
 
 
                 ValueBox * tmpvalue = ctx->ValueHandle->second;
+
+		value->SetVarType(tmpvalue->GetVal()->GetType());
                 value->SetValue(tmpvalue->GetVal());
         }
         void Swipe(NodeContext * context)
@@ -327,7 +329,7 @@ public:
                 VariableDef * value = new VariableDef(this->Value);
 
                 key->SetVarType(String);
-                value->SetVarType(Any);
+                value->SetVarType(Null);
 
                 this->AddVariable(key);
                 this->AddVariable(value);
