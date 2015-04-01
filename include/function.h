@@ -27,9 +27,18 @@ public:
         {
                 return this->Type;
         }
+	void SetElementType(DataType type)
+	{
+		this->ElementType = type;
+	}
+	DataType GetElementType()
+	{
+		return this->ElementType;
+	}
 private:
         string Name;
         DataType Type;
+	DataType ElementType;
 	bool isref;
 };
 

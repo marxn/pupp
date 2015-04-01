@@ -188,6 +188,11 @@ public:
 				return NODE_RET_ERROR;
 			}
 
+			if(val->GetElementType()==Decimal && val->GetPrecision()!=-1)
+                        {
+                                static_cast<DecimalValue*>(target_value)->SetPrec(val->GetPrecision());
+                        }
+
 			val->SetElementValue(desc, target_value);
 			return NODE_RET_NORMAL;
 		}
@@ -384,7 +389,7 @@ private:
 class VariableType
 {
 public:
-	VariableType(DataType type):VarType(type), ElementType(type){}
+	VariableType(DataType vartype, DataType elementtype, long prec):VarType(vartype), ElementType(elementtype), Prec(prec){}
 
         void SetVarType(DataType type)
         {
@@ -410,10 +415,19 @@ public:
 	{
 		return &Dimentions;
 	}
+	void SetPrecision(long prec)
+	{
+		this->Prec = prec;
+	}
+	long GetPrecision()
+	{
+		return this->Prec;
+	}
 private:
         DataType VarType;
         DataType ElementType;
         list<Expression*> Dimentions;
+	long Prec;
 };
 
 class VarDefinitionStatement: public StatementNode
@@ -432,6 +446,8 @@ public:
                         cerr<<"puppy runtime error: cannot find variable:"<<name<<endl;
                         return NODE_RET_ERROR;
                 }
+
+		var->SetPrecision(this->VarType->GetPrecision());
 
 		if(this->VarType->GetVarType()==Array)
 		{
@@ -457,7 +473,7 @@ public:
 				desc.push_back(n);
 			}
 
-			ArrayValue * val = new ArrayValue(this->VarType->GetElementType(), desc, size);
+			ArrayValue * val = new ArrayValue(this->VarType->GetElementType(), desc, size, this->VarType->GetPrecision());
 			var->SetRef(val);
 			return NODE_RET_NORMAL;
 		}
@@ -477,6 +493,12 @@ public:
                         var->SetValue(value);
 			delete value;
 		}
+		else
+		{
+			DefaultValueFactory defvalue(this->VarType->GetVarType(), this->VarType->GetPrecision());
+                        ConstValue * value = defvalue.GetValue();
+			var->SetRef(value);
+		}
 
 		return NODE_RET_NORMAL;
         }
@@ -488,7 +510,6 @@ public:
 	{
 		this->InitExpr = expr;
 	}
-
         bool Provision()
 	{
                 Node * parent = this->GetParentNode();

@@ -51,6 +51,7 @@
 	FunctionNode                * puppy_function_node;
 	FuncArgDef                  * puppy_function_argdef;
 	list<FuncArgDef*>           * puppy_function_arg_list;
+	long                          puppy_opt_prec_desc;
 }
 
 %left OR
@@ -94,8 +95,9 @@
 
 %type  <puppy_identlist> identifier_list
 %type  <puppy_exprlist>  expr_list
+%type  <puppy_opt_prec_desc> opt_prec_desc
 %type  <puppy_datatype>  data_type function_return_prototype
-%type  <puppy_vartype>  var_type
+%type  <puppy_vartype>  var_type func_arg_type
 %type  <puppy_lvalue> lvalue 
 %type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
 %type  <puppy_statement> vardefstatement sleep_statement call_statement
@@ -301,14 +303,29 @@ branch_node:
 		}
 	;
 
-func_arg:
-        IDENTIFIER AS data_type
-                {
-                        $$ = new FuncArgDef($1, $3, false);
-                }
-	| IDENTIFIER '&' AS data_type
+func_arg_type:
+	data_type
 		{
-			$$ = new FuncArgDef($1, $4, true);
+			$$ = new VariableType($1, $1, -1);
+		}
+	| data_type '[' ']'
+		{
+			$$ = new VariableType(Array, $1, -1);
+		}
+	;
+
+func_arg:
+        IDENTIFIER AS func_arg_type
+                {
+			FuncArgDef * def = new FuncArgDef($1, $3->GetVarType(), false);
+			def->SetElementType($3->GetElementType());
+                        $$ = def;
+                }
+	| IDENTIFIER '&' AS func_arg_type
+		{
+			FuncArgDef * def = new FuncArgDef($1, $4->GetVarType(), true);
+                        def->SetElementType($4->GetElementType());
+                        $$ = def;
 		}
         ;
 
@@ -416,9 +433,20 @@ var_type:
 			$1->AddDimention($3);
 			$$ = $1;
 		}
-	| data_type
+	| data_type opt_prec_desc
 		{
-			$$ = new VariableType($1);
+			$$ = new VariableType($1, $1, $2);
+		}
+	;
+
+opt_prec_desc:
+	'(' INTEGER ')'
+		{
+			$$ = $2->GetValue();
+		}
+	| /*empty*/
+		{
+			$$ = -1;
 		}
 	;
 
@@ -430,13 +458,13 @@ vardefstatement:
 		}
 	| DEF IDENTIFIER '=' const_value
 		{
-			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType($4->GetType()));
+			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType($4->GetType(), $4->GetType(), -1));
 			stmt->SetInitValue($4);
 			$$ = stmt;
 		} 
 	| DEF IDENTIFIER '=' set_expr
 		{
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Set));
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Set, Null, -1));
 			stmt->SetInitExpr($4);
                         $$ = stmt;
 		}

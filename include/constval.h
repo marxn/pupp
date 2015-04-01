@@ -283,7 +283,7 @@ public:
 		ConstValue * result = new DecimalValue(this);
                 return result;
         }
-	void SetPrec(int n)
+	void SetPrec(long n)
 	{
 		this->Prec = n;
 	}
@@ -350,7 +350,7 @@ public:
 	mpf_t Value;
 
 protected:
-	int Prec;
+	long Prec;
 };
 
 class BooleanValue: public ConstValue
@@ -505,7 +505,7 @@ protected:
 class DefaultValueFactory
 {
 public:
-        DefaultValueFactory(DataType type):Type(type)
+        DefaultValueFactory(DataType type, long prec):Type(type), Prec(prec)
         {
         }
 
@@ -525,6 +525,7 @@ public:
                         break;
                         case Decimal:
                                 result = new DecimalValue("0");
+				static_cast<DecimalValue*>(result)->SetPrec(this->Prec);
                         break;
                         case Set:
                                 result = new SetValue;
@@ -537,19 +538,21 @@ public:
 
 private:
         DataType Type;
+	long Prec;
 };
 
 class ArrayValue: public ConstValue
 {
 public:
-	ArrayValue(DataType type, vector<long>& desc, long size)
+	ArrayValue(DataType type, vector<long>& desc, long size, long prec):ConstValue(Array)
 	{
-		DefaultValueFactory fac(type);
+		DefaultValueFactory fac(type, prec);
 
 		this->ElementType = type;
 		this->Value = new ValueBox*[size];
 		this->Dim = desc;
 		this->Size = size;
+		this->Prec = prec;
 
 		for(int i = 0; i < size; i++)
 		{
@@ -650,7 +653,7 @@ public:
 	}
 	ConstValue * DupValue()
 	{
-		ArrayValue * result = new ArrayValue(this->ElementType, this->Dim, this->Size);
+		ArrayValue * result = new ArrayValue(this->ElementType, this->Dim, this->Size, this->Prec);
 		result->SetValue(this->Value);
 		return result;
 	}
@@ -658,11 +661,16 @@ public:
 	{
 		return this->Dim.size();
 	}
+	long GetPrecision()
+	{
+		return this->Prec;
+	}
 private:
 	DataType ElementType;
 	ValueBox ** Value;
 	vector<long> Dim;
 	long Size;
+	long Prec;
 };
 
 class ConstValueCaster

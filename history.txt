@@ -1,3 +1,8 @@
+April 1st 2015
+------------------------
+1. Adjusted precision of decimal value.
+2. Adjusted the semanteme of arguments of function.
+
 March 30th 2015
 ------------------------
 1. Implemented array.

@@ -17,6 +17,7 @@ public:
 		this->VBox = NULL;
 		this->VarName = name;
 		this->VarType = type;
+		this->Prec = -1;
 	}
 	~Variable()
 	{
@@ -69,12 +70,25 @@ public:
 
 		if(this->VarType==value->GetType())
 		{
-			this->VBox->SetVal(value->DupValue());
+			ConstValue * val = value->DupValue();
+
+			if(this->VarType==Decimal && this->Prec!=-1)
+			{
+				static_cast<DecimalValue*>(val)->SetPrec(this->Prec);
+			}
+
+			this->VBox->SetVal(val);
 		}
 		else
 		{
 			ConstValueCaster caster(value, this->VarType);
 			ConstValue * newvalue = caster.Cast();
+
+			if(this->VarType==Decimal && this->Prec!=-1)
+                        {
+                                static_cast<DecimalValue*>(newvalue)->SetPrec(this->Prec);
+                        }
+
 			this->VBox->SetVal(newvalue);
 		}
         }
@@ -85,7 +99,7 @@ public:
 		if(this->VBox==NULL)
 		{
 			this->VBox = new ValueBox;
-			DefaultValueFactory defvalue(this->VarType);
+			DefaultValueFactory defvalue(this->VarType, this->Prec);
 			value = defvalue.GetValue();
 			this->VBox->SetVal(value);
 		}
@@ -110,18 +124,23 @@ public:
 		if(this->VBox==NULL)
                 {
                         this->VBox = new ValueBox;
-                        DefaultValueFactory defvalue(this->VarType);
+                        DefaultValueFactory defvalue(this->VarType, this->Prec);
                         ConstValue * value = defvalue.GetValue();
                         this->VBox->SetVal(value);
                 }
 
 		return this->VBox->GetVal()->GetType();
 	}
+	void SetPrecision(long prec)
+	{
+		this->Prec = prec;
+	}
 private:
 	VariableDef * Source;
 	DataType VarType;
 	string VarName;
 	ValueBox * VBox;
+	long Prec;
 };
 
 class VariableDef
