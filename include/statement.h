@@ -490,8 +490,15 @@ public:
 				return NODE_RET_ERROR;
 			}
 
-                        var->SetValue(value);
-			delete value;
+			if(value->GetType()==Null)
+			{
+				cerr<<"puppy runtime error: variable type cannot be determined."<<endl;
+                                delete value;
+                                return NODE_RET_ERROR;
+			}
+
+			var->SetVarType(value->GetType());
+			var->SetRef(value);
 		}
 		else
 		{
@@ -532,8 +539,18 @@ public:
 			return true;
 		}
 
+		this->InitExpr->SetParentNode(parent);
 		return this->InitExpr->Provision();
         }
+	bool Check()
+	{
+		if(this->InitExpr==NULL)
+                {
+                        return true;
+                }
+
+		return this->InitExpr->Check();
+	}
 private:
 	ConstValue * InitValue;
 	Expression * InitExpr;

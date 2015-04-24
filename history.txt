@@ -1,3 +1,8 @@
+April 24th 2015
+------------------------
+1. Fixed a bug in checking def statement.
+2. Support init from a function.
+
 April 1st 2015
 ------------------------
 1. Adjusted precision of decimal value.

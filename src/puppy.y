@@ -468,6 +468,12 @@ vardefstatement:
 			stmt->SetInitExpr($4);
                         $$ = stmt;
 		}
+	| DEF IDENTIFIER '=' func_expr
+		{
+			VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null, -1));
+                        stmt->SetInitExpr($4);
+                        $$ = stmt;
+		}
 	;
 
 identifier_list:
