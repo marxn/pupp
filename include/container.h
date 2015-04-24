@@ -8,27 +8,27 @@ using namespace std;
 class ContainerNode :public Node
 {
         public:
-		ContainerNode():Node(Generic){}
-		ContainerNode(NodeType type):Node(type){}
+                ContainerNode():Node(Generic){}
+                ContainerNode(NodeType type):Node(type){}
 
                 int Invoke(NodeContext * context)
                 {
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
-			{
-				context->AddFrame(*i);
-				int cond = (*i)->Execute(context);
-				context->PopFrame();
+                        {
+                                context->AddFrame(*i);
+                                int cond = (*i)->Execute(context);
+                                context->PopFrame();
 
                                 if(cond!=NODE_RET_NORMAL)
-				{
-					return cond;
-				}
-			}
+                                {
+                                        return cond;
+                                }
+                        }
 
-			return NODE_RET_NORMAL;
+                        return NODE_RET_NORMAL;
                 }
-		void Swipe(NodeContext * context){}
+                void Swipe(NodeContext * context){}
                 void SetNodeList(list<Node*> * nodelist)
                 {
                         subnodelist = nodelist;
@@ -40,15 +40,15 @@ class ContainerNode :public Node
                         {
                                 (*i)->SetParentNode(this);
                                 if((*i)->Provision()!=true)
-				{
-					return false;
-				}
+                                {
+                                        return false;
+                                }
                         }
-			return true;
+                        return true;
                 }
-		bool Check()
-		{
-			list<Node*>::iterator i;
+                bool Check()
+                {
+                        list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                         {
                                 if((*i)->Check()!=true)
@@ -57,7 +57,7 @@ class ContainerNode :public Node
                                 }
                         }
                         return true;
-		}
+                }
 
                 list<Node*> * subnodelist;
 };

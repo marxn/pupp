@@ -15,7 +15,7 @@ using namespace std;
 
 int StartFromMain(Node * bean, char *argv[], int argc)
 {
-	int ret = 0;
+        int ret = 0;
         list<Expression*> * explist = new list<Expression*>;
         SetValue * para = new SetValue;
 
@@ -24,11 +24,11 @@ int StartFromMain(Node * bean, char *argv[], int argc)
                 IntegerValue * key = new IntegerValue(i);
                 StringValue * value = new StringValue(string(argv[i]));
 
-		ValueBox * vb = new ValueBox(value->DupValue());
+                ValueBox * vb = new ValueBox(value->DupValue());
                 KVValue * kv = new KVValue(key, new ValueBox(value->DupValue()));
                 para->AddKV(kv);
 
-		delete vb;
+                delete vb;
                 delete kv;
                 delete value;
                 delete key;
@@ -45,7 +45,7 @@ int StartFromMain(Node * bean, char *argv[], int argc)
 
         if(callstmt->Provision() && callstmt->Check())
         {
-		Portal portal(bean);
+                Portal portal(bean);
 
                 NodeContext * context = new NodeContext(&portal);
                 context->AddFrame(bean);
@@ -56,53 +56,53 @@ int StartFromMain(Node * bean, char *argv[], int argc)
                         ret = static_cast<int>(static_cast<IntegerValue*>(retval)->GetValue());
                 }
                 callstmt->Swipe(context);
-		delete context;
+                delete context;
         }
-	else
+        else
         {
-		ret = -1;
+                ret = -1;
         }
-	return ret;
+        return ret;
 }
 
 int main(int argc, char * argv[])
 {
-	FILE * fp = NULL;
+        FILE * fp = NULL;
 
-	if(argc==1)
-	{
-		fp = stdin;
-	}
-	else
-	{
-		fp = fopen(argv[1],"r");
-		if(fp==NULL)
-		{
-			fprintf(stderr, "can not open file\n");
-			return -1;
-		}
-	}
+        if(argc==1)
+        {
+                fp = stdin;
+        }
+        else
+        {
+                fp = fopen(argv[1],"r");
+                if(fp==NULL)
+                {
+                        fprintf(stderr, "can not open file\n");
+                        return -1;
+                }
+        }
 
-	yyin = fp;
+        yyin = fp;
 
-	ContainerNode * bean = parse();
+        ContainerNode * bean = parse();
 
-	int ret = 0;
+        int ret = 0;
 
-	if(bean == NULL)
-	{
-		return -1;
-	}
-	if(bean->Provision()==false || bean->Check()==false)
-	{
+        if(bean == NULL)
+        {
+                return -1;
+        }
+        if(bean->Provision()==false || bean->Check()==false)
+        {
                 return -2;
-	}
+        }
 
-	if(true)
-	{
+        if(true)
+        {
                 ret = StartFromMain(bean, argv,argc);
-	}
-	fclose(fp);
-	return ret;
+        }
+        fclose(fp);
+        return ret;
 }
 

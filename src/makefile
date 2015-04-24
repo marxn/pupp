@@ -18,3 +18,4 @@ main.o: main.cpp
 clean:
 	rm -rf *.o scan.cpp puppy.cpp puppy puppy.hpp 
 
+

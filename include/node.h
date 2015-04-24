@@ -29,51 +29,51 @@ class Portal;
 
 enum NodeType
 {
-	Generic,
-	Function,
-	IfElse,
-	Loop,
-	Transaction
+        Generic,
+        Function,
+        IfElse,
+        Loop,
+        Transaction
 };
 
 class Node
 {
 public:
-	Node():Type(Generic)
-	{
-	}
-	Node(NodeType type):Type(type)
-	{
-	}
-	virtual ~Node()
-	{
-	}
+        Node():Type(Generic)
+        {
+        }
+        Node(NodeType type):Type(type)
+        {
+        }
+        virtual ~Node()
+        {
+        }
 
-	int Execute(NodeContext * context)
-	{
-		int ret = this->Invoke(context);
-		this->Swipe(context);
-		return ret;
-	}
+        int Execute(NodeContext * context)
+        {
+                int ret = this->Invoke(context);
+                this->Swipe(context);
+                return ret;
+        }
 
-	Node * GetParentNode()
-	{
-		return this->ParentNode;
-	}
-	void SetParentNode(Node * node)
-	{
-		this->ParentNode = node;
-	}
-	virtual bool Provision() = 0;
-	virtual bool Check()
-	{
-		return true;
-	}
+        Node * GetParentNode()
+        {
+                return this->ParentNode;
+        }
+        void SetParentNode(Node * node)
+        {
+                this->ParentNode = node;
+        }
+        virtual bool Provision() = 0;
+        virtual bool Check()
+        {
+                return true;
+        }
 
-	virtual int Invoke(NodeContext * context) = 0;
-	virtual void Swipe(NodeContext * context) = 0;
+        virtual int Invoke(NodeContext * context) = 0;
+        virtual void Swipe(NodeContext * context) = 0;
 
-	void AddVariable(VariableDef * var)
+        void AddVariable(VariableDef * var)
         {
                 VariableDef * thevar = this->VariableDefTable[var->GetVarName()];
                 if(thevar != NULL)
@@ -81,23 +81,23 @@ public:
                         delete thevar;
                         this->VariableDefTable.erase(var->GetVarName());
                 }
-		this->VariableDefTable[var->GetVarName()] = var;
+                this->VariableDefTable[var->GetVarName()] = var;
         }
         VariableDef * FindVariable(string varname)
         {
-		map<string, VariableDef*>::iterator i = this->VariableDefTable.find(varname);
-		if(i!=this->VariableDefTable.end())
-		{
-			return i->second;
-		}
-		if(this->ParentNode!=NULL)
-		{
-			return this->ParentNode->FindVariable(varname);
-		}
+                map<string, VariableDef*>::iterator i = this->VariableDefTable.find(varname);
+                if(i!=this->VariableDefTable.end())
+                {
+                        return i->second;
+                }
+                if(this->ParentNode!=NULL)
+                {
+                        return this->ParentNode->FindVariable(varname);
+                }
 
                 return NULL;
         }
-	
+        
         void AddFunctionDef(string name, Node * func)
         {
                 this->FunctionDefTable.insert(pair<string, Node*>(name, func));
@@ -113,51 +113,51 @@ public:
                 return result;
         }
 
-	NodeType Type;
-	Node * ParentNode;
-	map<string, VariableDef*> VariableDefTable;
-	map<string, Node*> FunctionDefTable;
+        NodeType Type;
+        Node * ParentNode;
+        map<string, VariableDef*> VariableDefTable;
+        map<string, Node*> FunctionDefTable;
 };
 
 
 struct ForeachLoopCtx 
 {
-	ConstValue * Keeper;
-	map<string, ValueBox*> * SetValueHolder;
-	map<string, ValueBox*>::iterator ValueHandle;
+        ConstValue * Keeper;
+        map<string, ValueBox*> * SetValueHolder;
+        map<string, ValueBox*>::iterator ValueHandle;
 };
 
 class NodeContext
 {
 public:
-	NodeContext(Portal * portal):thePortal(portal){}
-	~NodeContext()
-	{
-		while(this->Frames.size()>0)
-		{
-			this->PopFrame();
-		}
-	}
-	Portal * GetPortal()
-	{
-		return this->thePortal;
-	}
-	void AddFrame(Node * snapshot)
-	{
-		map<string, Variable*> * frame = new map<string, Variable*>;
+        NodeContext(Portal * portal):thePortal(portal){}
+        ~NodeContext()
+        {
+                while(this->Frames.size()>0)
+                {
+                        this->PopFrame();
+                }
+        }
+        Portal * GetPortal()
+        {
+                return this->thePortal;
+        }
+        void AddFrame(Node * snapshot)
+        {
+                map<string, Variable*> * frame = new map<string, Variable*>;
 
-		map<string, VariableDef*>::iterator i;
+                map<string, VariableDef*>::iterator i;
                 for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
                 {
                         string name = i->first;
                         VariableDef * def = i->second;
                         frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
                 }
-		this->Frames.push_front(frame);
-	}
-	void LinkFrame(Node * snapshot)
-	{
-		map<string, Variable*> * frame = new map<string, Variable*>;
+                this->Frames.push_front(frame);
+        }
+        void LinkFrame(Node * snapshot)
+        {
+                map<string, Variable*> * frame = new map<string, Variable*>;
 
                 map<string, VariableDef*>::iterator i;
                 for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
@@ -167,42 +167,23 @@ public:
                         frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
                 }
                 this->Frames.push_back(frame);
-	}
-	void PopFrame()
-	{
-		map<string, Variable*> * frame = this->Frames.front();
-		map<string, Variable*>::iterator i;
+        }
+        void PopFrame()
+        {
+                map<string, Variable*> * frame = this->Frames.front();
+                map<string, Variable*>::iterator i;
                 for(i = frame->begin(); i!=frame->end(); i++)
                 {
                         delete i->second;
                 }
-		delete frame;
+                delete frame;
                 this->Frames.erase(this->Frames.begin());
-	}
+        }
         Variable * GetVariable(string name)
         {
-		list<map<string, Variable*>* >::iterator i;
-		for(i=this->Frames.begin(); i!=this->Frames.end();i++)
-		{
-			map<string, Variable*>::iterator j = (*i)->find(name);
-			if(j!=(*i)->end())
-			{
-				return j->second;
-			}
-		}
-
-		return NULL;
-        }
-	Variable * GetVariableFromOuterLayer(string name)
-	{
-		int count = 0;
-		list<map<string, Variable*>* >::iterator i;
+                list<map<string, Variable*>* >::iterator i;
                 for(i=this->Frames.begin(); i!=this->Frames.end();i++)
                 {
-			if(count++==0)
-			{
-				continue;
-			}
                         map<string, Variable*>::iterator j = (*i)->find(name);
                         if(j!=(*i)->end())
                         {
@@ -211,14 +192,33 @@ public:
                 }
 
                 return NULL;
-	}
+        }
+        Variable * GetVariableFromOuterLayer(string name)
+        {
+                int count = 0;
+                list<map<string, Variable*>* >::iterator i;
+                for(i=this->Frames.begin(); i!=this->Frames.end();i++)
+                {
+                        if(count++==0)
+                        {
+                                continue;
+                        }
+                        map<string, Variable*>::iterator j = (*i)->find(name);
+                        if(j!=(*i)->end())
+                        {
+                                return j->second;
+                        }
+                }
+
+                return NULL;
+        }
 
         stack<ForeachLoopCtx*> ForeachCtx;
         ConstValue * FunctionRet;
 
 private:
         list<map<string, Variable*>* > Frames;
-	Portal * thePortal;
+        Portal * thePortal;
 };
 
 #endif

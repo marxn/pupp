@@ -13,12 +13,12 @@ public:
         {
                 this->Name = *name;
                 this->Type = type;
-		this->isref = isref;
+                this->isref = isref;
         }
-	bool isRef()
-	{
-		return this->isref;
-	}
+        bool isRef()
+        {
+                return this->isref;
+        }
         string GetName()
         {
                 return this->Name;
@@ -27,19 +27,19 @@ public:
         {
                 return this->Type;
         }
-	void SetElementType(DataType type)
-	{
-		this->ElementType = type;
-	}
-	DataType GetElementType()
-	{
-		return this->ElementType;
-	}
+        void SetElementType(DataType type)
+        {
+                this->ElementType = type;
+        }
+        DataType GetElementType()
+        {
+                return this->ElementType;
+        }
 private:
         string Name;
         DataType Type;
-	DataType ElementType;
-	bool isref;
+        DataType ElementType;
+        bool isref;
 };
 
 class FunctionNode:public ContainerNode
@@ -49,15 +49,15 @@ public:
         {
                 this->Name = *name;
         }
-	int Invoke(NodeContext * context)
-	{
-		return NODE_RET_NORMAL;
-	}
-	int Run(NodeContext * context)
-	{
-		return ContainerNode::Invoke(context);
-	}
-	
+        int Invoke(NodeContext * context)
+        {
+                return NODE_RET_NORMAL;
+        }
+        int Run(NodeContext * context)
+        {
+                return ContainerNode::Invoke(context);
+        }
+        
         void SetRtnType(DataType type)
         {
                 this->RtnType = type;
@@ -66,21 +66,21 @@ public:
         {
                 this->ArgList = arglist;
         }
-	list<FuncArgDef*> * GetArgList()
-	{
-		return this->ArgList;
-	}
+        list<FuncArgDef*> * GetArgList()
+        {
+                return this->ArgList;
+        }
         string GetName()
         {
                 return this->Name;
         }
-	DataType GetRtnType()
-	{
-		return this->RtnType;
-	}
+        DataType GetRtnType()
+        {
+                return this->RtnType;
+        }
         bool Provision()
         {
-		list<FuncArgDef*>::iterator i;
+                list<FuncArgDef*>::iterator i;
                 for(i = this->ArgList->begin(); i!=this->ArgList->end(); i++)
                 {
                         string argname = (*i)->GetName();
@@ -99,12 +99,12 @@ public:
 
                 parent->AddFunctionDef(this->Name, this);
 
-		return ContainerNode::Provision();
+                return ContainerNode::Provision();
         }
 
 private:
         string Name;
-	ConstValue * ReturnVal;
+        ConstValue * ReturnVal;
         DataType RtnType;
         list<FuncArgDef*> * ArgList;
 };

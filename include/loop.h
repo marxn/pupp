@@ -10,16 +10,16 @@ using namespace std;
 class LoopNode :public ContainerNode
 {
 public:
-		LoopNode():ContainerNode(Loop){}
+                LoopNode():ContainerNode(Loop){}
 
                 virtual bool PreLoopStatement(NodeContext * context)
-		{
-			return true;
-		}
+                {
+                        return true;
+                }
                 virtual bool PerOnceStatement(NodeContext * context)
-		{
-			return true;
-		}
+                {
+                        return true;
+                }
 
                 int Invoke(NodeContext * context)
                 {
@@ -28,8 +28,8 @@ public:
                                 return NODE_RET_ERROR;
                         }
 
-			int runnable = this->Evaluate(context);
-			if(runnable==-1)
+                        int runnable = this->Evaluate(context);
+                        if(runnable==-1)
                         {
                                 return NODE_RET_ERROR;
                         }
@@ -39,9 +39,9 @@ public:
                                 list<Node*>::iterator i;
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                 {
-					context->AddFrame(*i);
-					int ret = (*i)->Execute(context);
-					context->PopFrame();
+                                        context->AddFrame(*i);
+                                        int ret = (*i)->Execute(context);
+                                        context->PopFrame();
 
                                         if(ret==NODE_RET_NEEDBREAK)
                                         {
@@ -51,10 +51,10 @@ public:
                                         {
                                                 break;
                                         }
-					else if(ret==NODE_RET_ERROR)
-					{
-						return ret;
-					}
+                                        else if(ret==NODE_RET_ERROR)
+                                        {
+                                                return ret;
+                                        }
                                 }
 
                                 if(this->PerOnceStatement(context)==false)
@@ -62,7 +62,7 @@ public:
                                         return NODE_RET_ERROR;
                                 }
 
-				runnable = this->Evaluate(context);
+                                runnable = this->Evaluate(context);
                                 if(runnable==-1)
                                 {
                                         return NODE_RET_ERROR;
@@ -88,27 +88,27 @@ public:
                         }
                         return true;
                 }
-		bool Check()
-		{
-			if(ContainerNode::Check()==false)
+                bool Check()
+                {
+                        if(ContainerNode::Check()==false)
                         {
                                 return false;
                         }
-			if(condition->Check()==false)
+                        if(condition->Check()==false)
                         {
                                 return false;
                         }
                         return true;
-		}
+                }
         private:
                 //1 - true, 0 - false, -1 - error
                 virtual int Evaluate(NodeContext * context)
                 {
                         ConstValue * eva = this->condition->Calculate(context);
-			if(eva==NULL)
-			{
-				return -1;
-			}
+                        if(eva==NULL)
+                        {
+                                return -1;
+                        }
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO
@@ -141,26 +141,26 @@ public:
         }
         bool PreLoopStatement(NodeContext * context)
         {
-		if(this->PreLoop==NULL)
-		{
-			return true;
-		}
-
-		int ret = this->PreLoop->Execute(context);
-		if(ret!=NODE_RET_NORMAL)
-		{
-			return false;
-		}
-                return true;
-        }
-        bool PerOnceStatement(NodeContext * context)
-        {
-		if(this->PerOnce==NULL)
+                if(this->PreLoop==NULL)
                 {
                         return true;
                 }
 
-		int ret = this->PerOnce->Execute(context);
+                int ret = this->PreLoop->Execute(context);
+                if(ret!=NODE_RET_NORMAL)
+                {
+                        return false;
+                }
+                return true;
+        }
+        bool PerOnceStatement(NodeContext * context)
+        {
+                if(this->PerOnce==NULL)
+                {
+                        return true;
+                }
+
+                int ret = this->PerOnce->Execute(context);
                 if(ret!=NODE_RET_NORMAL)
                 {
                         return false;
@@ -173,25 +173,25 @@ public:
                 {
                         return false;
                 }
-		if(this->PreLoop)
-		{
-			this->PreLoop->SetParentNode(this->GetParentNode());
-			if(this->PreLoop->Provision()!=true)
-        	        {
-                        	return false;
-                	}
-		}
-		if(this->PerOnce)
-		{
-			this->PerOnce->SetParentNode(this->GetParentNode());
-        	        if(this->PerOnce->Provision()!=true)
-	                {
-        	                return false;
-	                }
-		}
+                if(this->PreLoop)
+                {
+                        this->PreLoop->SetParentNode(this->GetParentNode());
+                        if(this->PreLoop->Provision()!=true)
+                        {
+                                return false;
+                        }
+                }
+                if(this->PerOnce)
+                {
+                        this->PerOnce->SetParentNode(this->GetParentNode());
+                        if(this->PerOnce->Provision()!=true)
+                        {
+                                return false;
+                        }
+                }
                 return true;
         }
-	bool Check()
+        bool Check()
         {
                 if(LoopNode::Check()!=true)
                 {
@@ -227,25 +227,25 @@ class ForeachLoopNode: public ForLoopNode
 public:
         bool PreLoopStatement(NodeContext * context)
         {
-		ConstValue * keeper = this->CollectionExpr->Calculate(context);
-		if(keeper==NULL)
-		{
-			return false;
-		}
+                ConstValue * keeper = this->CollectionExpr->Calculate(context);
+                if(keeper==NULL)
+                {
+                        return false;
+                }
 
                 if(keeper->GetType()!=Set)
                 {
                         cerr<<"puppy runtime warning: FOREACH need a collection as input."<<endl;
-			context->ForeachCtx.push(NULL);
-			return true;
+                        context->ForeachCtx.push(NULL);
+                        return true;
                 }
 
-		ForeachLoopCtx * ctx = new ForeachLoopCtx;
-		ctx->Keeper         = keeper;
-		ctx->SetValueHolder = static_cast<SetValue*>(keeper)->GetValue();
-		ctx->ValueHandle    = ctx->SetValueHolder->begin();
+                ForeachLoopCtx * ctx = new ForeachLoopCtx;
+                ctx->Keeper         = keeper;
+                ctx->SetValueHolder = static_cast<SetValue*>(keeper)->GetValue();
+                ctx->ValueHandle    = ctx->SetValueHolder->begin();
 
-		context->ForeachCtx.push(ctx);
+                context->ForeachCtx.push(ctx);
 
                 if(ctx->ValueHandle!=ctx->SetValueHolder->end())
                 {
@@ -256,11 +256,11 @@ public:
         }
         bool PerOnceStatement(NodeContext * context)
         {
-		ForeachLoopCtx * ctx = context->ForeachCtx.top();
-		if(ctx==NULL)
-		{
-			return true;
-		}
+                ForeachLoopCtx * ctx = context->ForeachCtx.top();
+                if(ctx==NULL)
+                {
+                        return true;
+                }
 
                 ctx->ValueHandle++;
 
@@ -272,7 +272,7 @@ public:
         }
         void ProvisionKV(NodeContext * context)
         {
-		ForeachLoopCtx * ctx = context->ForeachCtx.top();
+                ForeachLoopCtx * ctx = context->ForeachCtx.top();
 
                 Variable * key = context->GetVariable(this->Key);
                 Variable * value = context->GetVariable(this->Value);
@@ -284,17 +284,17 @@ public:
 
                 ValueBox * tmpvalue = ctx->ValueHandle->second;
 
-		value->SetVarType(tmpvalue->GetVal()->GetType());
+                value->SetVarType(tmpvalue->GetVal()->GetType());
                 value->SetValue(tmpvalue->GetVal());
         }
         void Swipe(NodeContext * context)
         {
-		ForeachLoopCtx * ctx = context->ForeachCtx.top();
-		if(ctx!=NULL)
-		{
-			delete ctx->Keeper;
-			delete ctx;
-		}
+                ForeachLoopCtx * ctx = context->ForeachCtx.top();
+                if(ctx!=NULL)
+                {
+                        delete ctx->Keeper;
+                        delete ctx;
+                }
                 context->ForeachCtx.pop();
 
                 ForLoopNode::Swipe(NULL);
@@ -303,11 +303,11 @@ public:
         //1 - true, 0 - false, -1 - error
         int Evaluate(NodeContext * context)
         {
-		ForeachLoopCtx * ctx = context->ForeachCtx.top();
-		if(ctx==NULL)
-		{
-			return EVA_FALSE;
-		}
+                ForeachLoopCtx * ctx = context->ForeachCtx.top();
+                if(ctx==NULL)
+                {
+                        return EVA_FALSE;
+                }
 
                 bool ret = ctx->ValueHandle!=ctx->SetValueHolder->end();
                 return ret?EVA_TRUE:EVA_FALSE;
@@ -346,9 +346,9 @@ public:
 
                 return true;
         }
-	bool Check()
-	{
-		if(ForLoopNode::Check()!=true)
+        bool Check()
+        {
+                if(ForLoopNode::Check()!=true)
                 {
                         return false;
                 }
@@ -358,7 +358,7 @@ public:
                 }
 
                 return true;
-	}
+        }
 private:
         string Key;
         string Value;
