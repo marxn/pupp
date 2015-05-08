@@ -16,6 +16,11 @@ class ContainerNode :public Node
                         list<Node*>::iterator i;
                         for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                         {
+                                if((*i)->Type==Function)
+                                {
+                                        continue;
+                                }
+
                                 context->AddFrame(*i);
                                 int cond = (*i)->Execute(context);
                                 context->PopFrame();

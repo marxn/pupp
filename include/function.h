@@ -9,9 +9,9 @@ using namespace std;
 class FuncArgDef
 {
 public:
-        FuncArgDef(string * name, DataType type, bool isref)
+        FuncArgDef(string name, DataType type, bool isref)
         {
-                this->Name = *name;
+                this->Name = name;
                 this->Type = type;
                 this->isref = isref;
         }
@@ -45,9 +45,9 @@ private:
 class FunctionNode:public ContainerNode
 {
 public:
-        FunctionNode(string * name):ContainerNode(Function)
+        FunctionNode(string name):ContainerNode(Function)
         {
-                this->Name = *name;
+                this->Name = name;
         }
         int Invoke(NodeContext * context)
         {
@@ -73,6 +73,10 @@ public:
         string GetName()
         {
                 return this->Name;
+        }
+        void SetName(string name)
+        {
+                this->Name = name;
         }
         DataType GetRtnType()
         {

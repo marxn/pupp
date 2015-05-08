@@ -20,6 +20,8 @@
     int yyerror(char *);
     int yylex(void);
     ContainerNode * final;
+
+    unsigned int anonymous_func_seq = 0;
 %}
 
 %locations
@@ -89,7 +91,7 @@
 %type  <puppy_node>  puppybean
 %type  <puppy_function_argdef> func_arg
 %type  <puppy_function_arg_list> arg_list
-%type  <puppy_function_node> function_node
+%type  <puppy_function_node> function_node lambda_node
 %type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
 %type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
@@ -317,13 +319,13 @@ func_arg_type:
 func_arg:
         IDENTIFIER AS func_arg_type
                 {
-                        FuncArgDef * def = new FuncArgDef($1, $3->GetVarType(), false);
+                        FuncArgDef * def = new FuncArgDef(*($1), $3->GetVarType(), false);
                         def->SetElementType($3->GetElementType());
                         $$ = def;
                 }
         | IDENTIFIER '&' AS func_arg_type
                 {
-                        FuncArgDef * def = new FuncArgDef($1, $4->GetVarType(), true);
+                        FuncArgDef * def = new FuncArgDef(*($1), $4->GetVarType(), true);
                         def->SetElementType($4->GetElementType());
                         $$ = def;
                 }
@@ -357,17 +359,27 @@ function_return_prototype:
                 }
 
 function_node:
-        DEF FUNCTION IDENTIFIER '(' arg_list ')' function_return_prototype program_node_block 
+        DEF IDENTIFIER '=' lambda_node
                 {
-                        FunctionNode * fun = new FunctionNode($3);
-                        fun->SetArgList($5);
-                        fun->SetRtnType($7);
-                        fun->SetNodeList($8);
-
+                        FunctionNode * fun = $4;
+                        fun->SetName(*($2));
                         $$ = fun;
                 }
         ;
 
+lambda_node:
+        FUNCTION '(' arg_list ')' function_return_prototype program_node_block
+                {
+                        char seq_buf[32] = {0};
+                        snprintf(seq_buf, sizeof(seq_buf), "%u", anonymous_func_seq++);
+
+                        FunctionNode * fun = new FunctionNode("anonymous_func_" + string(seq_buf));
+                        fun->SetArgList($3);
+                        fun->SetRtnType($5);
+                        fun->SetNodeList($6);
+
+                        $$ = fun;
+                }
 lvalue:
         lvalue '[' expr ']'
                 {

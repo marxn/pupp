@@ -446,7 +446,7 @@ public:
                         cerr<<"puppy runtime error: cannot find variable:"<<name<<endl;
                         return NODE_RET_ERROR;
                 }
-
+                
                 var->SetPrecision(this->VarType->GetPrecision());
 
                 if(this->VarType->GetVarType()==Array)
@@ -480,7 +480,7 @@ public:
 
                 if(this->InitValue!=NULL)
                 {
-                        var->SetValue(this->InitValue->DupValue());
+                        var->SetValue(this->InitValue);
                 }
                 else if(this->InitExpr!=NULL)
                 {
@@ -529,9 +529,9 @@ public:
                                 return false;
                         }
 
-                        VariableDef * vardef = new VariableDef(varname);
-                        vardef->SetVarType(this->VarType->GetVarType());
-                        parent->AddVariable(vardef);
+                        this->VarDef = new VariableDef(varname);
+                        this->VarDef->SetVarType(this->VarType->GetVarType());
+                        parent->AddVariable(this->VarDef);
                 }
 
                 if(this->InitExpr==NULL)
@@ -552,6 +552,7 @@ public:
                 return this->InitExpr->Check();
         }
 private:
+        VariableDef * VarDef;
         ConstValue * InitValue;
         Expression * InitExpr;
         string * Ident;

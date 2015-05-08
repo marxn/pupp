@@ -49,6 +49,11 @@ int StartFromMain(Node * bean, char *argv[], int argc)
 
                 NodeContext * context = new NodeContext(&portal);
                 context->AddFrame(bean);
+
+                //To ensure all global variables to be initlialized.
+                bean->Execute(context);
+
+                //Start to run from the begining node.
                 callstmt->Invoke(context);
                 ConstValue * retval = callstmt->GetRetVal();
                 if(retval->GetType()==Integer)

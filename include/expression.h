@@ -223,15 +223,15 @@ public:
         ValueBox * GetLValueRef(NodeContext * context)
         {
                 Variable * var = context->GetVariable(VarName);
-                       if(var==NULL)
+                if(var==NULL)
                 {
-                               var = context->GetPortal()->GetSharedVariable(this->VarDef);
-                               if(var==NULL)
+                        var = context->GetPortal()->GetSharedVariable(this->VarDef);
+                        if(var==NULL)
                         {
-                                       cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
-                                       return NULL;
-                               }
-                       }
+                                cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
+                                return NULL;
+                        }
+                }
 
                 if(this->ExprList.size()==0)
                 {
@@ -434,6 +434,7 @@ public:
                         }
 
                         delete new_ctx;
+                        context->Rewind();
                 }
                 return result;
         }

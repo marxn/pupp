@@ -8,6 +8,7 @@
 #include <list>
 #include <string>
 #include "variable.h"
+#include "portal.h"
 
 using namespace std;
 
@@ -25,7 +26,6 @@ using namespace std;
 #define EVA_ERROR -1
 
 class NodeContext;
-class Portal;
 
 enum NodeType
 {
@@ -92,7 +92,12 @@ public:
                 }
                 if(this->ParentNode!=NULL)
                 {
-                        return this->ParentNode->FindVariable(varname);
+                        VariableDef * result = this->ParentNode->FindVariable(varname);
+                        if(result!=NULL && this->Type==Function)
+                        {
+                                result->SetUsedByInnerNode(true);
+                        }
+                        return result;
                 }
 
                 return NULL;
@@ -151,7 +156,21 @@ public:
                 {
                         string name = i->first;
                         VariableDef * def = i->second;
-                        frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
+                        Variable * var = def->GetInstance();
+                        
+                        if(def->UsedByInnerNode())
+                        {
+                                Variable * portalvar = this->thePortal->GetSharedVariable(def);
+                                
+                                if(portalvar!=NULL)
+                                {
+                                        delete portalvar;
+                                }
+                                
+                                this->thePortal->UpdateSharedVariable(def, var);
+                        }
+
+                        frame->insert(pair<string, Variable*>(name, var));
                 }
                 this->Frames.push_front(frame);
         }
@@ -174,7 +193,11 @@ public:
                 map<string, Variable*>::iterator i;
                 for(i = frame->begin(); i!=frame->end(); i++)
                 {
-                        delete i->second;
+                        VariableDef * vardef = i->second->GetSource();
+                        if(!vardef->UsedByInnerNode())
+                        {
+                                delete i->second;
+                        }
                 }
                 delete frame;
                 this->Frames.erase(this->Frames.begin());
@@ -211,6 +234,22 @@ public:
                 }
 
                 return NULL;
+        }
+        void Rewind()
+        {
+                list<map<string, Variable*>* >::iterator i;
+                for(i=this->Frames.begin(); i!=this->Frames.end();i++)
+                {
+                        map<string, Variable*>::iterator j;
+                        for(j = (*i)->begin(); j!=(*i)->end(); j++)
+                        {
+                                VariableDef * vardef = j->second->GetSource();
+                                if(vardef->UsedByInnerNode())
+                                {
+                                        this->thePortal->UpdateSharedVariable(vardef, j->second);
+                                }
+                        }
+                }
         }
 
         stack<ForeachLoopCtx*> ForeachCtx;

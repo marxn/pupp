@@ -146,9 +146,8 @@ private:
 class VariableDef
 {
 public:
-        VariableDef(string VarName):VarType(Null)
+        VariableDef(string varname):VarName(varname), VarType(Null), IsUsedByInnerNode(false)
         {
-                this->VarName = VarName;
         }
         Variable * GetInstance()
         {
@@ -169,9 +168,18 @@ public:
         {
                 return VarName;
         }
+        bool UsedByInnerNode()
+        {
+                return this->IsUsedByInnerNode;
+        }
+        void SetUsedByInnerNode(bool u)
+        {
+                this->IsUsedByInnerNode = u;
+        }
 private:
         string VarName;
         DataType VarType;
+        bool IsUsedByInnerNode;
 };
 
 #endif

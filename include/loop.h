@@ -39,6 +39,11 @@ public:
                                 list<Node*>::iterator i;
                                 for(i = subnodelist->begin(); i != subnodelist->end(); i++)
                                 {
+                                        if((*i)->Type==Function)
+                                        {
+                                                continue;
+                                        }
+
                                         context->AddFrame(*i);
                                         int ret = (*i)->Execute(context);
                                         context->PopFrame();

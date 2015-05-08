@@ -16,26 +16,30 @@ public:
         }
         ~Portal()
         {
-                map<VariableDef*, Variable*>::iterator i;
+                /*map<VariableDef*, Variable*>::iterator i;
                 for(i = this->SharedVar.begin(); i!= this->SharedVar.end(); i++)
                 {
                         delete i->second;
-                }
+                }*/
         }
+        void UpdateSharedVariable(VariableDef * def, Variable * var)
+        {
+                map<VariableDef*, Variable*>::iterator pos = this->SharedVar.find(def);
+                if(pos!=this->SharedVar.end())
+                {
+                        this->SharedVar.erase(def);
+                }
+                this->SharedVar.insert(pair<VariableDef*, Variable*>(def, var));
+        }
+
         Variable * GetSharedVariable(VariableDef * def)
         {
-                Variable * result = NULL;
                 map<VariableDef*, Variable*>::iterator pos = this->SharedVar.find(def);
                 if(pos!=this->SharedVar.end())
                 {
                         return pos->second;
                 }
-                else
-                {
-                        result = def->GetInstance();
-                        this->SharedVar.insert(pair<VariableDef*, Variable*>(def, result));
-                }
-                return result;
+                return NULL;
         }
 private:
         Node * Bean;
