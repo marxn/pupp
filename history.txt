@@ -1,3 +1,7 @@
+May 10th 2015
+------------------------
+1. Fixed a memory bug.
+
 May 8th 2015
 ------------------------
 1. Changed function def style to adapt lambda.

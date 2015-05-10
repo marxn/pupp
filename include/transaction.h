@@ -36,8 +36,8 @@ public:
                         }
 
                         ConstValue * value = origin->GetValue();
-                        var->SetValue(value);
-                        delete value;
+                        var->SetRef(value);
+                        //delete value;
                 }
 
                 list<Node*>::iterator i;
@@ -76,8 +76,8 @@ public:
                                         }
 
                                         ConstValue * value = var->GetValue();
-                                        origin->SetValue(value);
-                                        delete value;
+                                        origin->SetRef(value);
+                                        //delete value;
                                 }
 
                                 return NODE_RET_NORMAL;
@@ -107,11 +107,15 @@ public:
                         VariableDef * vardef = parent->FindVariable(**i);
                         if(vardef==NULL)
                         {
-                                cerr<<"puppy provision error: Variable "<<**i<<"has not been defined"<<endl;
+                                cerr<<"puppy provision error: Variable "<<**i<<" has not been defined"<<endl;
                                 return false;
                         }
+
                         this->VarDefList.push_back(vardef);
-                        this->AddVariable(vardef);
+
+                        VariableDef * newvardef = new VariableDef(**i);
+                        newvardef->SetVarType(vardef->GetVarType());
+                        this->AddVariable(newvardef);
                 }
 
                 return ContainerNode::Provision();
