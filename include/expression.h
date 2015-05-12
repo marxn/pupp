@@ -356,34 +356,24 @@ private:
 class FunctionExpression: public Expression
 {
 public:
-        FunctionExpression(string * funcname, list<Expression*> * exprlist)
+        FunctionExpression(LValueExpression * object, list<Expression*> * exprlist)
         {
-                this->FuncName = *funcname;
+                this->FuncObj = object;
                 this->ExprList = exprlist;
         }
         ConstValue * Calculate(NodeContext * context)
         {
-                Variable * var = context->GetVariable(this->FuncDef->GetVarName());
-                if(var==NULL)
-                {
-                        var = context->GetPortal()->GetSharedVariable(this->FuncDef);
-                        if(var==NULL)
-                        {
-                                cerr<<"puppy runtime error: cannot find function: "<<this->FuncDef->GetVarName()<<endl;
-                                return NULL;
-                        }
-                }
-
-                FuncValue * func = static_cast<FuncValue*>(var->GetValue());
+                FuncValue * func = static_cast<FuncValue*>(this->FuncObj->Calculate(context));
 
                 if(func==NULL)
                 {
-                        cerr<<"puppy runtime error: Function "<<this->FuncDef->GetVarName()<<"() has not been defined"<<endl;
+                        cerr<<"puppy runtime error: Not a qualified function."<<endl;
                         return NULL;
                 }
+
                 if(func->GetType()==Null)
                 {
-                        cerr<<"puppy runtime error: Function "<<this->FuncDef->GetVarName()<<"() has not been initialized."<<endl;
+                        cerr<<"puppy runtime error: Function has not been initialized."<<endl;
                         return NULL;
                 }
 
@@ -489,6 +479,12 @@ public:
         }
         bool Provision()
         {
+                this->FuncObj->SetParentNode(this->ParentNode);
+                if(this->FuncObj->Provision()!=true)
+                {
+                        return false;
+                }
+
                 list<Expression*>::iterator i;
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
@@ -503,12 +499,11 @@ public:
         }
         bool Check()
         {
-                this->FuncDef = this->ParentNode->FindVariable(this->FuncName);
-                if(this->FuncDef==NULL)
+                if(this->FuncObj->Check()!=true)
                 {
-                        cerr<<"puppy provision error: Function "<<this->FuncName<<"() has not been defined"<<endl;
                         return false;
                 }
+
                 list<Expression*>::iterator i;
 
                 for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
@@ -522,7 +517,7 @@ public:
                 return Expression::Check();
         }
 private:
-        string FuncName;
+        LValueExpression *  FuncObj;
         VariableDef * FuncDef;
         list<Expression*> * ExprList;
 };

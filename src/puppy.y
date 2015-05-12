@@ -73,7 +73,7 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
-%token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN DO AS PRINT SLEEP 
+%token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL AS PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
 %token NIL NL PI
@@ -471,6 +471,12 @@ vardefstatement:
                         VarDefinitionStatement * stmt = new VarDefinitionStatement($2, $4);
                         $$ = stmt;
                 }
+        | DEF FUNCTION IDENTIFIER lambda_expr
+                {
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($3, new VariableType(Func, Null, -1));
+                        stmt->SetInitExpr($4);
+                        $$ = stmt;
+                }
         | DEF IDENTIFIER '=' const_value
                 {
                         VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType($4->GetType(), $4->GetType(), -1));
@@ -530,10 +536,10 @@ returnstatement:
         ;
 
 call_statement:
-        func_expr
+        CALL func_expr
                 {
                         CallStatement * stmt = new CallStatement;
-                        stmt->SetExpression($1);
+                        stmt->SetExpression($2);
                         $$ = static_cast<StatementNode*>(stmt);
                 }
         ;
@@ -626,7 +632,7 @@ set_expr:
         ;
 
 func_expr:
-        IDENTIFIER '(' expr_list ')'
+        lvalue_expr '(' expr_list ')'
                 {
                         $$ = new FunctionExpression($1, $3);
                 }

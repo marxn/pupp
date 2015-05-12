@@ -95,8 +95,8 @@ identifier [a-zA-Z_]+[0-9]*
                                         return FOREACH;
                                 if(strcasecmp(yytext,"in")==0)
                                         return IN;
-                                if(strcasecmp(yytext,"do")==0)
-                                        return DO;
+                                if(strcasecmp(yytext,"call")==0)
+                                        return CALL;
                                 if(strcasecmp(yytext,"print")==0)
                                         return PRINT;
                                 if(strcasecmp(yytext,"sleep")==0)
