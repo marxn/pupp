@@ -363,20 +363,69 @@ public:
         }
         ConstValue * Calculate(NodeContext * context)
         {
+                Variable * var = context->GetVariable(this->FuncDef->GetVarName());
+                if(var==NULL)
+                {
+                        var = context->GetPortal()->GetSharedVariable(this->FuncDef);
+                        if(var==NULL)
+                        {
+                                cerr<<"puppy runtime error: cannot find function: "<<this->FuncDef->GetVarName()<<endl;
+                                return NULL;
+                        }
+                }
+
+                FuncValue * func = static_cast<FuncValue*>(var->GetValue());
+
+                if(func==NULL)
+                {
+                        cerr<<"puppy runtime error: Function "<<this->FuncDef->GetVarName()<<"() has not been defined"<<endl;
+                        return NULL;
+                }
+                if(func->GetType()==Null)
+                {
+                        cerr<<"puppy runtime error: Function "<<this->FuncDef->GetVarName()<<"() has not been initialized."<<endl;
+                        return NULL;
+                }
+
+                FunctionNode * funcnode = func->GetValue();
+                delete func;
+
+                if(funcnode->GetArgList()->size()!=this->ExprList->size())
+                {
+                        cerr<<"puppy runtime error: The number of arguments does not match"<<endl;
+                        return NULL;
+                }
+
+                list<Expression*>::iterator i;
+                list<FuncArgDef*>::iterator j;
+
+                for(i = this->ExprList->begin(), j = funcnode->GetArgList()->begin();
+                        i!=this->ExprList->end() && j!=funcnode->GetArgList()->end(); i++,j++)
+                {
+                        if((*j)->isRef())
+                        {
+                                if((*i)->isLValue()==false)
+                                {
+                                        cerr<<"puppy runtime error: Cannot pass any expression other than a variable to a reference:"<<(*j)->GetName()<<endl;
+                                        return NULL;
+                                }
+                        }
+                }
+
                 ConstValue * result = NULL;
 
-                if(this->Func)
+                if(funcnode)
                 {
                         int rtn = 0;
 
                         NodeContext * new_ctx = new NodeContext(context->GetPortal());
-                        new_ctx->AddFrame(this->Func);
+                        new_ctx->AddFrame(funcnode);
 
                         list<Expression*>::iterator i;
                         list<FuncArgDef*>::iterator j;
 
-                        for(i = this->ExprList->begin(), j = this->Func->GetArgList()->begin(); 
-                                i!=this->ExprList->end() && j!=this->Func->GetArgList()->end(); i++,j++)
+                        for(i = this->ExprList->begin(), j = funcnode->GetArgList()->begin(); 
+                                i!=this->ExprList->end() && j!=funcnode->GetArgList()->end(); i++,j++)
                         {
                                 if((*j)->isRef())
                                 {
@@ -416,13 +465,13 @@ public:
                                 }
                         }
 
-                        rtn = this->Func->Run(new_ctx);
+                        rtn = funcnode->Run(new_ctx);
                         if(rtn==NODE_RET_NEEDRETURN)
                         {
                                 result = new_ctx->FunctionRet;
-                                if(this->Func->GetRtnType()!=result->GetType())
+                                if(funcnode->GetRtnType()!=result->GetType())
                                 {
-                                        ConstValueCaster caster(result, this->Func->GetRtnType());
+                                        ConstValueCaster caster(result, funcnode->GetRtnType());
                                         ConstValue * ret = caster.Cast();
                                         delete result;
                                         result = ret;
@@ -454,35 +503,19 @@ public:
         }
         bool Check()
         {
-                this->Func = static_cast<FunctionNode*>(this->ParentNode->FindFunctionDef(this->FuncName));
-                if(this->Func==NULL)
+                this->FuncDef = this->ParentNode->FindVariable(this->FuncName);
+                if(this->FuncDef==NULL)
                 {
                         cerr<<"puppy provision error: Function "<<this->FuncName<<"() has not been defined"<<endl;
                         return false;
                 }
-                if(this->Func->GetArgList()->size()!=this->ExprList->size())
-                {
-                        cerr<<"puppy provision error: The number of arguments does not mismatch"<<endl;
-                        return false;
-                }
-
                 list<Expression*>::iterator i;
-                list<FuncArgDef*>::iterator j;
 
-                for(i = this->ExprList->begin(), j = this->Func->GetArgList()->begin();
-                        i!=this->ExprList->end() && j!=this->Func->GetArgList()->end(); i++,j++)
+                for(i = this->ExprList->begin(); i!=this->ExprList->end(); i++)
                 {
                         if((*i)->Check()!=true)
                         {
                                 return false;
-                        }
-                        if((*j)->isRef())
-                        {
-                                if((*i)->isLValue()==false)
-                                {
-                                        cerr<<"puppy runtime error: Cannot pass any expression other than a variable to a reference:"<<(*j)->GetName()<<endl;
-                                        return false;
-                                }
                         }
                 }
 
@@ -490,10 +523,33 @@ public:
         }
 private:
         string FuncName;
-        FunctionNode * Func;
+        VariableDef * FuncDef;
         list<Expression*> * ExprList;
 };
 
+class LambdaExpression: public Expression
+{
+public:
+        LambdaExpression(FunctionNode * node): FuncNode(node)
+        {
+        }
+
+        ConstValue * Calculate(NodeContext * context)
+        {
+                return new FuncValue(this->FuncNode);
+        }
+        bool Provision()
+        {
+                this->FuncNode->SetParentNode(this->ParentNode);
+                return this->FuncNode->Provision();
+        }
+        bool Check()
+        {
+                return this->FuncNode->Check();
+        }
+private:
+        FunctionNode * FuncNode;
+};
 
 class PlusExpression: public BinaryExpression 
 {

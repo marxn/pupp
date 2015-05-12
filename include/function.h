@@ -101,7 +101,7 @@ public:
                         return false;
                 }
 
-                parent->AddFunctionDef(this->Name, this);
+                //parent->AddFunctionDef(this->Name, this);
 
                 return ContainerNode::Provision();
         }

@@ -103,25 +103,9 @@ public:
                 return NULL;
         }
         
-        void AddFunctionDef(string name, Node * func)
-        {
-                this->FunctionDefTable.insert(pair<string, Node*>(name, func));
-        }
-        Node * FindFunctionDef(string name)
-        {
-                Node * result = this->FunctionDefTable[name];
-                if(result == NULL && this->ParentNode!=NULL)
-                {
-                        return ParentNode->FindFunctionDef(name);
-                }
-
-                return result;
-        }
-
         NodeType Type;
         Node * ParentNode;
         map<string, VariableDef*> VariableDefTable;
-        map<string, Node*> FunctionDefTable;
 };
 
 

@@ -14,7 +14,7 @@ using namespace std;
 
 enum DataType
 {
-        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Set, Array, Lambda, Message
+        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Set, Array, Func, Message
 };
 
 class ConstValue
@@ -134,6 +134,30 @@ private:
         string MsgType;
         map<string, ConstValue*> Data;
         map<string, Node*> actions;
+};
+
+class FunctionNode;
+
+class FuncValue: public ConstValue
+{
+public:
+        FuncValue(FunctionNode * node):ConstValue(Func), FuncNode(node)
+        {
+        }
+        ConstValue * DupValue()
+        {
+                return new FuncValue(this->FuncNode);
+        }
+        FunctionNode * GetValue()
+        {
+                return this->FuncNode;
+        }
+        string toString()
+        {
+                return "function";
+        }
+private:
+        FunctionNode * FuncNode;
 };
 
 class StringValue: public ConstValue

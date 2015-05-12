@@ -43,6 +43,7 @@
         SetExpression               * puppy_setexpr;
         LValueExpression            * puppy_lvalueexpr;
         FunctionExpression          * puppy_funcexpr;
+        LambdaExpression            * puppy_lambda_expr;
         string                      * puppy_ident;
         Node                        * puppy_node;
         list<Node*>                 * puppy_nodelist;
@@ -54,6 +55,7 @@
         FuncArgDef                  * puppy_function_argdef;
         list<FuncArgDef*>           * puppy_function_arg_list;
         long                          puppy_opt_prec_desc;
+        bool                          puppy_opt_function_key;
 }
 
 %left OR
@@ -87,11 +89,12 @@
 %type  <puppy_setexpr> set_expr
 %type  <puppy_lvalueexpr> lvalue_expr
 %type  <puppy_funcexpr> func_expr
+%type  <puppy_lambda_expr> lambda_expr
 
 %type  <puppy_node>  puppybean
 %type  <puppy_function_argdef> func_arg
 %type  <puppy_function_arg_list> arg_list
-%type  <puppy_function_node> function_node lambda_node
+%type  <puppy_function_node> lambda_node
 %type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
 %type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
@@ -153,10 +156,6 @@ program_node:
                 {
                         $$ = $1;
                 } 
-        | function_node
-                {
-                        $$ = $1;
-                }
         | transaction_node
                 {
                         $$ = $1;
@@ -358,28 +357,28 @@ function_return_prototype:
                         $$ = Null; 
                 }
 
-function_node:
-        DEF IDENTIFIER '=' lambda_node
-                {
-                        FunctionNode * fun = $4;
-                        fun->SetName(*($2));
-                        $$ = fun;
-                }
-        ;
-
 lambda_node:
-        FUNCTION '(' arg_list ')' function_return_prototype program_node_block
+        '(' arg_list ')' function_return_prototype program_node_block
                 {
                         char seq_buf[32] = {0};
                         snprintf(seq_buf, sizeof(seq_buf), "%u", anonymous_func_seq++);
 
                         FunctionNode * fun = new FunctionNode("anonymous_func_" + string(seq_buf));
-                        fun->SetArgList($3);
-                        fun->SetRtnType($5);
-                        fun->SetNodeList($6);
+                        fun->SetArgList($2);
+                        fun->SetRtnType($4);
+                        fun->SetNodeList($5);
 
                         $$ = fun;
                 }
+        ;
+
+lambda_expr:
+        lambda_node
+                {
+                        $$ = new LambdaExpression($1);
+                }
+        ;
+
 lvalue:
         lvalue '[' expr ']'
                 {
@@ -429,12 +428,16 @@ data_type:
                         $$ = String;
                 }
         | TYPE_BOOLEAN
-                {
+                { 
                         $$ = Boolean;
                 }
         | TYPE_SET
                 {
                         $$ = Set;
+                }
+        | FUNCTION
+                {
+                        $$ = Func;
                 }
         ;
 
@@ -486,6 +489,13 @@ vardefstatement:
                         stmt->SetInitExpr($4);
                         $$ = stmt;
                 }
+        | DEF IDENTIFIER '=' lambda_expr
+                {
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Func, Null, -1));
+                        stmt->SetInitExpr($4);
+                        $$ = stmt;
+                }
+
         ;
 
 identifier_list:
@@ -737,6 +747,10 @@ expr:
                         $$ = static_cast<Expression*>($1);
                 }
     | func_expr
+                {
+                        $$ = static_cast<Expression*>($1);
+                }
+    | lambda_expr
                 {
                         $$ = static_cast<Expression*>($1);
                 }
