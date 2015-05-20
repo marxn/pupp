@@ -356,7 +356,7 @@ private:
 class FunctionExpression: public Expression
 {
 public:
-        FunctionExpression(LValueExpression * object, list<Expression*> * exprlist)
+        FunctionExpression(Expression * object, list<Expression*> * exprlist)
         {
                 this->FuncObj = object;
                 this->ExprList = exprlist;
@@ -517,7 +517,7 @@ public:
                 return Expression::Check();
         }
 private:
-        LValueExpression *  FuncObj;
+        Expression *  FuncObj;
         VariableDef * FuncDef;
         list<Expression*> * ExprList;
 };

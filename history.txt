@@ -1,3 +1,7 @@
+May 20th 2015
+------------------------
+1. Fixed the prototype of function expression.
+
 May 12th 2015
 ------------------------
 1. Implemented Closure and Lambda.

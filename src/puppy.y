@@ -636,6 +636,14 @@ func_expr:
                 {
                         $$ = new FunctionExpression($1, $3);
                 }
+        | func_expr '(' expr_list ')'
+                {
+                        $$ = new FunctionExpression($1, $3);
+                }
+        | lambda_expr '(' expr_list ')'
+                {
+                        $$ = new FunctionExpression($1, $3);
+                }
         ;
 
 arith_expr:
