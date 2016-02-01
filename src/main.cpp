@@ -37,7 +37,7 @@ int StartFromMain(Node * bean, char *argv[], int argc)
         explist->push_back(new ConstValueExpression(para));
 
         string StartName = "main";
-        FunctionExpression * payload = new FunctionExpression(new LValueExpression(&StartName), explist);
+        FunctionExpression * payload = new FunctionExpression(new VarExpression(&StartName), explist);
 
         CallStatement * callstmt = new CallStatement;
         callstmt->SetExpression(payload);

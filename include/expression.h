@@ -211,10 +211,10 @@ private:
         list<Expression*> * ExprList;
 };
 
-class LValueExpression: public Expression
+class VarExpression: public Expression
 {
 public:
-        LValueExpression(string * arg)
+        VarExpression(string * arg)
         {
                 this->VarName = *arg;
                 this->lValue = true;
@@ -419,7 +419,7 @@ public:
                         {
                                 if((*j)->isRef())
                                 {
-                                        LValueExpression * exp = static_cast<LValueExpression*>(*i);
+                                        VarExpression * exp = static_cast<VarExpression*>(*i);
                                         ValueBox * vbox = exp->GetLValueRef(context);
                                         Variable * avatar = new_ctx->GetVariable((*j)->GetName());
 

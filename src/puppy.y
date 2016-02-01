@@ -41,7 +41,7 @@
         BinaryExpression            * puppy_logicalexpr;
         KVExpression                * puppy_kvexpr;
         SetExpression               * puppy_setexpr;
-        LValueExpression            * puppy_lvalueexpr;
+        VarExpression               * puppy_varexpr;
         FunctionExpression          * puppy_funcexpr;
         LambdaExpression            * puppy_lambda_expr;
         string                      * puppy_ident;
@@ -78,7 +78,7 @@
 %token AND OR NOT
 %token NIL NL PI
 
-%type  <puppy_const> const_value symbolic_constant
+%type  <puppy_const> literal_value symbolic_constant
 %type  <puppy_expr>  expr
  
 %type  <puppy_arithexpr> arith_expr
@@ -87,7 +87,7 @@
 
 %type  <puppy_kvexpr> kvexpr
 %type  <puppy_setexpr> set_expr
-%type  <puppy_lvalueexpr> lvalue_expr
+%type  <puppy_varexpr> var_expr
 %type  <puppy_funcexpr> func_expr
 %type  <puppy_lambda_expr> lambda_expr
 
@@ -471,13 +471,20 @@ vardefstatement:
                         VarDefinitionStatement * stmt = new VarDefinitionStatement($2, $4);
                         $$ = stmt;
                 }
-        | DEF FUNCTION IDENTIFIER lambda_expr
+        | DEF IDENTIFIER '=' expr
                 {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($3, new VariableType(Func, Null, -1));
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null, -1));
                         stmt->SetInitExpr($4);
                         $$ = stmt;
                 }
-        | DEF IDENTIFIER '=' const_value
+/*
+        | DEF IDENTIFIER '=' var_expr
+                {
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null, -1));
+                        stmt->SetInitExpr($4);
+                        $$ = stmt;
+                }
+        | DEF IDENTIFIER '=' literal_value
                 {
                         VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType($4->GetType(), $4->GetType(), -1));
                         stmt->SetInitValue($4);
@@ -501,7 +508,7 @@ vardefstatement:
                         stmt->SetInitExpr($4);
                         $$ = stmt;
                 }
-
+*/
         ;
 
 identifier_list:
@@ -600,7 +607,7 @@ symbolic_constant:
                 }
         ;
 
-const_value:
+literal_value:
         INTEGER                    
                 {
                         $$ = $1;
@@ -632,7 +639,7 @@ set_expr:
         ;
 
 func_expr:
-        lvalue_expr '(' expr_list ')'
+        var_expr '(' expr_list ')'
                 {
                         $$ = new FunctionExpression($1, $3);
                 }
@@ -714,15 +721,15 @@ kvexpr:
                 }
     ;
 
-lvalue_expr:
-    lvalue_expr '[' expr ']'
+var_expr:
+    var_expr '[' expr ']'
                 {
                         $1->AddOffsetExpr($3);
                         $$ = $1;;
                 }
     | IDENTIFIER 
                 {
-                        LValueExpression * expr = new LValueExpression($1);
+                        VarExpression * expr = new VarExpression($1);
                         $$ = expr;
                 }
     ;
@@ -732,7 +739,7 @@ expr:
                 {
                         $$ = static_cast<Expression*>(new ConstValueExpression($1));
                 }
-    | const_value
+    | literal_value
                 {
                         $$ = static_cast<Expression*>(new ConstValueExpression($1));
                 }
@@ -756,7 +763,7 @@ expr:
                 {
                         $$ = static_cast<Expression*>($1);
                 }
-    | lvalue_expr
+    | var_expr
                 {
                         $$ = static_cast<Expression*>($1);
                 }
