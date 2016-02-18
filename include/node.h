@@ -8,7 +8,6 @@
 #include <list>
 #include <string>
 #include "variable.h"
-#include "portal.h"
 
 using namespace std;
 
@@ -119,17 +118,13 @@ struct ForeachLoopCtx
 class NodeContext
 {
 public:
-        NodeContext(Portal * portal):thePortal(portal){}
+        NodeContext(){}
         ~NodeContext()
         {
                 while(this->Frames.size()>0)
                 {
                         this->PopFrame();
                 }
-        }
-        Portal * GetPortal()
-        {
-                return this->thePortal;
         }
         void AddFrame(Node * snapshot)
         {
@@ -141,35 +136,9 @@ public:
                         string name = i->first;
                         VariableDef * def = i->second;
                         Variable * var = def->GetInstance();
-                        
-                        if(def->UsedByInnerNode())
-                        {
-                                Variable * portalvar = this->thePortal->GetSharedVariable(def);
-                                
-                                if(portalvar!=NULL)
-                                {
-                                        delete portalvar;
-                                }
-                                
-                                this->thePortal->UpdateSharedVariable(def, var);
-                        }
-
                         frame->insert(pair<string, Variable*>(name, var));
                 }
                 this->Frames.push_front(frame);
-        }
-        void LinkFrame(Node * snapshot)
-        {
-                map<string, Variable*> * frame = new map<string, Variable*>;
-
-                map<string, VariableDef*>::iterator i;
-                for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
-                {
-                        string name = i->first;
-                        VariableDef * def = i->second;
-                        frame->insert(pair<string, Variable*>(i->first, i->second->GetInstance()));
-                }
-                this->Frames.push_back(frame);
         }
         void PopFrame()
         {
@@ -177,14 +146,18 @@ public:
                 map<string, Variable*>::iterator i;
                 for(i = frame->begin(); i!=frame->end(); i++)
                 {
-                        VariableDef * vardef = i->second->GetSource();
-                        if(!vardef->UsedByInnerNode())
-                        {
-                                delete i->second;
-                        }
+                        delete i->second;
                 }
                 delete frame;
                 this->Frames.erase(this->Frames.begin());
+        }
+        void AddVariableToCurrentFrame(Variable * var)
+        {
+                map<string, Variable*> * frame = this->Frames.front();
+                if(frame!=NULL && frame->find(var->GetVarName())==frame->end())
+                {
+                        frame->insert(pair<string, Variable*>(var->GetVarName(), var));
+                }
         }
         Variable * GetVariable(string name)
         {
@@ -219,8 +192,11 @@ public:
 
                 return NULL;
         }
-        void Rewind()
+
+        list<Variable*> * BuildClosureVars()
         {
+                list<Variable*> * ret = new list<Variable*>;
+
                 list<map<string, Variable*>* >::iterator i;
                 for(i=this->Frames.begin(); i!=this->Frames.end();i++)
                 {
@@ -228,12 +204,16 @@ public:
                         for(j = (*i)->begin(); j!=(*i)->end(); j++)
                         {
                                 VariableDef * vardef = j->second->GetSource();
-                                if(vardef->UsedByInnerNode())
+                                if(vardef->UsedByInnerNode())// && vardef->ActualParameter())
                                 {
-                                        this->thePortal->UpdateSharedVariable(vardef, j->second);
+                                        //Put all the references of variables into the packet.
+                                        Variable * origin = j->second;
+                                        Variable * closure_var = origin->CreateVarRef();
+                                        ret->push_back(closure_var);
                                 }
                         }
                 }
+                return ret;
         }
 
         stack<ForeachLoopCtx*> ForeachCtx;
@@ -241,7 +221,6 @@ public:
 
 private:
         list<map<string, Variable*>* > Frames;
-        Portal * thePortal;
 };
 
 #endif

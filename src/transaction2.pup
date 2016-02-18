@@ -1,0 +1,42 @@
+def cashflow as decimal;
+
+def main = (args as collection) as integer
+{
+        cashflow = 0.00;
+
+        def a as collection;
+        def b as collection;
+
+        a = collection {        <"name",   "Jack">,
+                                <"balance", 100.00> };
+
+        b = collection {        <"name",    "Rose">,
+                                <"balance",  0.00>  };
+
+        def transferamount as integer;
+        transferamount = 20.00;
+
+        print "a=",a,", b=",b,", cashflow=",cashflow,NL;
+while(true)//a["balance"]>0)
+{
+        transaction(a, b, cashflow)
+        {
+                if(a["balance"] < transferamount)
+                {
+                        rollback;
+                }
+
+                b["balance"] = b["balance"] + transferamount;
+                a["balance"] = a["balance"] - transferamount;
+
+                cashflow = cashflow + transferamount;
+
+                commit;
+        }
+
+        print "a=",a,", b=",b,", cashflow=",cashflow,NL;
+sleep 1000;
+}
+        return 0;
+};
+

@@ -1,0 +1,38 @@
+def a = (x as integer) as function
+{
+	return (y as integer) as integer{return x + y;};
+};
+
+def b = (x& as integer) as function
+{
+        return (y as integer) as integer{return x + y;};
+};
+
+def c = () as function
+{
+        return () as integer{return 10;};
+};
+
+def main = (args as collection) as integer
+{
+while(true)
+{
+	def con = 10;
+	def f = a(con);
+	con = 20;
+	def g = a(con);
+	print f(1),NL;
+	print g(1),NL;
+
+//      def con1 = 10;
+//      def f1 = b(con1);
+//      con1 = 20;
+//      def g1 = b(con);
+//      print f1(1),NL;
+//      print g1(1),NL;
+
+//def f2 = c();
+//print f2(),NL;
+sleep 10000;
+}
+};

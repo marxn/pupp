@@ -11,7 +11,7 @@
 #include "variable.h"
 #include "node.h"
 #include "function.h"
-#include "portal.h"
+#include "closure.h"
 
 using namespace std;
 
@@ -220,17 +220,13 @@ public:
                 this->lValue = true;
         }
 
-        ValueBox * GetLValueRef(NodeContext * context)
+        ValueBox * GetVarRef(NodeContext * context)
         {
                 Variable * var = context->GetVariable(VarName);
                 if(var==NULL)
                 {
-                        var = context->GetPortal()->GetSharedVariable(this->VarDef);
-                        if(var==NULL)
-                        {
-                                cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
-                                return NULL;
-                        }
+                        cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
+                        return NULL;
                 }
 
                 if(this->ExprList.size()==0)
@@ -297,7 +293,7 @@ public:
 
         ConstValue * Calculate(NodeContext * context)
         {
-                ValueBox * result = this->GetLValueRef(context);
+                ValueBox * result = this->GetVarRef(context);
                 if(result==NULL)
                 {
                         return new NullValue;
@@ -363,6 +359,7 @@ public:
         }
         ConstValue * Calculate(NodeContext * context)
         {
+                ConstValue * result = NULL;
                 FuncValue * func = static_cast<FuncValue*>(this->FuncObj->Calculate(context));
 
                 if(func==NULL)
@@ -377,42 +374,36 @@ public:
                         return NULL;
                 }
 
-                FunctionNode * funcnode = func->GetValue();
-                delete func;
-
-                if(funcnode->GetArgList()->size()!=this->ExprList->size())
-                {
-                        cerr<<"puppy runtime error: The number of arguments does not match"<<endl;
-                        return NULL;
-                }
-
-                list<Expression*>::iterator i;
-                list<FuncArgDef*>::iterator j;
-
-                for(i = this->ExprList->begin(), j = funcnode->GetArgList()->begin();
-                        i!=this->ExprList->end() && j!=funcnode->GetArgList()->end(); i++,j++)
-                {
-                        if((*j)->isRef())
-                        {
-                                if((*i)->isLValue()==false)
-                                {
-                                        cerr<<"puppy runtime error: Cannot pass any expression other than a variable to a reference:"<<(*j)->GetName()<<endl;
-                                        return NULL;
-                                }
-                        }
-                }
-
-                ConstValue * result = NULL;
+                FunctionNode * funcnode = func->GetFuncNode();
 
                 if(funcnode)
                 {
-                        int rtn = 0;
-
-                        NodeContext * new_ctx = new NodeContext(context->GetPortal());
-                        new_ctx->AddFrame(funcnode);
+                        if(funcnode->GetArgList()->size()!=this->ExprList->size())
+                        {
+                                cerr<<"puppy runtime error: The number of arguments does not match"<<endl;
+                                return NULL;
+                        }
 
                         list<Expression*>::iterator i;
                         list<FuncArgDef*>::iterator j;
+
+                        for(i = this->ExprList->begin(), j = funcnode->GetArgList()->begin();
+                                i!=this->ExprList->end() && j!=funcnode->GetArgList()->end(); i++,j++)
+                        {
+                                if((*j)->isRef())
+                                {
+                                        if((*i)->isLValue()==false)
+                                        {
+                                                cerr<<"puppy runtime error: Cannot pass any expression other than an lvalue to a reference:"<<(*j)->GetName()<<endl;
+                                                return NULL;
+                                        }
+                                }
+                        }
+
+                        int rtn = 0;
+
+                        NodeContext * new_ctx = new NodeContext;
+                        new_ctx->AddFrame(funcnode);
 
                         for(i = this->ExprList->begin(), j = funcnode->GetArgList()->begin(); 
                                 i!=this->ExprList->end() && j!=funcnode->GetArgList()->end(); i++,j++)
@@ -420,7 +411,7 @@ public:
                                 if((*j)->isRef())
                                 {
                                         VarExpression * exp = static_cast<VarExpression*>(*i);
-                                        ValueBox * vbox = exp->GetLValueRef(context);
+                                        ValueBox * vbox = exp->GetVarRef(context);
                                         Variable * avatar = new_ctx->GetVariable((*j)->GetName());
 
                                         if(avatar)
@@ -455,6 +446,21 @@ public:
                                 }
                         }
 
+                        list<Variable*> * closurevars = func->GetClosureVars();
+
+                        if(closurevars!=NULL)
+                        {
+                                //Put closure variables into the new context.
+                                //Note: All the variables are references.
+                                list<Variable*>::iterator closurevarindex;
+                                for(closurevarindex = closurevars->begin(); closurevarindex != closurevars->end(); closurevarindex++)
+                                {
+                                        Variable * framevar = (*closurevarindex)->CreateVarRef();
+                                        new_ctx->AddVariableToCurrentFrame(framevar);
+                                }
+                        }
+
+                        //Let's rock!
                         rtn = funcnode->Run(new_ctx);
                         if(rtn==NODE_RET_NEEDRETURN)
                         {
@@ -473,8 +479,10 @@ public:
                         }
 
                         delete new_ctx;
-                        context->Rewind();
+//                        context->Rewind();
                 }
+
+                delete func;
                 return result;
         }
         bool Provision()
@@ -531,7 +539,10 @@ public:
 
         ConstValue * Calculate(NodeContext * context)
         {
-                return new FuncValue(this->FuncNode);
+                list<Variable *> * cv = context->BuildClosureVars();
+                FuncValue * ret = new FuncValue(this->FuncNode, cv);
+
+                return ret;
         }
         bool Provision()
         {

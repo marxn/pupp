@@ -1,0 +1,6 @@
+def f = (){print "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",NL;};
+
+def main = (args as collection) as integer
+{
+	call f();
+};

@@ -45,9 +45,7 @@ int StartFromMain(Node * bean, char *argv[], int argc)
 
         if(callstmt->Provision() && callstmt->Check())
         {
-                Portal portal(bean);
-
-                NodeContext * context = new NodeContext(&portal);
+                NodeContext * context = new NodeContext;
                 context->AddFrame(bean);
 
                 //To ensure all global variables to be initlialized.

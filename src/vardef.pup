@@ -1,0 +1,30 @@
+def main = (args as collection) as integer
+{
+	def a = 1.23;
+	def b = 123;
+	def c = "abc";
+	def d = true;
+
+	print a,NL;
+	print b,NL;
+	print c,NL;
+	print d,NL;
+
+	def f = a;
+	print f,NL;
+
+	def g = () as integer{return 10;};
+	print g,NL;
+
+	def h = g;
+	print h(),NL;
+	h = funt;
+	
+	print h(1),NL;
+
+};
+
+def funt = (a as integer) as integer
+{
+	return 11;
+};

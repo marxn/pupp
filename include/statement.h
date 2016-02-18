@@ -5,7 +5,6 @@
 #include <iostream>
 #include "node.h"
 #include "expression.h"
-#include "portal.h"
 
 using namespace std;
 
@@ -108,12 +107,8 @@ public:
                 Variable * var = context->GetVariable(this->VarDef->GetVarName());
                 if(var==NULL)
                 {
-                        var = context->GetPortal()->GetSharedVariable(this->VarDef);
-                        if(var==NULL)
-                        {
-                                cerr<<"puppy runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
-                                return NODE_RET_ERROR;
-                        }
+                        cerr<<"puppy runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
+                        return NODE_RET_ERROR;
                 }
 
                 if(this->Reference->GetExpList()->size()==0)

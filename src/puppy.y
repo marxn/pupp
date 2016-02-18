@@ -599,7 +599,7 @@ symbolic_constant:
                 }
         | PI
                 {
-                        $$ = new DecimalValue(3.1415926);
+                        $$ = new DecimalValue("3.1415926");
                 }
         | NIL
                 {

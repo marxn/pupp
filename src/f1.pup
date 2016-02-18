@@ -1,0 +1,21 @@
+def main = (args as collection) as integer
+{
+while(true)
+{
+        def test = () as integer 
+        {
+                def x = 10;
+
+                def test1 = () as integer
+                {
+                        x=x+1;
+                        return x+1;
+                };
+
+                return test1()+1;
+        };
+        print test(),NL;
+        sleep 1000;
+}
+        return 0;
+};

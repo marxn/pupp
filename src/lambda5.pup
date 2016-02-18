@@ -1,0 +1,35 @@
+def a = (x as integer) as function
+{
+	return (y as integer) as integer{return x + y;};
+};
+
+def fff as function;
+def ggg as function;
+def ppp as function;
+
+def b = (x as integer)
+{
+	fff = () { x = 200; };
+	ggg = () { x = 300; };
+	ppp = () { print x,NL; };
+};
+
+def main = (args as collection) as integer
+{
+	def con = 10;
+	def f = a(con);
+	con = 20;
+	def g = a(con);
+	print f(1),NL;
+	print g(1),NL;
+
+call b(100);
+call ppp();
+call fff();
+call ppp();
+call ggg();
+call ppp();
+
+call b(200);
+call ppp();
+};

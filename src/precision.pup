@@ -1,0 +1,16 @@
+def main = (args as collection) as integer
+{
+        def a as decimal(5);
+        def b = 1.1;
+        a = 1.1;
+        print a," ",b,NL;
+
+        a=1.11;
+        b=1.11;
+        print a," ",b,NL;
+
+        def x as decimal(6)[10];
+        print x,NL;
+        return 0;
+};
+

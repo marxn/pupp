@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <list>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,30 +135,6 @@ private:
         string MsgType;
         map<string, ConstValue*> Data;
         map<string, Node*> actions;
-};
-
-class FunctionNode;
-
-class FuncValue: public ConstValue
-{
-public:
-        FuncValue(FunctionNode * node):ConstValue(Func), FuncNode(node)
-        {
-        }
-        ConstValue * DupValue()
-        {
-                return new FuncValue(this->FuncNode);
-        }
-        FunctionNode * GetValue()
-        {
-                return this->FuncNode;
-        }
-        string toString()
-        {
-                return "function";
-        }
-private:
-        FunctionNode * FuncNode;
 };
 
 class StringValue: public ConstValue

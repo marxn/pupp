@@ -1,0 +1,7 @@
+def main = (args as collection) as integer
+{
+	def fun = () as integer
+	{
+	};
+};
+

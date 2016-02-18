@@ -1,0 +1,25 @@
+def function main(args as collection) as integer
+{
+        def t = collection{<0,() as integer{return 10;}>,<1,() as integer{return 11;}>};
+        def i as integer;
+
+        for(i = 0; i < 2; i = i + 1)
+        {
+                print t[i](),NL;
+        }
+
+        def r as function[2];
+        r[0] = () as function {return t[0];};
+        r[1] = () as function {return t[1];};
+
+        for(i = 0; i < 2; i = i + 1)
+        {
+                def p as function;
+                p = r[i]();
+                print r[i]()(),NL;
+        }
+       
+        call (){print 123,NL;}(); 
+        return 0;
+};
+

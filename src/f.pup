@@ -1,0 +1,26 @@
+def msg test
+{
+        def name as string;
+        def balance as decimal;
+        def function add(amount as decimal)
+        {
+                balance = balance + amount;
+        }
+}
+
+def function main(args as collection) as integer
+{
+        def a as message;
+        a = test()
+        {
+                name="123";
+                balance=100.00
+        };
+
+        print a,NL;
+}
+
+def intermediate = msgset1.where((...):x>10 and y>20).orderby(x1,x2:x1>x2)
+;
+
+

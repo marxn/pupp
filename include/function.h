@@ -91,6 +91,7 @@ public:
                         DataType argtype = (*i)->GetType();
                         VariableDef * localvar = new VariableDef(argname);
                         localvar->SetVarType(argtype);
+                        localvar->SetIsActualParameter(true);
                         this->AddVariable(localvar);
                 }
 

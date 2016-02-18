@@ -1,3 +1,7 @@
+Feb 18th 2016
+------------------------
+1. Rework for closure and lambda expression.
+
 Feb 1st 2016
 ------------------------
 1. Regular the rvalue expression.

@@ -1,0 +1,11 @@
+def main = (args as collection) as integer
+{
+        while(true)
+        {
+                def x as integer;
+                sleep 1000000;
+        }
+
+        return 0;
+};
+

@@ -29,7 +29,7 @@ public:
 
         string GetVarName()
         {
-                return VarName;
+                return this->VarName;
         }
 
         void SetSource(VariableDef * def)
@@ -135,6 +135,20 @@ public:
         {
                 this->Prec = prec;
         }
+
+        Variable * CreateVarRef()
+        {
+                Variable * ret = new Variable(this->VarName, this->VarType);
+                ret->SetSource(this->Source);
+                ret->SetPrecision(this->Prec);
+
+                if(this->VBox!=NULL)
+                {
+                        this->VBox->IncRefCount();
+                        ret->SetVBox(this->VBox);
+                }
+                return ret;
+        }
 private:
         VariableDef * Source;
         DataType VarType;
@@ -146,7 +160,7 @@ private:
 class VariableDef
 {
 public:
-        VariableDef(string varname):VarName(varname), VarType(Null), IsUsedByInnerNode(false)
+        VariableDef(string varname):VarName(varname), VarType(Null), IsUsedByInnerNode(false), IsActualParameter(false)
         {
         }
         Variable * GetInstance()
@@ -176,10 +190,20 @@ public:
         {
                 this->IsUsedByInnerNode = u;
         }
+        bool ActualParameter()
+        {
+                return this->IsActualParameter;
+        }
+        void SetIsActualParameter(bool u)
+        {
+                this->IsActualParameter = u;
+        }
 private:
         string VarName;
         DataType VarType;
         bool IsUsedByInnerNode;
+        bool IsActualParameter;
 };
 
 #endif
+

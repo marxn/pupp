@@ -27,12 +27,8 @@ public:
                         Variable * origin = context->GetVariableFromOuterLayer(varname);
                         if(origin==NULL)
                         {
-                                origin = context->GetPortal()->GetSharedVariable(*vd);
-                                if(origin==NULL)
-                                {
-                                        cerr<<"Puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
-                                        return NODE_RET_ERROR;
-                                }
+                                cerr<<"Puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                                return NODE_RET_ERROR;
                         }
 
                         ConstValue * value = origin->GetValue();
@@ -67,12 +63,8 @@ public:
                                         Variable * origin = context->GetVariableFromOuterLayer(varname);
                                         if(origin==NULL)
                                         {
-                                                origin = context->GetPortal()->GetSharedVariable(*vd);
-                                                if(origin==NULL)
-                                                {
-                                                        cerr<<"puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
-                                                        return NODE_RET_ERROR;
-                                                }
+                                                cerr<<"puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                                                return NODE_RET_ERROR;
                                         }
 
                                         ConstValue * value = var->GetValue();

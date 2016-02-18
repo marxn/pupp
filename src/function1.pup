@@ -1,0 +1,20 @@
+def test1 = (a& as collection)
+{
+        a[1]=2;
+        print a,NL;
+};
+
+def main = (args as collection) as integer
+{
+	def fff = 1;
+	def bbb = fff;
+
+        def a = collection{fff,bbb,7,8,<"xxx",collection{<"zzz","qqq">}>};
+        print a,NL;
+        transaction(a)
+        {
+                call test1(a);
+        }
+        print a,NL;
+};
+
