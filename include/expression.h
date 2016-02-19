@@ -18,7 +18,7 @@ using namespace std;
 class Expression
 {
 public:
-        Expression():lValue(false)
+        Expression():lValue(false), islambda(false)
         {
         }
         virtual ~Expression(){}
@@ -42,8 +42,13 @@ public:
         {
                 return this->lValue;
         }
+        bool IsLambdaExp()
+        {
+                return this->islambda;
+        }
 protected:
         bool lValue;
+        bool islambda;
         Node * ParentNode;
 };
 
@@ -223,6 +228,7 @@ public:
         ValueBox * GetVarRef(NodeContext * context)
         {
                 Variable * var = context->GetVariable(VarName);
+
                 if(var==NULL)
                 {
                         cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
@@ -535,8 +541,8 @@ class LambdaExpression: public Expression
 public:
         LambdaExpression(FunctionNode * node): FuncNode(node)
         {
+                this->islambda = true;
         }
-
         ConstValue * Calculate(NodeContext * context)
         {
                 list<Variable *> * cv = context->BuildClosureVars();
@@ -544,6 +550,7 @@ public:
 
                 return ret;
         }
+
         bool Provision()
         {
                 this->FuncNode->SetParentNode(this->ParentNode);

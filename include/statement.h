@@ -428,7 +428,7 @@ private:
 class VarDefinitionStatement: public StatementNode
 {
 public:
-        VarDefinitionStatement(string * ident, VariableType * vartype):Ident(ident), VarType(vartype), InitValue(NULL), InitExpr(NULL)
+        VarDefinitionStatement(string * ident, VariableType * vartype):Ident(ident), VarType(vartype), InitExpr(NULL)
         {
         }
         int Invoke(NodeContext * context)
@@ -473,12 +473,15 @@ public:
                         return NODE_RET_NORMAL;
                 }
 
-                if(this->InitValue!=NULL)
+                if(this->InitExpr!=NULL)
                 {
-                        var->SetValue(this->InitValue);
-                }
-                else if(this->InitExpr!=NULL)
-                {
+                        //Note: Lambda expression needs a temp initialized value to avoid later checking in its body.
+                        if(this->InitExpr->IsLambdaExp())
+                        {
+                                FuncValue * tmp_lambda = new FuncValue(NULL, NULL);
+                                var->SetRef(tmp_lambda);
+                        }
+
                         ConstValue * value = this->InitExpr->Calculate(context);
                         if(value==NULL)
                         {
@@ -491,7 +494,6 @@ public:
                                 delete value;
                                 return NODE_RET_ERROR;
                         }
-
                         var->SetVarType(value->GetType());
                         var->SetRef(value);
                 }
@@ -503,10 +505,6 @@ public:
                 }
 
                 return NODE_RET_NORMAL;
-        }
-        void SetInitValue(ConstValue * value)
-        {
-                this->InitValue = value;
         }
         void SetInitExpr(Expression * expr)
         {
@@ -526,16 +524,23 @@ public:
 
                         this->VarDef = new VariableDef(varname);
                         this->VarDef->SetVarType(this->VarType->GetVarType());
+
+                        //Variable type has to be determined before Lambda expression defined.
+                        if(this->InitExpr!=NULL && this->InitExpr->IsLambdaExp())
+                        {
+                                this->VarDef->SetVarType(Func);
+                        }
+
                         parent->AddVariable(this->VarDef);
                 }
 
-                if(this->InitExpr==NULL)
+                if(this->InitExpr)
                 {
-                        return true;
+                        this->InitExpr->SetParentNode(parent);
+                        return this->InitExpr->Provision();
                 }
 
-                this->InitExpr->SetParentNode(parent);
-                return this->InitExpr->Provision();
+                return true;
         }
         bool Check()
         {
@@ -548,7 +553,6 @@ public:
         }
 private:
         VariableDef * VarDef;
-        ConstValue * InitValue;
         Expression * InitExpr;
         string * Ident;
         VariableType * VarType;

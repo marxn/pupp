@@ -1,3 +1,7 @@
+Feb 19th 2016
+------------------------
+1. Fixed bugs for closure and lambda expression.
+
 Feb 18th 2016
 ------------------------
 1. Rework for closure and lambda expression.

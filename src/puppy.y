@@ -477,6 +477,7 @@ vardefstatement:
                         stmt->SetInitExpr($4);
                         $$ = stmt;
                 }
+
 /*
         | DEF IDENTIFIER '=' var_expr
                 {

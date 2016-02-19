@@ -6,7 +6,6 @@
 #include "constval.h"
 #include "expression.h"
 #include "statement.h"
-#include "portal.h"
 
 extern ContainerNode * parse();
 extern FILE * yyin;
