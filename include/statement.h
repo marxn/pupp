@@ -475,13 +475,6 @@ public:
 
                 if(this->InitExpr!=NULL)
                 {
-                        //Note: Lambda expression needs a temp initialized value to avoid later checking in its body.
-                        if(this->InitExpr->IsLambdaExp())
-                        {
-                                FuncValue * tmp_lambda = new FuncValue(NULL, NULL);
-                                var->SetRef(tmp_lambda);
-                        }
-
                         ConstValue * value = this->InitExpr->Calculate(context);
                         if(value==NULL)
                         {
@@ -495,12 +488,6 @@ public:
                                 return NODE_RET_ERROR;
                         }
                         var->SetVarType(value->GetType());
-                        var->SetRef(value);
-                }
-                else
-                {
-                        DefaultValueFactory defvalue(this->VarType->GetVarType(), this->VarType->GetPrecision());
-                        ConstValue * value = defvalue.GetValue();
                         var->SetRef(value);
                 }
 
@@ -524,6 +511,7 @@ public:
 
                         this->VarDef = new VariableDef(varname);
                         this->VarDef->SetVarType(this->VarType->GetVarType());
+                        this->VarDef->SetVarPrec(this->VarType->GetPrecision());
 
                         //Variable type has to be determined before Lambda expression defined.
                         if(this->InitExpr!=NULL && this->InitExpr->IsLambdaExp())

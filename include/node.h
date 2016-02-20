@@ -38,10 +38,10 @@ enum NodeType
 class Node
 {
 public:
-        Node():Type(Generic)
+        Node():Type(Generic), ParentNode(NULL)
         {
         }
-        Node(NodeType type):Type(type)
+        Node(NodeType type):Type(type), ParentNode(NULL)
         {
         }
         virtual ~Node()
@@ -80,6 +80,7 @@ public:
                         delete thevar;
                         this->VariableDefTable.erase(var->GetVarName());
                 }
+                var->SetAttachedNode(this);
                 this->VariableDefTable[var->GetVarName()] = var;
         }
         VariableDef * FindVariable(string varname)
@@ -92,6 +93,7 @@ public:
                 if(this->ParentNode!=NULL)
                 {
                         VariableDef * result = this->ParentNode->FindVariable(varname);
+
                         if(result!=NULL && this->Type==Function)
                         {
                                 result->SetUsedByInnerNode(true);

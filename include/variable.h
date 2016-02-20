@@ -6,6 +6,7 @@
 
 using namespace std;
 
+class Node;
 class VariableDef;
 
 class Variable
@@ -160,7 +161,7 @@ private:
 class VariableDef
 {
 public:
-        VariableDef(string varname):VarName(varname), VarType(Null), IsUsedByInnerNode(false), IsActualParameter(false)
+        VariableDef(string varname):VarName(varname), VarType(Null), VarPrec(-1), IsUsedByInnerNode(false), IsActualParameter(false)
         {
         }
         Variable * GetInstance()
@@ -168,11 +169,18 @@ public:
                 Variable * ret = new Variable(this->VarName, this->VarType);
                 ret->SetSource(this);
 
+                ConstValue * value = new NullValue;
+                ret->SetRef(value);
+
                 return ret;
         }
         void SetVarType(DataType type)
         {
                 this->VarType = type;
+        }
+        void SetVarPrec(long prec)
+        {
+                this->VarPrec = prec;
         }
         DataType GetVarType()
         {
@@ -198,11 +206,21 @@ public:
         {
                 this->IsActualParameter = u;
         }
+        void SetAttachedNode(Node * node)
+        {
+                this->AttachedNode = node;
+        }
+        Node * GetAttachedNode()
+        {
+                return this->AttachedNode;
+        }
 private:
         string VarName;
         DataType VarType;
+        long VarPrec;
         bool IsUsedByInnerNode;
         bool IsActualParameter;
+        Node * AttachedNode;
 };
 
 #endif

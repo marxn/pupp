@@ -376,7 +376,7 @@ public:
 
                 if(func->GetType()==Null)
                 {
-                        cerr<<"puppy runtime error: Function has not been initialized."<<endl;
+                        cerr<<"puppy runtime error: Function object has not been initialized."<<endl;
                         return NULL;
                 }
 
