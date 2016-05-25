@@ -1,14 +1,15 @@
 def main = (args as collection) as integer
 {
-	def f = (x as integer) as integer
-	{
-		if(x==1)
-		{
-			return 1;
-		}
-		return x*f(x-1);
-	};
-
 	print f(5),NL;
 
 };
+
+def f = (x as integer )as integer 
+{
+	if(x==1)
+	{
+		return 1;
+	}
+	return x*f(x-1);
+};
+

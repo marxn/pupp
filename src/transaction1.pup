@@ -18,7 +18,7 @@ def transfer = (user1& as collection, user2& as collection, amount as decimal) a
                 commit;
         }
         return ret;
-}
+};
 
 def build_trans_item = (item& as collection[])
 {
@@ -27,7 +27,7 @@ def build_trans_item = (item& as collection[])
         {
                 item[i] = collection{<"seq_no", i>, <"amount", i*2>};
         }
-}
+};
 
 def main = (args as collection) as integer
 {
@@ -54,5 +54,6 @@ def main = (args as collection) as integer
                 sleep 1000000;
         }
         return 0;
-}
+};
+
 

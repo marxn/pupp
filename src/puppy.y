@@ -21,10 +21,8 @@
     int yylex(void);
     ContainerNode * final;
 
-    unsigned int anonymous_func_seq = 0;
+    unsigned long anonymous_func_seq = 0;
 %}
-
-%locations
 
 %union
 {
@@ -163,7 +161,7 @@ program_node:
         ;
 
 statement_node:
-    assign_statement
+          assign_statement
                 {
                         $$ = $1;
                 }
@@ -361,7 +359,7 @@ lambda_node:
         '(' arg_list ')' function_return_prototype program_node_block
                 {
                         char seq_buf[32] = {0};
-                        snprintf(seq_buf, sizeof(seq_buf), "%u", anonymous_func_seq++);
+                        snprintf(seq_buf, sizeof(seq_buf), "%lu", anonymous_func_seq++);
 
                         FunctionNode * fun = new FunctionNode("anonymous_func_" + string(seq_buf));
                         fun->SetArgList($2);
@@ -477,39 +475,6 @@ vardefstatement:
                         stmt->SetInitExpr($4);
                         $$ = stmt;
                 }
-
-/*
-        | DEF IDENTIFIER '=' var_expr
-                {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null, -1));
-                        stmt->SetInitExpr($4);
-                        $$ = stmt;
-                }
-        | DEF IDENTIFIER '=' literal_value
-                {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType($4->GetType(), $4->GetType(), -1));
-                        stmt->SetInitValue($4);
-                        $$ = stmt;
-                } 
-        | DEF IDENTIFIER '=' set_expr
-                {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Set, Null, -1));
-                        stmt->SetInitExpr($4);
-                        $$ = stmt;
-                }
-        | DEF IDENTIFIER '=' func_expr
-                {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null, -1));
-                        stmt->SetInitExpr($4);
-                        $$ = stmt;
-                }
-        | DEF IDENTIFIER '=' lambda_expr
-                {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Func, Null, -1));
-                        stmt->SetInitExpr($4);
-                        $$ = stmt;
-                }
-*/
         ;
 
 identifier_list:
@@ -550,6 +515,7 @@ call_statement:
                         stmt->SetExpression($2);
                         $$ = static_cast<StatementNode*>(stmt);
                 }
+
         ;
 
 expr_list:

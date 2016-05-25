@@ -1,7 +1,12 @@
 def main = (args as collection) as integer
 {
+        def a as integer;
+
+        a = 10;
 	def fun = () as integer
 	{
+            print a,NL;
 	};
+	fun();
 };
 
