@@ -457,7 +457,6 @@ public:
                         if(closurevars!=NULL)
                         {
                                 //Put closure variables into the new context.
-                                //Note: All the variables are references.
                                 list<Variable*>::iterator closurevarindex;
                                 for(closurevarindex = closurevars->begin(); closurevarindex != closurevars->end(); closurevarindex++)
                                 {
@@ -545,7 +544,28 @@ public:
         }
         ConstValue * Calculate(NodeContext * context)
         {
+                list<string*> * CopyVars = this->FuncNode->GetCopyList();
                 list<Variable *> * cv = context->BuildClosureVars();
+
+                if(CopyVars!=NULL)
+                {
+                    list<string*>::iterator i;
+                    for(i = CopyVars->begin(); i != CopyVars->end(); i++)
+                    {
+                        Variable * origin = context->GetVariableFromOuterLayer(**i);
+                        if(origin==NULL)
+                        {
+                                cerr<<"Puppy runtime error: cannot find variable: "<<**i<<" in outer context"<<endl;
+                                return NULL;
+                        }
+
+                        Variable * cl_var = new Variable(origin->GetVarName(), origin->GetVarType());
+                        cl_var->SetSource(origin->GetSource());
+                        cl_var->SetRef(origin->GetValue());
+
+                        cv->push_back(cl_var);
+                    }
+                }
                 FuncValue * ret = new FuncValue(this->FuncNode, cv);
 
                 return ret;

@@ -87,8 +87,6 @@ identifier [a-zA-Z_]+[0-9]*
                                         return CONTINUE;
                                 if(strcasecmp(yytext,"def")==0)
                                         return DEF;
-                                if(strcasecmp(yytext,"as")==0)
-                                        return AS;
                                 if(strcasecmp(yytext,"for")==0)
                                         return FOR;
                                 if(strcasecmp(yytext,"foreach")==0)
@@ -103,6 +101,8 @@ identifier [a-zA-Z_]+[0-9]*
                                         return SLEEP;
                                 if(strcasecmp(yytext,"function")==0)
                                         return FUNCTION;
+                                if(strcasecmp(yytext,"copy")==0)
+                                        return COPY;
                                 if(strcasecmp(yytext,"transaction")==0)
                                         return TRANSACTION;
                                 if(strcasecmp(yytext,"rollback")==0)
@@ -112,15 +112,15 @@ identifier [a-zA-Z_]+[0-9]*
                                 if(strcasecmp(yytext,"return")==0)
                                         return RETURN;
                                 //Variable Type
-                                if(strcasecmp(yytext,"integer")==0)
+                                if(strcasecmp(yytext,"int")==0)
                                         return TYPE_INTEGER;
                                 if(strcasecmp(yytext,"decimal")==0)
                                         return TYPE_DECIMAL;
                                 if(strcasecmp(yytext,"string")==0)
                                         return TYPE_STRING;
-                                if(strcasecmp(yytext,"boolean")==0)
+                                if(strcasecmp(yytext,"bool")==0)
                                         return TYPE_BOOLEAN;
-                                if(strcasecmp(yytext,"collection")==0)
+                                if(strcasecmp(yytext,"set")==0)
                                         return TYPE_SET;
 
                                 //Logical operation

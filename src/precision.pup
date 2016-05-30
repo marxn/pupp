@@ -1,6 +1,6 @@
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
-        def a as decimal(5);
+        def a : decimal(5);
         def b = 1.1;
         a = 1.1;
         print a," ",b,NL;
@@ -9,7 +9,7 @@ def main = (args as collection) as integer
         b=1.11;
         print a," ",b,NL;
 
-        def x as decimal(6)[10];
+        def x : decimal(6)[10];
         print x,NL;
         return 0;
 };

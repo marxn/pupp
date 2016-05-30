@@ -1,6 +1,6 @@
 def g = 10;
 
-def test2 = (x& as integer)
+def test2 = (x& : int)
 {
         transaction(x)
         {
@@ -9,7 +9,7 @@ def test2 = (x& as integer)
         }
 };
 
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
         print g,NL;
         call test2(g);

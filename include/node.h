@@ -156,11 +156,22 @@ public:
         void AddVariableToCurrentFrame(Variable * var)
         {
                 map<string, Variable*> * frame = this->Frames.front();
-                if(frame!=NULL && frame->find(var->GetVarName())==frame->end())
+                if(frame==NULL)
                 {
-                        frame->insert(pair<string, Variable*>(var->GetVarName(), var));
+                    return;
                 }
+
+                map<string, Variable*>::iterator ex = frame->find(var->GetVarName());
+
+                if(ex != frame->end())
+                {
+                    delete ex->second;
+                    frame->erase(ex);
+                }
+
+                frame->insert(pair<string, Variable*>(var->GetVarName(), var));
         }
+
         Variable * GetVariable(string name)
         {
                 list<map<string, Variable*>* >::iterator i;
@@ -206,13 +217,15 @@ public:
                         for(j = (*i)->begin(); j!=(*i)->end(); j++)
                         {
                                 VariableDef * vardef = j->second->GetSource();
-                                if(vardef->UsedByInnerNode())// && vardef->ActualParameter())
+
+                                if(vardef->UsedByInnerNode())
                                 {
-                                        //Put all the references of variables into the packet.
+                                        //Put all the references of variables into the closure.
                                         Variable * origin = j->second;
                                         Variable * closure_var = origin->CreateVarRef();
                                         ret->push_back(closure_var);
                                 }
+                                
                         }
                 }
                 return ret;

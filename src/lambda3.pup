@@ -1,20 +1,20 @@
-def function main(args as collection) as integer
+def main = (args : set) : int
 {
-        def t = collection{<0,() as integer{return 10;}>,<1,() as integer{return 11;}>};
-        def i as integer;
+        def t = set{<0, () : int{ return 10; }>,<1, () : int{return 11;}>};
+        def i : int;
 
         for(i = 0; i < 2; i = i + 1)
         {
                 print t[i](),NL;
         }
 
-        def r as function[2];
-        r[0] = () as function {return t[0];};
-        r[1] = () as function {return t[1];};
+        def r : function[2];
+        r[0] = () : function {return t[0];};
+        r[1] = () : function {return t[1];};
 
         for(i = 0; i < 2; i = i + 1)
         {
-                def p as function;
+                def p : function;
                 p = r[i]();
                 print r[i]()(),NL;
         }

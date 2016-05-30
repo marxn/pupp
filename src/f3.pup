@@ -1,12 +1,13 @@
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
-        def a as integer;
-
-        a = 10;
-	def fun = () as integer
+        def x = 10;
+	def fun = (a&:int) 
 	{
-            print a,NL;
+            a = x;
 	};
-	fun();
+
+        call fun(x);
+
+        return 0;
 };
 

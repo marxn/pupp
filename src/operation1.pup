@@ -1,4 +1,4 @@
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
         if(true)
 {

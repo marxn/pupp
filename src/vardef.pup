@@ -1,4 +1,4 @@
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
 	def a = 1.23;
 	def b = 123;
@@ -13,7 +13,7 @@ def main = (args as collection) as integer
 	def f = a;
 	print f,NL;
 
-	def g = () as integer{return 10;};
+	def g = () : int {return 10;};
 	print g,NL;
 
 	def h = g;
@@ -24,7 +24,7 @@ def main = (args as collection) as integer
 
 };
 
-def funt = (a as integer) as integer
+def funt = (a : int) : int
 {
 	return 11;
 };

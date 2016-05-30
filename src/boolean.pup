@@ -1,4 +1,4 @@
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
         print "true and true is ", true and true,NL;
         print "true and false is ", true and false,NL;

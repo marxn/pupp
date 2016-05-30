@@ -71,7 +71,7 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
-%token DEF FUNCTION RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL AS PRINT SLEEP 
+%token DEF FUNCTION COPY RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
 %token NIL NL PI
@@ -97,7 +97,9 @@
 %type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
 %type  <puppy_identlist> identifier_list
+%type  <puppy_identlist> opt_copy_clause
 %type  <puppy_exprlist>  expr_list
+%type  <puppy_exprlist>  opt_dimension_def
 %type  <puppy_opt_prec_desc> opt_prec_desc
 %type  <puppy_datatype>  data_type function_return_prototype
 %type  <puppy_vartype>  var_type func_arg_type
@@ -314,15 +316,15 @@ func_arg_type:
         ;
 
 func_arg:
-        IDENTIFIER AS func_arg_type
+        IDENTIFIER ':' func_arg_type
                 {
                         FuncArgDef * def = new FuncArgDef(*($1), $3->GetVarType(), false);
                         def->SetElementType($3->GetElementType());
                         $$ = def;
                 }
-        | IDENTIFIER '&' AS func_arg_type
+        | '&' IDENTIFIER ':' func_arg_type
                 {
-                        FuncArgDef * def = new FuncArgDef(*($1), $4->GetVarType(), true);
+                        FuncArgDef * def = new FuncArgDef(*($2), $4->GetVarType(), true);
                         def->SetElementType($4->GetElementType());
                         $$ = def;
                 }
@@ -339,14 +341,14 @@ arg_list:
                         $$ = new list<FuncArgDef*>;
                         $$->push_back($1);
                 }
-        |
+        | /*empty*/
                 {
                         $$ = new list<FuncArgDef*>;
                 }
         ;
 
 function_return_prototype:
-        AS data_type
+        ':' data_type
                 {
                         $$ = $2;
                 }
@@ -354,17 +356,29 @@ function_return_prototype:
                 {
                         $$ = Null; 
                 }
+        ;
 
+opt_copy_clause:
+        COPY '(' identifier_list ')'
+                {
+                        $$ = $3; 
+                }
+        | /*empty*/
+                {
+                        $$ = NULL;
+                }
+        ;  
 lambda_node:
-        '(' arg_list ')' function_return_prototype program_node_block
+        '(' arg_list ')' opt_copy_clause function_return_prototype program_node_block
                 {
                         char seq_buf[32] = {0};
                         snprintf(seq_buf, sizeof(seq_buf), "%lu", anonymous_func_seq++);
 
                         FunctionNode * fun = new FunctionNode("anonymous_func_" + string(seq_buf));
                         fun->SetArgList($2);
-                        fun->SetRtnType($4);
-                        fun->SetNodeList($5);
+                        fun->SetCopyList($4);
+                        fun->SetRtnType($5);
+                        fun->SetNodeList($6);
 
                         $$ = fun;
                 }
@@ -378,14 +392,17 @@ lambda_expr:
         ;
 
 lvalue:
-        lvalue '[' expr ']'
-                {
-                        $1->AddOffsetExpr($3);
-                        $$ = $1;
-                }
-        | IDENTIFIER
+        IDENTIFIER opt_dimension_def
                 {
                         $$ = new LValue($1);
+                        if($2!=NULL)
+                        {
+                                list<Expression*>::iterator i;
+                                for(i = $2->begin(); i!=$2->end(); i++)
+                                {
+                                        $$->AddOffsetExpr(*i);
+                                }
+                        }
                 }
         ;
 
@@ -439,16 +456,31 @@ data_type:
                 }
         ;
 
-var_type:
-        var_type '[' expr ']'
+opt_dimension_def:
+        '[' expr_list ']'
                 {
-                        $1->SetVarType(Array);
-                        $1->AddDimention($3);
-                        $$ = $1;
+                        $$ = $2;
                 }
-        | data_type opt_prec_desc
+        | /*empty*/
+                {
+                        $$ = NULL;
+                }
+        ;
+
+var_type:
+        data_type opt_prec_desc opt_dimension_def
                 {
                         $$ = new VariableType($1, $1, $2);
+                        if($3!=NULL)
+                        {
+                                $$->SetVarType(Array);
+
+                                list<Expression*>::iterator i;
+                                for(i = $3->begin(); i!=$3->end(); i++)
+                                {
+                                        $$->AddDimention(*i);
+                                } 
+                        }
                 }
         ;
 
@@ -464,7 +496,7 @@ opt_prec_desc:
         ;
 
 vardefstatement:
-        DEF IDENTIFIER AS var_type
+        DEF IDENTIFIER ':' var_type
                 {
                         VarDefinitionStatement * stmt = new VarDefinitionStatement($2, $4);
                         $$ = stmt;
@@ -689,14 +721,18 @@ kvexpr:
     ;
 
 var_expr:
-    var_expr '[' expr ']'
-                {
-                        $1->AddOffsetExpr($3);
-                        $$ = $1;;
-                }
-    | IDENTIFIER 
+    IDENTIFIER opt_dimension_def 
                 {
                         VarExpression * expr = new VarExpression($1);
+                        if($2!=NULL)
+                        {
+                                list<Expression*>::iterator i;
+                                for(i = $2->begin(); i!=$2->end(); i++)
+                                {
+                                        expr->AddOffsetExpr(*i);
+                                }
+                        }
+
                         $$ = expr;
                 }
     ;

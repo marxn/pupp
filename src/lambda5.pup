@@ -1,20 +1,20 @@
-def a = (x as integer) as function
+def a = (x : int) : function
 {
-	return (y as integer) as integer{return x + y;};
+	return (y : int) : int{return x + y;};
 };
 
-def fff as function;
-def ggg as function;
-def ppp as function;
+def fff : function;
+def ggg : function;
+def ppp : function;
 
-def b = (x as integer)
+def b = (x : int)
 {
 	fff = () { x = 200; };
-	ggg = () { x = 300; };
+	ggg = () copy(x) { x = 300; };
 	ppp = () { print x,NL; };
 };
 
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
 	def con = 10;
 	def f = a(con);
@@ -23,13 +23,13 @@ def main = (args as collection) as integer
 	print f(1),NL;
 	print g(1),NL;
 
-call b(100);
-call ppp();
-call fff();
-call ppp();
-call ggg();
-call ppp();
+	call b(100);
+	call ppp();
+	call fff();
+	call ppp();
+	call ggg();
+	call ppp();
 
-call b(200);
-call ppp();
+	call b(200);
+	call ppp();
 };

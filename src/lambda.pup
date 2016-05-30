@@ -1,13 +1,13 @@
-def buildcounter = () as function
+def buildcounter = () : function
 {
         def x = 0;
-        return () as integer {x = x + 1; return x;};
+        return () : int {x = x + 1; return x;};
 };
 
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
-        def i as integer;
-        def counter as function;
+        def i : int;
+        def counter : function;
 
         counter = buildcounter();
 

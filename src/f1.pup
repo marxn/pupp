@@ -1,12 +1,12 @@
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
 while(true)
 {
-        def test = () as integer 
+        def test = () : int 
         {
                 def x = 10;
 
-                def test1 = () as integer
+                def test1 = () : int
                 {
                         x=x+1;
                         return x+1;
@@ -15,7 +15,7 @@ while(true)
                 return test1()+1;
         };
         print test(),NL;
-        sleep 1000;
+        sleep 1000000;
 }
         return 0;
 };

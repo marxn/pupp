@@ -1,6 +1,6 @@
-def transfer = (user1& as collection, user2& as collection, amount as decimal) as boolean
+def transfer = (user1& : set, user2& : set, amount : decimal) : bool
 {
-        def ret as boolean;
+        def ret : bool;
         ret = false;
 
         transaction(user1, user2)
@@ -20,29 +20,29 @@ def transfer = (user1& as collection, user2& as collection, amount as decimal) a
         return ret;
 };
 
-def build_trans_item = (item& as collection[])
+def build_trans_item = (item& : set[])
 {
-        def i as integer;
+        def i : int;
         for(i = 0; i < 10; i = i + 1)
         {
-                item[i] = collection{<"seq_no", i>, <"amount", i*2>};
+                item[i] = set{<"seq_no", i>, <"amount", i*2>};
         }
 };
 
-def main = (args as collection) as integer
+def main = (args : set) : int
 {
-        def trans_list1 as collection[10];
-        def trans_list2 as collection[10];
+        def trans_list1 : set[10];
+        def trans_list2 : set[10];
 
-        def result as boolean;
+        def result : bool;
 
-        build_trans_item(trans_list1);
-        build_trans_item(trans_list2);
+        call build_trans_item(trans_list1);
+        call build_trans_item(trans_list2);
 
         while(true)
         {
-                def a = collection{<"name","Jack">,<"balance",100.00>,<"transaction_list", trans_list1>};
-                def b = collection{<"name","Rose">,<"balance",0.00>,<"transaction_list", trans_list2>};
+                def a = set{<"name","Jack">,<"balance",100.00>,<"transaction_list", trans_list1>};
+                def b = set{<"name","Rose">,<"balance",0.00>,<"transaction_list", trans_list2>};
 
                 print a,b,NL;
                 result = transfer(a,b,20.00);

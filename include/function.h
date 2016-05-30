@@ -70,6 +70,14 @@ public:
         {
                 return this->ArgList;
         }
+        void SetCopyList(list<string*> * copylist)
+        {
+                this->CopyList = copylist;
+        }
+        list<string*> * GetCopyList()
+        {
+                return this->CopyList;
+        }
         string GetName()
         {
                 return this->Name;
@@ -102,7 +110,20 @@ public:
                         return false;
                 }
 
-                //parent->AddFunctionDef(this->Name, this);
+                list<string*>::iterator j;
+
+                if(this->CopyList!=NULL)
+                {
+                    for(j = this->CopyList->begin(); j!= this->CopyList->end(); j++)
+                    {
+                            VariableDef * vardef = parent->FindVariable(**j);
+                            if(vardef==NULL)
+                            {
+                                    cerr<<"puppy provision error: Variable "<<**j<<" has not been defined"<<endl;
+                                    return false;
+                            }
+                    }
+                }
 
                 return ContainerNode::Provision();
         }
@@ -112,6 +133,7 @@ private:
         ConstValue * ReturnVal;
         DataType RtnType;
         list<FuncArgDef*> * ArgList;
+        list<string*> * CopyList;
 };
 
 #endif
