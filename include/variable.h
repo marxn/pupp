@@ -37,6 +37,7 @@ public:
         {
                 this->Source = def;
         }
+
         VariableDef * GetSource()
         {
                 return this->Source;
@@ -93,6 +94,7 @@ public:
                         this->VBox->SetVal(newvalue);
                 }
         }
+
         ConstValue * GetValue()
         {
                 ConstValue * value = NULL;
@@ -116,10 +118,12 @@ public:
         {
                 this->VarType = type;
         }
+
         DataType GetVarType()
         {
                 return this->VarType;
         }
+
         DataType GetValueType()
         {
                 if(this->VBox==NULL)
@@ -132,6 +136,7 @@ public:
 
                 return this->VBox->GetVal()->GetType();
         }
+
         void SetPrecision(long prec)
         {
                 this->Prec = prec;
@@ -150,6 +155,7 @@ public:
                 }
                 return ret;
         }
+
 private:
         VariableDef * Source;
         DataType VarType;
@@ -164,6 +170,7 @@ public:
         VariableDef(string varname):VarName(varname), VarType(Null), VarPrec(-1), IsUsedByInnerNode(false), IsActualParameter(false)
         {
         }
+
         Variable * GetInstance()
         {
                 Variable * ret = new Variable(this->VarName, this->VarType);
@@ -174,42 +181,52 @@ public:
 
                 return ret;
         }
+
         void SetVarType(DataType type)
         {
                 this->VarType = type;
         }
+
         void SetVarPrec(long prec)
         {
                 this->VarPrec = prec;
         }
+
         DataType GetVarType()
         {
                 return this->VarType;
         }
+
         string GetVarName()
         {
                 return VarName;
         }
+
         bool UsedByInnerNode()
         {
                 return this->IsUsedByInnerNode;
         }
+
         void SetUsedByInnerNode(bool u)
         {
                 this->IsUsedByInnerNode = u;
         }
+
         bool ActualParameter()
         {
                 return this->IsActualParameter;
         }
+
         void SetIsActualParameter(bool u)
         {
                 this->IsActualParameter = u;
         }
+
         void SetAttachedNode(Node * node)
         {
                 this->AttachedNode = node;
         }
+
         Node * GetAttachedNode()
         {
                 return this->AttachedNode;

@@ -206,31 +206,6 @@ public:
                 return NULL;
         }
 
-        list<Variable*> * BuildClosureVars()
-        {
-                list<Variable*> * ret = new list<Variable*>;
-
-                list<map<string, Variable*>* >::iterator i;
-                for(i=this->Frames.begin(); i!=this->Frames.end();i++)
-                {
-                        map<string, Variable*>::iterator j;
-                        for(j = (*i)->begin(); j!=(*i)->end(); j++)
-                        {
-                                VariableDef * vardef = j->second->GetSource();
-
-                                if(vardef->UsedByInnerNode())
-                                {
-                                        //Put all the references of variables into the closure.
-                                        Variable * origin = j->second;
-                                        Variable * closure_var = origin->CreateVarRef();
-                                        ret->push_back(closure_var);
-                                }
-                                
-                        }
-                }
-                return ret;
-        }
-
         stack<ForeachLoopCtx*> ForeachCtx;
         ConstValue * FunctionRet;
 

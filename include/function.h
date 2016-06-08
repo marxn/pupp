@@ -42,6 +42,24 @@ private:
         bool isref;
 };
 
+class ClosureVarDesc
+{
+public:
+        ClosureVarDesc(string name, bool b):Name(name), isRef(b){}
+
+        string GetVarName()
+        {
+            return this->Name;
+        }
+        bool IsRef()
+        {
+            return this->isRef;
+        }
+private:
+        string Name;
+        bool   isRef;
+};
+
 class FunctionNode:public ContainerNode
 {
 public:
@@ -70,11 +88,11 @@ public:
         {
                 return this->ArgList;
         }
-        void SetCopyList(list<string*> * copylist)
+        void SetCopyList(list<ClosureVarDesc*> * copylist)
         {
                 this->CopyList = copylist;
         }
-        list<string*> * GetCopyList()
+        list<ClosureVarDesc*> * GetCopyList()
         {
                 return this->CopyList;
         }
@@ -110,16 +128,17 @@ public:
                         return false;
                 }
 
-                list<string*>::iterator j;
+                list<ClosureVarDesc*>::iterator j;
 
                 if(this->CopyList!=NULL)
                 {
                     for(j = this->CopyList->begin(); j!= this->CopyList->end(); j++)
                     {
-                            VariableDef * vardef = parent->FindVariable(**j);
+                            string varname = (*j)->GetVarName();
+                            VariableDef * vardef = parent->FindVariable(varname);
                             if(vardef==NULL)
                             {
-                                    cerr<<"puppy provision error: Variable "<<**j<<" has not been defined"<<endl;
+                                    cerr<<"puppy provision error: Variable "<<varname<<" has not been defined"<<endl;
                                     return false;
                             }
                     }
@@ -133,7 +152,7 @@ private:
         ConstValue * ReturnVal;
         DataType RtnType;
         list<FuncArgDef*> * ArgList;
-        list<string*> * CopyList;
+        list<ClosureVarDesc*> * CopyList;
 };
 
 #endif

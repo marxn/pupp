@@ -9,6 +9,7 @@
     #include "puppy.hpp"
     
     int yyerror(char *);
+    unsigned long parse_line = 1;
 %}
 
 comment    "//".*
@@ -101,8 +102,8 @@ identifier [a-zA-Z_]+[0-9]*
                                         return SLEEP;
                                 if(strcasecmp(yytext,"function")==0)
                                         return FUNCTION;
-                                if(strcasecmp(yytext,"copy")==0)
-                                        return COPY;
+                                if(strcasecmp(yytext,"USING")==0)
+                                        return USING;
                                 if(strcasecmp(yytext,"transaction")==0)
                                         return TRANSACTION;
                                 if(strcasecmp(yytext,"rollback")==0)
@@ -148,7 +149,12 @@ identifier [a-zA-Z_]+[0-9]*
                                 yylval.puppy_ident = new string(yytext);
                                 return IDENTIFIER;
                 }
-{space}                {}
+{space}         {
+                                if(yytext[0]=='\n')
+                                {
+                                    parse_line++;
+                                }
+                }
 {comment}       {}
 
 %%

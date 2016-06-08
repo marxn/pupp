@@ -53,7 +53,7 @@ int StartFromMain(Node * bean, char *argv[], int argc)
                 //Start to run from the begining node.
                 callstmt->Invoke(context);
                 ConstValue * retval = callstmt->GetRetVal();
-                if(retval->GetType()==Integer)
+                if(retval!=NULL && retval->GetType()==Integer)
                 {
                         ret = static_cast<int>(static_cast<IntegerValue*>(retval)->GetValue());
                 }

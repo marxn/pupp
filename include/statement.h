@@ -500,6 +500,7 @@ public:
         bool Provision()
         {
                 Node * parent = this->GetParentNode();
+
                 if(parent)
                 {
                         string varname = *(this->Ident);

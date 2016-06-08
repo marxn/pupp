@@ -1,6 +1,6 @@
 def g = 10;
 
-def test2 = (x& : int)
+def test2 = (&x : int)
 {
         transaction(x)
         {

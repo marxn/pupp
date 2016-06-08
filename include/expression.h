@@ -544,26 +544,42 @@ public:
         }
         ConstValue * Calculate(NodeContext * context)
         {
-                list<string*> * CopyVars = this->FuncNode->GetCopyList();
-                list<Variable *> * cv = context->BuildClosureVars();
+                list<ClosureVarDesc*> * CopyVars = this->FuncNode->GetCopyList();
+                list<Variable *> * cv = new list<Variable *>;
 
                 if(CopyVars!=NULL)
                 {
-                    list<string*>::iterator i;
+                    list<ClosureVarDesc*>::iterator i;
                     for(i = CopyVars->begin(); i != CopyVars->end(); i++)
                     {
-                        Variable * origin = context->GetVariableFromOuterLayer(**i);
+                        string varname = (*i)->GetVarName();
+                        Variable * origin = context->GetVariableFromOuterLayer(varname);
                         if(origin==NULL)
                         {
-                                cerr<<"Puppy runtime error: cannot find variable: "<<**i<<" in outer context"<<endl;
-                                return NULL;
+                            cerr<<"Puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                            return NULL;
                         }
 
-                        Variable * cl_var = new Variable(origin->GetVarName(), origin->GetVarType());
-                        cl_var->SetSource(origin->GetSource());
-                        cl_var->SetRef(origin->GetValue());
+                        if((*i)->IsRef())
+                        {
+                            cv->push_back(origin->CreateVarRef());
+                        }
+                        else
+                        {
+                            if(origin->GetVarType()==Func)
+                            {
+                                ValueBox * vbox = origin->GetVBox();
+                                if(vbox==NULL || vbox->GetVal()->GetType()==Null)
+                                {
+                                    return NULL;
+                                }
+                            }
 
-                        cv->push_back(cl_var);
+                            Variable * cl_var = new Variable(origin->GetVarName(), origin->GetVarType());
+                            cl_var->SetSource(origin->GetSource());
+                            cl_var->SetRef(origin->GetValue());
+                            cv->push_back(cl_var);
+                        }
                     }
                 }
                 FuncValue * ret = new FuncValue(this->FuncNode, cv);

@@ -1,15 +1,16 @@
-def main = (args : set) : int
+def f = (x : int ) using(&f): int
 {
-	print f(5),NL;
-
+        print x,NL;
+        if(x==1)
+        {
+                return 1;
+        }
+        return x*f(x-1);
 };
 
-def f = (x : int ) : int
+def main = (args : set) using(f): int
 {
-	if(x==1)
-	{
-		return 1;
-	}
-	return x*f(x-1);
+	print f(5),NL;
+	return 0;
 };
 

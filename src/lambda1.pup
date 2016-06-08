@@ -8,7 +8,7 @@ def main = (args : set) : int
         {
             for(j = 0; j < 10; j = j + 1)
             {
-                fun_array[i, j] = () copy(i, j) : int { return i * j; };
+                fun_array[i, j] = () using(i, j) : int { return i * j; };
             }
         }
 

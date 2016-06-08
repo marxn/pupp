@@ -1,7 +1,7 @@
 def main = (args : set) : int
 {
         def x = 10;
-	def fun = (a&:int) 
+	def fun = (&a:int) 
 	{
             a = x;
 	};

@@ -1,3 +1,7 @@
+Jun 8th 2016
+------------------------
+1. Optimazed lambda expr.
+
 May 30th 2016
 ------------------------
 1. Optimized grammar for array and reference.

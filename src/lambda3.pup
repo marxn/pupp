@@ -9,8 +9,8 @@ def main = (args : set) : int
         }
 
         def r : function[2];
-        r[0] = () : function {return t[0];};
-        r[1] = () : function {return t[1];};
+        r[0] = () using(&t): function {return t[0];};
+        r[1] = () using(&t): function {return t[1];};
 
         for(i = 0; i < 2; i = i + 1)
         {

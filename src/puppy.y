@@ -22,6 +22,7 @@
     ContainerNode * final;
 
     unsigned long anonymous_func_seq = 0;
+    extern unsigned long parse_line;
 %}
 
 %union
@@ -52,6 +53,8 @@
         FunctionNode                * puppy_function_node;
         FuncArgDef                  * puppy_function_argdef;
         list<FuncArgDef*>           * puppy_function_arg_list;
+        ClosureVarDesc              * puppy_closure_var_desc;
+        list<ClosureVarDesc*>       * puppy_closure_var_list;
         long                          puppy_opt_prec_desc;
         bool                          puppy_opt_function_key;
 }
@@ -71,7 +74,7 @@
 
 %token <puppy_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
-%token DEF FUNCTION COPY RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL PRINT SLEEP 
+%token DEF FUNCTION USING RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
 %token NIL NL PI
@@ -91,13 +94,14 @@
 
 %type  <puppy_node>  puppybean
 %type  <puppy_function_argdef> func_arg
+%type  <puppy_closure_var_desc> closure_var_desc
 %type  <puppy_function_arg_list> arg_list
 %type  <puppy_function_node> lambda_node
 %type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
 %type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
 
 %type  <puppy_identlist> identifier_list
-%type  <puppy_identlist> opt_copy_clause
+%type  <puppy_closure_var_list> closure_var_list opt_copy_clause
 %type  <puppy_exprlist>  expr_list
 %type  <puppy_exprlist>  opt_dimension_def
 %type  <puppy_opt_prec_desc> opt_prec_desc
@@ -358,8 +362,34 @@ function_return_prototype:
                 }
         ;
 
+closure_var_desc:
+        IDENTIFIER
+                {
+                        ClosureVarDesc * desc = new ClosureVarDesc(*($1), false);
+                        $$ = desc;
+                }
+        | '&' IDENTIFIER 
+                {
+                        ClosureVarDesc * desc = new ClosureVarDesc(*($2), true);
+                        $$ = desc;
+                }
+        ;
+
+closure_var_list:
+        closure_var_desc
+                {
+                        $$ = new list<ClosureVarDesc*>;
+                        $$->push_back($1);
+                }
+        | closure_var_list ',' closure_var_desc
+                {
+                        $1->push_back($3);
+                        $$ = $1;
+                }
+        ;
+
 opt_copy_clause:
-        COPY '(' identifier_list ')'
+        USING '(' closure_var_list ')'
                 {
                         $$ = $3; 
                 }
@@ -787,7 +817,7 @@ expr:
 
 int yyerror(char *s)
 {
-    fprintf(stderr, "puppy parsing error: %s\n", s);
+    fprintf(stderr, "puppy parsing error: %s at line: %lu\n", s, parse_line);
     return 0;
 }
 
