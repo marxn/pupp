@@ -1,37 +1,38 @@
-def cashflow as decimal;
+def cashflow : decimal;
 
-def function main(args as collection) as integer
+def main = (args : set) : int
 {
-	cashflow = 0;
+        cashflow = 0.00;
 
-        def a,b as collection;
+        def a = set {        <"name",   "Jack">,
+                             <"balance", 100.00> };
 
-        a = {	<"name",   "Jack">,
-		<"balance", 100.00> };
+        def b = set {        <"name",    "Rose">,
+                             <"balance",  0.00>  };
 
-        b = {	<"name",    "Rose">,
-		<"balance",  0.00>  };
+        def transferamount = 20.00;
 
-	def transferamount as integer;
-	transferamount = 20.00;
+        print "a=",a,", b=",b,", cashflow=",cashflow,NL;
+while(true)//a["balance"]>0)
+{
+        transaction(a, b, cashflow)
+        {
+                if(a["balance"] < transferamount)
+                {
+                        rollback;
+                }
 
-	print "a=",a,", b=",b,", cashflow=",cashflow,NL;
+                b["balance"] = b["balance"] + transferamount;
+                a["balance"] = a["balance"] - transferamount;
 
-	transaction(a, b, cashflow)
-	{
-		if(a["balance"] < transferamount)
-		{
-			rollback;
-		}
+                cashflow = cashflow + transferamount;
 
-		b["balance"] = b["balance"] + transferamount;
-		cashflow = cashflow + transferamount;
+                commit;
+        }
 
-		commit;
-	}
-
-	print "a=",a,", b=",b,", cashflow=",cashflow,NL;
-
-        return 0;
+        print "a=",a,", b=",b,", cashflow=",cashflow,NL;
+sleep 1000;
 }
+        return 0;
+};
 

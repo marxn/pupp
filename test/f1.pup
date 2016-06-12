@@ -6,7 +6,7 @@ while(true)
         {
                 def x = 10;
 
-                def test1 = () : int
+                def test1 = () using(&x): int
                 {
                         x=x+1;
                         return x+1;

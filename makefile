@@ -4,5 +4,5 @@ all:
 
 clean:
 	(cd src;make clean)
-	@echo all done.
+	@echo clean done.
 

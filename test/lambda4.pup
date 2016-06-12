@@ -1,19 +1,19 @@
-def a = (x as integer) as function
+def a = (x : int) : function
 {
-	return (y as integer) as integer{return x + y;};
+	return (y : int) using(x) : int{return x + y;};
 };
 
-def b = (x& as integer) as function
+def b = (&x : int) : function
 {
-        return (y as integer) as integer{return x + y;};
+        return (y : int) using(x) : int{return x + y;};
 };
 
-def c = () as function
+def c = () : function
 {
-        return () as integer{return 10;};
+        return () : int{return 10;};
 };
 
-def main = (args as collection) as integer
+def main = (args : set) using(a,b,c) : int
 {
 while(true)
 {

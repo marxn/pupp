@@ -1,22 +1,20 @@
-def function main(args as collection) as integer
+def test1 = (&a : set)
 {
-	def a as collection;
-	a = {5,6,7,8,<"xxx",{<"zzz","qqq">}>};
+        a[1]=2;
+        print a,NL;
+};
 
-	transaction(a)
-	{
-		test1(a);
-	}
-	print a,NL;
-}
-
-def function test() as collection
+def main = (args : set) using(test1): int
 {
-	return {1,2,3,4};
-}
+	def fff = 1;
+	def bbb = fff;
 
-def function test1(a& as collection)
-{
-	a[123]=123;
-	print a,NL;
-}
+        def a = set{fff,bbb,7,8,<"xxx", set{<"zzz","qqq">}>};
+        print a,NL;
+        transaction(a)
+        {
+                call test1(a);
+        }
+        print a,NL;
+};
+

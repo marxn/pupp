@@ -1,25 +1,19 @@
-def sss as string;
-
-def function main(args as collection) as integer
+def main = (args : set) using(&sss): int
 {
-        def function xxx(a as string) as integer
+        def xxx = (a : string) : int
         {
-		print a,NL;
+                print a,NL;
                 return 0;
+        };
+
+        if(true)
+        {
+                sss="abcd";
+                print xxx(sss),NL;
         }
-	if(true)
-	{
-		//def q as string;
-		//q = '1234';
-		//print q,NL;
-        	//print xxx(q),NL;
-		//print q,NL;
-		sss="abcd";
-		//print sss,NL;
-		print xxx(sss),NL;
-		
-		
-	}
+
         return 11;
-}
+};
+
+def sss : string;
 

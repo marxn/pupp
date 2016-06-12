@@ -1,19 +1,19 @@
-def g as integer;
+def g = 10;
 
-def function test2(x& as integer)
+def test2 = (&x : int)
 {
-	transaction(x)
-	{
-		x=11;
-		commit;
-	}
-}
+        transaction(x)
+        {
+                x=11;
+                commit;
+        }
+};
 
-def function main(args as collection) as integer
+def main = (args : set) : int
 {
-	g=10;
-	print g,NL;
-	test2(g);
-	print g,NL;
-	return 0;
-}
+        print g,NL;
+        call test2(g);
+        print g,NL;
+        return 0;
+};
+
