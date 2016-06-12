@@ -427,6 +427,8 @@ public:
                                                         cerr<<"puppy runtime error: variable type mismatch when passing args to the function."<<endl;
                                                         return NULL;
                                                 }
+
+                                                delete avatar->GetVBox();
                                                 avatar->SetVBox(vbox);
                                                 avatar->GetVBox()->IncRefCount();
                                         }

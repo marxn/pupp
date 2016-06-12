@@ -127,7 +127,7 @@ public:
                         cerr<<"puppy provision error: A function cannot be defined without a context."<<endl;
                         return false;
                 }
-
+/*
                 list<ClosureVarDesc*>::iterator j;
 
                 if(this->CopyList!=NULL)
@@ -143,7 +143,7 @@ public:
                             }
                     }
                 }
-
+*/
                 return ContainerNode::Provision();
         }
 

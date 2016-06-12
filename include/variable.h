@@ -14,11 +14,11 @@ class Variable
 public:
         Variable(string name, DataType type)
         {
-                this->Source = NULL;
-                this->VBox = NULL;
+                this->Source  = NULL;
+                this->VBox    = NULL;
                 this->VarName = name;
                 this->VarType = type;
-                this->Prec = -1;
+                this->Prec    = -1;
         }
         ~Variable()
         {

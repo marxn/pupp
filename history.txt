@@ -1,3 +1,7 @@
+Jun 12th 2016
+------------------------
+1. Fixed memory leak in function invoking.
+
 Jun 8th 2016
 ------------------------
 1. Optimazed lambda expr.
