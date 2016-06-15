@@ -670,18 +670,7 @@ public:
         }
         bool Check()
         {
-                Node * node = this->ParentNode;
-                while(node!=NULL)
-                {
-                        if(node->Type==Function)
-                        {
-                                return this->Expr->Check();
-                        }
-                        node = node->ParentNode;
-                }
-
-                cerr<<"puppy provision error: return statement must appear in a function."<<endl;
-                return false;
+                return this->Expr->Check();
         }
 
 private:

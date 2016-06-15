@@ -38,6 +38,12 @@ class ContainerNode :public Node
                 {
                         subnodelist = nodelist;
                 }
+
+                void AddNode(Node * node)
+                {
+                        this->subnodelist->push_front(node);
+                }
+
                 bool Provision()
                 {
                         list<Node*>::iterator i;

@@ -12,61 +12,6 @@ extern FILE * yyin;
 
 using namespace std;
 
-int StartFromMain(Node * bean, char *argv[], int argc)
-{
-        int ret = 0;
-        list<Expression*> * explist = new list<Expression*>;
-        SetValue * para = new SetValue;
-
-        for(int i = 0; i<argc; i++)
-        {
-                IntegerValue * key = new IntegerValue(i);
-                StringValue * value = new StringValue(string(argv[i]));
-
-                ValueBox * vb = new ValueBox(value->DupValue());
-                KVValue * kv = new KVValue(key, new ValueBox(value->DupValue()));
-                para->AddKV(kv);
-
-                delete vb;
-                delete kv;
-                delete value;
-                delete key;
-        }
-
-        explist->push_back(new ConstValueExpression(para));
-
-        string StartName = "main";
-        FunctionExpression * payload = new FunctionExpression(new VarExpression(&StartName), explist);
-
-        CallStatement * callstmt = new CallStatement;
-        callstmt->SetExpression(payload);
-        callstmt->SetParentNode(bean);
-
-        if(callstmt->Provision() && callstmt->Check())
-        {
-                NodeContext * context = new NodeContext;
-                context->AddFrame(bean);
-
-                //To ensure all global variables to be initlialized.
-                bean->Execute(context);
-
-                //Start to run from the begining node.
-                callstmt->Invoke(context);
-                ConstValue * retval = callstmt->GetRetVal();
-                if(retval!=NULL && retval->GetType()==Integer)
-                {
-                        ret = static_cast<int>(static_cast<IntegerValue*>(retval)->GetValue());
-                }
-                callstmt->Swipe(context);
-                delete context;
-        }
-        else
-        {
-                ret = -1;
-        }
-        return ret;
-}
-
 int main(int argc, char * argv[])
 {
         FILE * fp = NULL;
@@ -89,22 +34,58 @@ int main(int argc, char * argv[])
 
         ContainerNode * bean = parse();
 
-        int ret = 0;
-
         if(bean == NULL)
         {
                 return -1;
         }
+
+        SetValue * para = new SetValue;
+
+        for(int i = 0; i<argc; i++)
+        {
+                IntegerValue * key = new IntegerValue(i);
+                StringValue * value = new StringValue(string(argv[i]));
+
+                ValueBox * vb = new ValueBox(value->DupValue());
+                KVValue * kv = new KVValue(key, new ValueBox(value->DupValue()));
+                para->AddKV(kv);
+
+                delete vb;
+                delete kv;
+                delete value;
+                delete key;
+        }
+
+        string   para_name = "args";
+        VariableType para_type(Set, Null, -1);
+
+        VarDefinitionStatement * defstmt = new VarDefinitionStatement(&para_name, &para_type);
+        defstmt->SetParentNode(bean);
+        defstmt->SetInitExpr(new ConstValueExpression(para));
+
+        bean->AddNode(defstmt);
+
         if(bean->Provision()==false || bean->Check()==false)
         {
                 return -2;
         }
 
-        if(true)
-        {
-                ret = StartFromMain(bean, argv,argc);
-        }
+        NodeContext context;
+        context.AddFrame(bean);
+
+        bean->Execute(&context);
+
         fclose(fp);
+
+        int ret = 0;
+
+        ConstValue * retval = context.FunctionRet;
+
+        if(retval!=NULL && retval->GetType()==Integer)
+        {
+                ret = static_cast<int>(static_cast<IntegerValue*>(retval)->GetValue());
+        }
+
         return ret;
 }
 

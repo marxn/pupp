@@ -167,7 +167,7 @@ private:
 class VariableDef
 {
 public:
-        VariableDef(string varname):VarName(varname), VarType(Null), VarPrec(-1), IsUsedByInnerNode(false), IsActualParameter(false)
+        VariableDef(string varname):VarName(varname), VarType(Null), VarPrec(-1)
         {
         }
 
@@ -202,26 +202,6 @@ public:
                 return VarName;
         }
 
-        bool UsedByInnerNode()
-        {
-                return this->IsUsedByInnerNode;
-        }
-
-        void SetUsedByInnerNode(bool u)
-        {
-                this->IsUsedByInnerNode = u;
-        }
-
-        bool ActualParameter()
-        {
-                return this->IsActualParameter;
-        }
-
-        void SetIsActualParameter(bool u)
-        {
-                this->IsActualParameter = u;
-        }
-
         void SetAttachedNode(Node * node)
         {
                 this->AttachedNode = node;
@@ -235,8 +215,6 @@ private:
         string VarName;
         DataType VarType;
         long VarPrec;
-        bool IsUsedByInnerNode;
-        bool IsActualParameter;
         Node * AttachedNode;
 };
 

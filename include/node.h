@@ -93,11 +93,6 @@ public:
                 if(this->ParentNode!=NULL)
                 {
                         VariableDef * result = this->ParentNode->FindVariable(varname);
-
-                        if(result!=NULL && this->Type==Function)
-                        {
-                                result->SetUsedByInnerNode(true);
-                        }
                         return result;
                 }
 
@@ -120,7 +115,7 @@ struct ForeachLoopCtx
 class NodeContext
 {
 public:
-        NodeContext(){}
+        NodeContext():FunctionRet(0) {}
         ~NodeContext()
         {
                 while(this->Frames.size()>0)

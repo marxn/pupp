@@ -1,4 +1,5 @@
 all: puppy
+	@cp puppy ~/bin/
 	@echo all done.
 
 puppy: puppy.o scan.o main.o 
