@@ -1,7 +1,0 @@
-def main = (args : set) : int
-{
-	def a : int[10, 10];
-	def b : int[10];
-a[1,1]=10;
-	print a[],NL;
-};

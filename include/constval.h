@@ -344,8 +344,8 @@ public:
 
         string toString()
         {
-                char result[256];
-                gmp_sprintf (result,"%.*Ff", this->Prec, this->Value);
+                char result[1024];
+                gmp_snprintf (result, sizeof(result), "%.*Ff", this->Prec, this->Value);
                 return result;
         }
         mpf_t Value;
