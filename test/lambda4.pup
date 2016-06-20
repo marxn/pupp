@@ -13,8 +13,6 @@ def c = () : function
         return () : int{return 10;};
 };
 
-def main = (args : set) using(a,b,c) : int
-{
 while(true)
 {
 	def con = 10;
@@ -35,4 +33,3 @@ while(true)
 //print f2(),NL;
 sleep 10000;
 }
-};

@@ -1,4 +1,4 @@
-def main = (args : set) : int
+def func = (args : set) using(&test, &test1, &test2, &test3): int
 {
         def arr : int[10];
         def i = 0;
@@ -9,6 +9,7 @@ def main = (args : set) : int
         }
 
 	print arr,NL;
+
         if(true)
         {
                 call test(arr);
@@ -33,7 +34,7 @@ def test = (x : int[])
 };
 
 
-def test1 = (x& : int[])
+def test1 = (&x : int[])
 {
         x[0] = 123;
 };
@@ -45,9 +46,9 @@ def test2 = (x : int)
 };
 
 
-def test3 = (x& : int)
+def test3 = (&x : int)
 {
         x = 456;
 };
 
-
+return func(args);

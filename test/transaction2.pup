@@ -1,21 +1,16 @@
-def cashflow : decimal;
+def cashflow = 0.00;
 
-def main = (args : set) : int
+def a = set { <"name",   "Jack">,   <"balance", 100.00> };
+
+def b = set { <"name",   "Rose">,  <"balance",  0.00>  };
+
+def transferamount = 20.00;
+
+print "a=",a,", b=",b,", cashflow=",cashflow,NL;
+
+while(a["balance"]>0.00)
 {
-        cashflow = 0.00;
-
-        def a = set {        <"name",   "Jack">,
-                             <"balance", 100.00> };
-
-        def b = set {        <"name",    "Rose">,
-                             <"balance",  0.00>  };
-
-        def transferamount = 20.00;
-
-        print "a=",a,", b=",b,", cashflow=",cashflow,NL;
-while(true)//a["balance"]>0)
-{
-        transaction(a, b, cashflow)
+        transaction(a, b)//, cashflow)
         {
                 if(a["balance"] < transferamount)
                 {
@@ -31,8 +26,7 @@ while(true)//a["balance"]>0)
         }
 
         print "a=",a,", b=",b,", cashflow=",cashflow,NL;
-sleep 1000;
 }
-        return 0;
-};
+
+return 0;
 

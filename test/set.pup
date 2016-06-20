@@ -1,0 +1,6 @@
+def a : set;
+
+a[0]=1;
+
+print a,NL;
+

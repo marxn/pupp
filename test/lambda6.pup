@@ -1,0 +1,24 @@
+def CreateObject = (member1 : int, member2 : string) : set
+{
+        def method1 = () using(&member1, &member2) 
+        {
+            member1 = 100;
+            member2 = "fun"; 
+            print member1, member2,NL;
+        };
+
+        def method2 = () using(&member1, &member2) 
+        { 
+            member1 = 300; 
+            member2 = "hello";
+            print member1, member2,NL;
+        };
+
+        return set{method1, method2};
+};
+
+def fun = CreateObject(1, "abc");
+
+call fun[0]();
+
+return 0;

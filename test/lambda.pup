@@ -1,20 +1,18 @@
 def buildcounter = () : function
 {
         def x = 0;
-        return () : int {x = x + 1; return x;};
+        return () using(&x): int {x = x + 1; return x;};
 };
 
-def main = (args : set) : int
-{
-        def i : int;
-        def counter : function;
+def i : int;
+def counter : function;
 
-        counter = buildcounter();
+counter = buildcounter();
 
-for(i=0;i<1000000;i=i+1)
+for(i=0;i<1000;i=i+1)
 {
         print counter(),NL;
 }
-        return 0;
-};
+
+return 0;
 

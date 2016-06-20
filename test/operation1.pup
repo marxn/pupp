@@ -1,6 +1,4 @@
-def main = (args : set) : int
-{
-        if(true)
+if(true)
 {
         print 1+1,NL;
         print 1+"1",NL;
@@ -97,5 +95,4 @@ print NL;
 
 }
         
-        return 0;
-};
+return 0;

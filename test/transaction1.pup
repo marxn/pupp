@@ -1,7 +1,6 @@
-def transfer = (user1& : set, user2& : set, amount : decimal) : bool
+def transfer = (&user1 : set, &user2 : set, amount : decimal) : bool
 {
-        def ret : bool;
-        ret = false;
+        def ret = false;
 
         transaction(user1, user2)
         {
@@ -20,7 +19,7 @@ def transfer = (user1& : set, user2& : set, amount : decimal) : bool
         return ret;
 };
 
-def build_trans_item = (item& : set[])
+def build_trans_item = (&item : set[])
 {
         def i : int;
         for(i = 0; i < 10; i = i + 1)
@@ -29,8 +28,6 @@ def build_trans_item = (item& : set[])
         }
 };
 
-def main = (args : set) : int
-{
         def trans_list1 : set[10];
         def trans_list2 : set[10];
 
@@ -54,6 +51,6 @@ def main = (args : set) : int
                 sleep 1000000;
         }
         return 0;
-};
+
 
 

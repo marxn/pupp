@@ -1,0 +1,34 @@
+def object = (initvalue : int)  : set
+{
+        def value = initvalue;
+
+        return set
+        {
+               <"set", (x : int) using(&value) 
+                       {
+                           value = x;
+                       }
+               >,
+ 
+               <"get", () using(&value):int 
+                       {
+                           return value;
+                       }
+               >
+        };
+};
+
+def a = object(1);
+print a["get"](),NL;
+
+call a["set"](10);
+print a["get"](),NL;
+
+def b = object(2);
+print b["get"](),NL;
+
+call b["set"](12);
+print b["get"](),NL;
+
+return 0;
+

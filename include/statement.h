@@ -192,7 +192,7 @@ public:
                         return NODE_RET_NORMAL;
                 }
 
-                if(var->GetValueType()!=Set)
+                if(var->GetVarType()!=Set)
                 {
                         cerr<<"puppy runtime error: cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
                         return NODE_RET_ERROR;
