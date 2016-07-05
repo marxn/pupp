@@ -1,3 +1,8 @@
+Jul 5th 2016
+------------------------
+1. Fixed a bug in string comparing.
+2. Removed symbolic constant: NIL and PI.
+
 Jun 20th 2016
 ------------------------
 1. Fixed set type bug.

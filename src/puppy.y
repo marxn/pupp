@@ -77,7 +77,7 @@
 %token DEF FUNCTION USING RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
-%token NIL NL PI
+%token NL
 
 %type  <puppy_const> literal_value symbolic_constant
 %type  <puppy_expr>  expr
@@ -625,14 +625,6 @@ symbolic_constant:
         NL
                 {
                         $$ = new StringValue("\n");
-                }
-        | PI
-                {
-                        $$ = new DecimalValue("3.1415926");
-                }
-        | NIL
-                {
-                        $$ = new NullValue;
                 }
         ;
 

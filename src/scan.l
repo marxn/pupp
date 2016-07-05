@@ -133,17 +133,9 @@ identifier [a-zA-Z_]+[0-9]*
                                         return NOT;
 
                                 //symbolic constants
-                                //Null object
-                                if(strcmp(yytext, "NIL")==0)
-                                        return NIL;
-
                                 //new line
                                 if(strcmp(yytext, "NL")==0)
                                         return NL;
-
-                                //PI
-                                if(strcmp(yytext, "PI")==0)
-                                        return PI;
 
                                 //Common identifiers
                                 yylval.puppy_ident = new string(yytext);

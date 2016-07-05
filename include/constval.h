@@ -103,40 +103,6 @@ public:
 
 class Node;
 
-class MessageValue: public ConstValue
-{
-public:
-        MessageValue(string type):ConstValue(Message),MsgType(type){}
-        ConstValue * DupValue()
-        {
-                return new MessageValue(this->MsgType);
-        }
-        string toString()
-        {
-                return this->MsgType;
-        }
-        string GetMsgType()
-        {
-                return this->MsgType;
-        }
-        void ClearData()
-        {
-                map<string, ConstValue*>::iterator i;
-                for(i=this->Data.begin(); i!=this->Data.end(); i++)
-                {
-                        delete i->second;
-                }
-                this->Data.clear();
-        }
-        void SetData(map<string, ConstValue*>& data)
-        {
-        }
-private:
-        string MsgType;
-        map<string, ConstValue*> Data;
-        map<string, Node*> actions;
-};
-
 class StringValue: public ConstValue
 {
 public:
@@ -1687,37 +1653,7 @@ public:
                         StringValue * leftvalue = static_cast<StringValue*>(left);
                         StringValue * rightvalue = static_cast<StringValue*>(right);
 
-                        if(leftvalue->LooksLikeInteger() && rightvalue->LooksLikeInteger())
-                        {
-                                IntegerValue value1(leftvalue->toString());
-                                IntegerValue value2(rightvalue->toString());
-                                result = new BooleanValue(value1.GetValue() == value2.GetValue());
-                        }
-                        else if(leftvalue->LooksLikeInteger() && rightvalue->LooksLikeDecimal())
-                        {
-                                DecimalValue value1(leftvalue->toString());
-                                DecimalValue value2(rightvalue->toString());
-
-                                result = new BooleanValue(value1 == value2);
-                        }
-                        else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeInteger())
-                        {
-                                DecimalValue value1(leftvalue->toString());
-                                DecimalValue value2(rightvalue->toString());
-
-                                result = new BooleanValue(value1 == value2);
-                        }
-                        else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeDecimal())
-                        {
-                                DecimalValue value1(leftvalue->toString());
-                                DecimalValue value2(rightvalue->toString());
-
-                                result = new BooleanValue(value1 == value2);
-                        }
-                        else
-                        {
-                                result = new NullValue;
-                        }
+                        result = new BooleanValue(leftvalue->toString() == rightvalue->toString());
                 }
                 else if(left->GetType()==Boolean && right->GetType()==Boolean)
                 {
