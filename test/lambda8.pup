@@ -11,12 +11,26 @@ def object = (initvalue : int)  : function
                            value = x;
                        };
                }
-               if(selector=="get")
+               else if(selector=="get")
                {
                        return () using(&value):int 
                        {
                            return value;
                        };
+               }
+               else if(selector=="fac")
+               {
+                       def fac = (x : int) using(&value, &fac):int
+                       {
+                           if(x==0)
+                           {
+                               return 1;
+                           }
+
+                           return x * fac(x - 1);
+                       };
+
+                       return () using(&value, &fac) : int {return fac(value);};
                }
 
                return (){};
@@ -32,8 +46,9 @@ print a("get")(),NL;
 def b = object(2);
 print b("get")(),NL;
 
-call b("set")(12);
+call b("set")(5);
 print b("get")(),NL;
+print b("fac")(),NL;
 
 return 0;
 

@@ -280,6 +280,12 @@ optional_else_block:
                 {
                         $$ = $2;
                 }
+        | ELSE branch_node
+                {
+                        list<Node*> * elseiflist =  new list<Node*>;
+                        elseiflist->push_back($2);
+                        $$ = elseiflist;
+                }
         | /*empty*/
                 {
                         $$ = NULL;
