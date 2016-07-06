@@ -9,15 +9,15 @@ def b = (x : int) using(&fff,&ggg,&ppp)
 	ppp = () using(&x) { print x,NL; };
 };
 
-call b(100);
-call ppp();
-call fff();
-call ppp();
-call ggg();
-call ppp();
+b(100);
+ppp();
+fff();
+ppp();
+ggg();
+ppp();
 
-call b(200);
-call ppp();
+b(200);
+ppp();
 
 return 0;
 

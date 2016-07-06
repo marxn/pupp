@@ -19,6 +19,6 @@ def CreateObject = (member1 : int, member2 : string) : set
 
 def fun = CreateObject(1, "abc");
 
-call fun[0]();
+fun[0]();
 
 return 0;

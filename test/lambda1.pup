@@ -11,7 +11,7 @@
                     fun_array[x, y] = () using(x, y) : int { return x * y; };
                 };
 
-                call fun(i, j);
+                fun(i, j);
             }
         }
 
@@ -26,7 +26,7 @@
                     fun_array[x, y] = () using(x, y) : int { return x * y; };
                 };
 
-                call fun(i, j);
+                fun(i, j);
             }
         }
 
@@ -41,7 +41,7 @@
                     fun_array[x, y] = () using(&x, &y) : int { return x * y; };
                 };
 
-                call fun(i, j);
+                fun(i, j);
             }
         }
 
@@ -56,7 +56,7 @@
                     fun_array[x, y] = () using(&x, &y) : int { return x * y; };
                 };
 
-                call fun(i, j);
+                fun(i, j);
             }
         }
 

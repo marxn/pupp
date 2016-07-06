@@ -17,6 +17,6 @@
                 print r[i]()(),NL;
         }
        
-        call (){print 123,NL;}(); 
+        (){print 123,NL;}(); 
         return 0;
 

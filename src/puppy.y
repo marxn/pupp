@@ -577,10 +577,10 @@ returnstatement:
         ;
 
 call_statement:
-        CALL func_expr
+        func_expr
                 {
                         CallStatement * stmt = new CallStatement;
-                        stmt->SetExpression($2);
+                        stmt->SetExpression($1);
                         $$ = static_cast<StatementNode*>(stmt);
                 }
 
