@@ -1,5 +1,5 @@
-#ifndef _PUPPY_FUNCTION_H_
-#define _PUPPY_FUNCTION_H_
+#ifndef _PUPP_FUNCTION_H_
+#define _PUPP_FUNCTION_H_
 
 #include "constval.h"
 #include "container.h"
@@ -123,7 +123,7 @@ public:
                 Node * parent = this->GetParentNode();
                 if(parent==NULL)
                 {
-                        cerr<<"puppy provision error: A function cannot be defined without a context."<<endl;
+                        cerr<<"pupp provision error: A function cannot be defined without a context."<<endl;
                         return false;
                 }
 /*
@@ -137,7 +137,7 @@ public:
                             VariableDef * vardef = parent->FindVariable(varname);
                             if(vardef==NULL)
                             {
-                                    cerr<<"puppy provision error: Variable "<<varname<<" has not been defined"<<endl;
+                                    cerr<<"pupp provision error: Variable "<<varname<<" has not been defined"<<endl;
                                     return false;
                             }
                     }

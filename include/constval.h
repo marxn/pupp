@@ -15,7 +15,7 @@ using namespace std;
 
 enum DataType
 {
-        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Set, Array, Func, Message
+        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Set, Array, Func
 };
 
 class ConstValue

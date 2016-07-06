@@ -231,7 +231,7 @@ public:
 
                 if(var==NULL)
                 {
-                        cerr<<"puppy runtime error: cannot find variable:"<<this->VarName<<endl;
+                        cerr<<"pupp runtime error: cannot find variable:"<<this->VarName<<endl;
                         return NULL;
                 }
 
@@ -246,7 +246,7 @@ public:
                 {
                         if(static_cast<ArrayValue*>(var->GetVBox()->GetVal())->GetDimensionNum()!=this->ExprList.size())
                         {
-                                cerr<<"puppy runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
+                                cerr<<"pupp runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
                                 return NULL;
                         }
 
@@ -257,7 +257,7 @@ public:
                                 ConstValue * value = (*i)->Calculate(context);
                                 if(value->GetType()!=Integer)
                                 {
-                                        cerr<<"puppy runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
+                                        cerr<<"pupp runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
                                         delete value;
                                         return NULL;
                                 }
@@ -277,7 +277,7 @@ public:
                 {
                         if(result->GetVal()->GetType()!=Set)
                         {
-                                cerr<<"puppy runtime error: Expect a collection."<<endl;
+                                cerr<<"pupp runtime error: Expect a collection."<<endl;
                                 return NULL;
                         }
 
@@ -328,7 +328,7 @@ public:
                 VariableDef * vardef = this->ParentNode->FindVariable(this->VarName);
                 if(vardef==NULL)
                 {
-                        cerr<<"puppy provision error: Variable "<<this->VarName<<" has not been defined"<<endl;
+                        cerr<<"pupp provision error: Variable "<<this->VarName<<" has not been defined"<<endl;
                         return false;
                 }
                 this->VarDef = vardef;
@@ -370,13 +370,13 @@ public:
 
                 if(func==NULL)
                 {
-                        cerr<<"puppy runtime error: Not a qualified function."<<endl;
+                        cerr<<"pupp runtime error: Not a qualified function."<<endl;
                         return NULL;
                 }
 
                 if(func->GetType()==Null)
                 {
-                        cerr<<"puppy runtime error: Function object has not been initialized."<<endl;
+                        cerr<<"pupp runtime error: Function object has not been initialized."<<endl;
                         return NULL;
                 }
 
@@ -386,7 +386,7 @@ public:
                 {
                         if(funcnode->GetArgList()->size()!=this->ExprList->size())
                         {
-                                cerr<<"puppy runtime error: The number of arguments does not match"<<endl;
+                                cerr<<"pupp runtime error: The number of arguments does not match"<<endl;
                                 return NULL;
                         }
 
@@ -400,7 +400,7 @@ public:
                                 {
                                         if((*i)->isLValue()==false)
                                         {
-                                                cerr<<"puppy runtime error: Cannot pass any expression other than an lvalue to a reference:"<<(*j)->GetName()<<endl;
+                                                cerr<<"pupp runtime error: Cannot pass any expression other than an lvalue to a reference:"<<(*j)->GetName()<<endl;
                                                 return NULL;
                                         }
                                 }
@@ -424,7 +424,7 @@ public:
                                         {
                                                 if(vbox->GetVal()->GetType() != avatar->GetVarType())
                                                 {
-                                                        cerr<<"puppy runtime error: variable type mismatch when passing args to the function."<<endl;
+                                                        cerr<<"pupp runtime error: variable type mismatch when passing args to the function."<<endl;
                                                         return NULL;
                                                 }
 
@@ -439,7 +439,7 @@ public:
                                         if(value->GetType()!=(*j)->GetType())
                                         {
                                                 delete new_ctx;
-                                                cerr<<"puppy runtime error: data type mismatch when calling a function."<<endl;
+                                                cerr<<"pupp runtime error: data type mismatch when calling a function."<<endl;
                                                 return NULL;
                                         }
 
@@ -558,7 +558,7 @@ public:
                         Variable * origin = context->GetVariableFromOuterLayer(varname);
                         if(origin==NULL)
                         {
-                            cerr<<"Puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                            cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
                             return NULL;
                         }
 

@@ -27,36 +27,36 @@
 
 %union
 {
-        DataType                      puppy_datatype;
-        VariableType                * puppy_vartype;
-        IntegerValue                * puppy_const_integer;
-        DecimalValue                * puppy_const_decimal;
-        BooleanValue                * puppy_const_boolean;
-        StringValue                 * puppy_const_string;
-        ConstValue                  * puppy_const;
-        Expression                  * puppy_expr;
-        BinaryExpression            * puppy_relexpr;
-        BinaryExpression            * puppy_arithexpr;
-        BinaryExpression            * puppy_logicalexpr;
-        KVExpression                * puppy_kvexpr;
-        SetExpression               * puppy_setexpr;
-        VarExpression               * puppy_varexpr;
-        FunctionExpression          * puppy_funcexpr;
-        LambdaExpression            * puppy_lambda_expr;
-        string                      * puppy_ident;
-        Node                        * puppy_node;
-        list<Node*>                 * puppy_nodelist;
-        list<string*>               * puppy_identlist;
-        list<Expression*>           * puppy_exprlist;
-        LValue                      * puppy_lvalue;
-        StatementNode               * puppy_statement;
-        FunctionNode                * puppy_function_node;
-        FuncArgDef                  * puppy_function_argdef;
-        list<FuncArgDef*>           * puppy_function_arg_list;
-        ClosureVarDesc              * puppy_closure_var_desc;
-        list<ClosureVarDesc*>       * puppy_closure_var_list;
-        long                          puppy_opt_prec_desc;
-        bool                          puppy_opt_function_key;
+        DataType                      pupp_datatype;
+        VariableType                * pupp_vartype;
+        IntegerValue                * pupp_const_integer;
+        DecimalValue                * pupp_const_decimal;
+        BooleanValue                * pupp_const_boolean;
+        StringValue                 * pupp_const_string;
+        ConstValue                  * pupp_const;
+        Expression                  * pupp_expr;
+        BinaryExpression            * pupp_relexpr;
+        BinaryExpression            * pupp_arithexpr;
+        BinaryExpression            * pupp_logicalexpr;
+        KVExpression                * pupp_kvexpr;
+        SetExpression               * pupp_setexpr;
+        VarExpression               * pupp_varexpr;
+        FunctionExpression          * pupp_funcexpr;
+        LambdaExpression            * pupp_lambda_expr;
+        string                      * pupp_ident;
+        Node                        * pupp_node;
+        list<Node*>                 * pupp_nodelist;
+        list<string*>               * pupp_identlist;
+        list<Expression*>           * pupp_exprlist;
+        LValue                      * pupp_lvalue;
+        StatementNode               * pupp_statement;
+        FunctionNode                * pupp_function_node;
+        FuncArgDef                  * pupp_function_argdef;
+        list<FuncArgDef*>           * pupp_function_arg_list;
+        ClosureVarDesc              * pupp_closure_var_desc;
+        list<ClosureVarDesc*>       * pupp_closure_var_list;
+        long                          pupp_opt_prec_desc;
+        bool                          pupp_opt_function_key;
 }
 
 %left OR
@@ -67,54 +67,54 @@
 %left '+' '-'
 %left '*' '/'
 
-%token <puppy_const_integer> INTEGER 
-%token <puppy_const_decimal> DECIMAL
-%token <puppy_const_boolean> BOOLEAN
-%token <puppy_const_string> STRING
+%token <pupp_const_integer> INTEGER 
+%token <pupp_const_decimal> DECIMAL
+%token <pupp_const_boolean> BOOLEAN
+%token <pupp_const_string> STRING
 
-%token <puppy_ident> IDENTIFIER 
+%token <pupp_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
 %token DEF FUNCTION USING RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
 %token NL
 
-%type  <puppy_const> literal_value symbolic_constant
-%type  <puppy_expr>  expr
+%type  <pupp_const> literal_value symbolic_constant
+%type  <pupp_expr>  expr
  
-%type  <puppy_arithexpr> arith_expr
-%type  <puppy_relexpr> rel_expr
-%type  <puppy_logicalexpr> logical_expr
+%type  <pupp_arithexpr> arith_expr
+%type  <pupp_relexpr> rel_expr
+%type  <pupp_logicalexpr> logical_expr
 
-%type  <puppy_kvexpr> kvexpr
-%type  <puppy_setexpr> set_expr
-%type  <puppy_varexpr> var_expr
-%type  <puppy_funcexpr> func_expr
-%type  <puppy_lambda_expr> lambda_expr
+%type  <pupp_kvexpr> kvexpr
+%type  <pupp_setexpr> set_expr
+%type  <pupp_varexpr> var_expr
+%type  <pupp_funcexpr> func_expr
+%type  <pupp_lambda_expr> lambda_expr
 
-%type  <puppy_node>  puppybean
-%type  <puppy_function_argdef> func_arg
-%type  <puppy_closure_var_desc> closure_var_desc
-%type  <puppy_function_arg_list> arg_list
-%type  <puppy_function_node> lambda_node
-%type  <puppy_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
-%type  <puppy_nodelist>  program_node_block program_node_list optional_else_block
+%type  <pupp_node>  puppbean
+%type  <pupp_function_argdef> func_arg
+%type  <pupp_closure_var_desc> closure_var_desc
+%type  <pupp_function_arg_list> arg_list
+%type  <pupp_function_node> lambda_node
+%type  <pupp_node>  program_node statement_node loop_node while_loop for_loop foreach_loop branch_node transaction_node
+%type  <pupp_nodelist>  program_node_block program_node_list optional_else_block
 
-%type  <puppy_identlist> identifier_list
-%type  <puppy_closure_var_list> closure_var_list opt_copy_clause
-%type  <puppy_exprlist>  expr_list
-%type  <puppy_exprlist>  opt_dimension_def
-%type  <puppy_opt_prec_desc> opt_prec_desc
-%type  <puppy_datatype>  data_type function_return_prototype
-%type  <puppy_vartype>  var_type func_arg_type
-%type  <puppy_lvalue> lvalue 
-%type  <puppy_statement> assign_statement print_statement break_statement continue_statement 
-%type  <puppy_statement> vardefstatement sleep_statement call_statement
-%type  <puppy_statement> returnstatement rollback_statement commit_statement
+%type  <pupp_identlist> identifier_list
+%type  <pupp_closure_var_list> closure_var_list opt_copy_clause
+%type  <pupp_exprlist>  expr_list
+%type  <pupp_exprlist>  opt_dimension_def
+%type  <pupp_opt_prec_desc> opt_prec_desc
+%type  <pupp_datatype>  data_type function_return_prototype
+%type  <pupp_vartype>  var_type func_arg_type
+%type  <pupp_lvalue> lvalue 
+%type  <pupp_statement> assign_statement print_statement break_statement continue_statement 
+%type  <pupp_statement> vardefstatement sleep_statement call_statement
+%type  <pupp_statement> returnstatement rollback_statement commit_statement
 
 %%
 
-puppybean: 
+puppbean: 
         program_node_list
                 {
                         final = new ContainerNode;
@@ -815,7 +815,7 @@ expr:
 
 int yyerror(char *s)
 {
-    fprintf(stderr, "puppy parsing error: %s at line: %lu\n", s, parse_line);
+    fprintf(stderr, "pupp parsing error: %s at line: %lu\n", s, parse_line);
     return 0;
 }
 

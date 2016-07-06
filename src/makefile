@@ -1,13 +1,13 @@
-all: puppy
-	@cp puppy ~/bin/
+all: pupp
+	@cp pupp ~/bin/
 	@echo all done.
 
-puppy: puppy.o scan.o main.o 
-	g++ -g -o puppy puppy.o scan.o main.o -lgmp
+pupp: pupp.o scan.o main.o 
+	g++ -g -o pupp pupp.o scan.o main.o -lgmp
 
-puppy.o: puppy.y
-	bison -d -o puppy.cpp puppy.y
-	g++ -g -c -I../include -o puppy.o puppy.cpp
+pupp.o: pupp.y
+	bison -d -o pupp.cpp pupp.y
+	g++ -g -c -I../include -o pupp.o pupp.cpp
 
 scan.o: scan.l
 	flex -o scan.cpp scan.l
@@ -17,6 +17,6 @@ main.o: main.cpp
 	g++ -g -c -I../include -o main.o main.cpp
 
 clean:
-	rm -rf *.o scan.cpp puppy.cpp puppy puppy.hpp 
+	rm -rf *.o scan.cpp pupp.cpp pupp pupp.hpp 
 
 

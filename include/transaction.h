@@ -1,5 +1,5 @@
-#ifndef _TRANSACTION_H_
-#define _TRANSACTION_H_
+#ifndef _PUPP_TRANSACTION_H_
+#define _PUPP_TRANSACTION_H_
 
 #include <list>
 #include "container.h"
@@ -20,14 +20,14 @@ public:
                         Variable * var = context->GetVariable(varname);
                         if(var==NULL)
                         {
-                                cerr<<"puppy runtime error: cannot find variable "<<varname<<" in current context."<<endl;
+                                cerr<<"pupp runtime error: cannot find variable "<<varname<<" in current context."<<endl;
                                 return NODE_RET_ERROR;
                         }
 
                         Variable * origin = context->GetVariableFromOuterLayer(varname);
                         if(origin==NULL)
                         {
-                                cerr<<"Puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                                cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
                                 return NODE_RET_ERROR;
                         }
 
@@ -56,14 +56,14 @@ public:
                                         Variable * var = context->GetVariable(varname);
                                         if(var==NULL)
                                         {
-                                                cerr<<"puppy runtime error: cannot find variable "<<varname<<" in current context."<<endl;
+                                                cerr<<"pupp runtime error: cannot find variable "<<varname<<" in current context."<<endl;
                                                 return NODE_RET_ERROR;
                                         }
 
                                         Variable * origin = context->GetVariableFromOuterLayer(varname);
                                         if(origin==NULL)
                                         {
-                                                cerr<<"puppy runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                                                cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
                                                 return NODE_RET_ERROR;
                                         }
 
@@ -99,7 +99,7 @@ public:
                         VariableDef * vardef = parent->FindVariable(**i);
                         if(vardef==NULL)
                         {
-                                cerr<<"puppy provision error: Variable "<<**i<<" has not been defined"<<endl;
+                                cerr<<"pupp provision error: Variable "<<**i<<" has not been defined"<<endl;
                                 return false;
                         }
 

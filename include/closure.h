@@ -1,5 +1,5 @@
-#ifndef _PUPPY_CLOSURE_H_
-#define _PUPPY_CLOSURE_H_
+#ifndef _PUPP_CLOSURE_H_
+#define _PUPP_CLOSURE_H_
 
 #include <list>
 #include "function.h"

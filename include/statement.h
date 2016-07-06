@@ -1,5 +1,5 @@
-#ifndef _STATEMENT_H_
-#define _STATEMENT_H_
+#ifndef _PUPP_STATEMENT_H_
+#define _PUPP_STATEMENT_H_
 
 #include <unistd.h>
 #include <iostream>
@@ -39,7 +39,7 @@ public:
                         node = node->ParentNode;
                 }
 
-                cerr<<"puppy provision error: break statement must appear in a loop."<<endl;
+                cerr<<"pupp provision error: break statement must appear in a loop."<<endl;
                 return false;
         }
 };
@@ -67,7 +67,7 @@ public:
                         node = node->ParentNode;
                 }
 
-                cerr<<"puppy provision error: continue statement must appear in a loop."<<endl;
+                cerr<<"pupp provision error: continue statement must appear in a loop."<<endl;
                 return false;
         }
 
@@ -107,7 +107,7 @@ public:
                 Variable * var = context->GetVariable(this->VarDef->GetVarName());
                 if(var==NULL)
                 {
-                        cerr<<"puppy runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
+                        cerr<<"pupp runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
                         return NODE_RET_ERROR;
                 }
 
@@ -115,7 +115,7 @@ public:
                 {
                         if(var->GetVarType()==Array)
                         {
-                                cerr<<"puppy runtime error: invalid l-value:"<<var->GetVarName()<<endl;
+                                cerr<<"pupp runtime error: invalid l-value:"<<var->GetVarName()<<endl;
                                 return NODE_RET_ERROR;
                         }
 
@@ -134,7 +134,7 @@ public:
 
                                 if(value==NULL)
                                 {
-                                        cerr<<"Puppy runtime error: cannot convert data type:"<<var->GetVarName()<<endl;
+                                        cerr<<"pupp runtime error: cannot convert data type:"<<var->GetVarName()<<endl;
                                         return NODE_RET_ERROR;
                                 }
 
@@ -151,7 +151,7 @@ public:
                 {
                         if(static_cast<ArrayValue*>(var->GetVBox()->GetVal())->GetDimensionNum()!=exprlist->size())
                         {
-                                cerr<<"puppy runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
+                                cerr<<"pupp runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
                                 return NODE_RET_ERROR;
                         }
 
@@ -162,7 +162,7 @@ public:
                                 ConstValue * value = (*i)->Calculate(context);
                                 if(value->GetType()!=Integer)
                                 {
-                                        cerr<<"puppy runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
+                                        cerr<<"pupp runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
                                         delete value;
                                         return NODE_RET_ERROR;
                                 }
@@ -179,7 +179,7 @@ public:
                         }
                         if(val->GetElementType()!=target_value->GetType())
                         {
-                                cerr<<"puppy runtime error: data type mismatch for variable: "<<var->GetVarName()<<endl;
+                                cerr<<"pupp runtime error: data type mismatch for variable: "<<var->GetVarName()<<endl;
                                 return NODE_RET_ERROR;
                         }
 
@@ -194,7 +194,7 @@ public:
 
                 if(var->GetVarType()!=Set)
                 {
-                        cerr<<"puppy runtime error: cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
+                        cerr<<"pupp runtime error: cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
                         return NODE_RET_ERROR;
                 }
 
@@ -237,7 +237,7 @@ public:
                                 }
                                 else
                                 {
-                                        cerr<<"puppy runtime warning: Cannot use a scalar value as a collection."<<endl;
+                                        cerr<<"pupp runtime warning: Cannot use a scalar value as a collection."<<endl;
 
                                         if(need_clear)
                                         {
@@ -352,7 +352,7 @@ public:
                 this->VarDef = this->FindVariable(this->Reference->GetVarName());
                 if(this->VarDef==NULL)
                 {
-                        cerr<<"puppy provision error: Variable "<<this->Reference->GetVarName()<<"has not defined"<<endl;
+                        cerr<<"pupp provision error: Variable "<<this->Reference->GetVarName()<<"has not defined"<<endl;
                         return false;
                 }
 
@@ -438,7 +438,7 @@ public:
 
                 if(var==NULL)
                 {
-                        cerr<<"puppy runtime error: cannot find variable:"<<name<<endl;
+                        cerr<<"pupp runtime error: cannot find variable:"<<name<<endl;
                         return NODE_RET_ERROR;
                 }
                 
@@ -456,7 +456,7 @@ public:
                                 ConstValue * dsize = (*i)->Calculate(context);
                                 if(dsize->GetType()!=Integer || static_cast<IntegerValue*>(dsize)->GetValue()<=0)
                                 {
-                                        cerr<<"puppy runtime error: Size of an array must be a positive integer."<<endl;
+                                        cerr<<"pupp runtime error: Size of an array must be a positive integer."<<endl;
                                         delete dsize;
                                         return NODE_RET_ERROR;
                                 }
@@ -483,7 +483,7 @@ public:
 
                         if(value->GetType()==Null)
                         {
-                                cerr<<"puppy runtime error: variable type cannot be determined."<<endl;
+                                cerr<<"pupp runtime error: variable type cannot be determined."<<endl;
                                 delete value;
                                 return NODE_RET_ERROR;
                         }
@@ -506,7 +506,7 @@ public:
                         string varname = *(this->Ident);
                         if(parent->FindVariable(varname))
                         {
-                                cerr<<"puppy provision error: Duplicated variable: "<<varname<<endl;
+                                cerr<<"pupp provision error: Duplicated variable: "<<varname<<endl;
                                 return false;
                         }
 
@@ -616,7 +616,7 @@ public:
                 if(value->GetType()!=Integer)
                 {
                         //TODO
-                        cerr<<"puppy runtime error: SLEEP Statement need a Integer parameter. "<<endl;
+                        cerr<<"pupp runtime error: SLEEP Statement need a Integer parameter. "<<endl;
                         return NODE_RET_ERROR;
                 }
 
@@ -701,7 +701,7 @@ public:
                         node = node->ParentNode;
                 }
 
-                cerr<<"puppy provision error: rollback statement must appear in a transaction."<<endl;
+                cerr<<"pupp provision error: rollback statement must appear in a transaction."<<endl;
                 return false;
         }
 
@@ -730,7 +730,7 @@ public:
                         node = node->ParentNode;
                 }
 
-                cerr<<"puppy provision error: commit statement must appear in a transaction."<<endl;
+                cerr<<"pupp provision error: commit statement must appear in a transaction."<<endl;
                 return false;
         }
 

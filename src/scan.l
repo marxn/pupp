@@ -6,7 +6,7 @@
     #include "node.h"
     #include "statement.h"
     #include "container.h"
-    #include "puppy.hpp"
+    #include "pupp.hpp"
     
     int yyerror(char *);
     unsigned long parse_line = 1;
@@ -48,30 +48,30 @@ identifier [a-zA-Z_]+[0-9]*
 
 {string}        {
                                 yytext[strlen(yytext)-1] = '\0';
-                                yylval.puppy_const_string = new StringValue(yytext+1);
+                                yylval.pupp_const_string = new StringValue(yytext+1);
                                 return STRING;
                 }
                 
 {integer}        {
-                                yylval.puppy_const_integer = new IntegerValue(atol(yytext));
+                                yylval.pupp_const_integer = new IntegerValue(atol(yytext));
                                 return INTEGER;
                 }
 {decimal}        {
                                 StringValue temp(yytext);
-                                yylval.puppy_const_decimal = new DecimalValue(temp.toString());
-                                yylval.puppy_const_decimal->SetPrec(temp.GetNumPrec());
+                                yylval.pupp_const_decimal = new DecimalValue(temp.toString());
+                                yylval.pupp_const_decimal->SetPrec(temp.GetNumPrec());
                                 return DECIMAL;
                 }
 {identifier}        {
                                 //Boolean constant value
                                 if(strcasecmp(yytext, "true") == 0)
                                 {
-                                        yylval.puppy_const_boolean = new BooleanValue(true);
+                                        yylval.pupp_const_boolean = new BooleanValue(true);
                                         return BOOLEAN;
                                 }
                                 if(strcasecmp(yytext, "false") == 0)
                                 {
-                                        yylval.puppy_const_boolean = new BooleanValue(false);
+                                        yylval.pupp_const_boolean = new BooleanValue(false);
                                         return BOOLEAN;
                                 }
 
@@ -138,7 +138,7 @@ identifier [a-zA-Z_]+[0-9]*
                                         return NL;
 
                                 //Common identifiers
-                                yylval.puppy_ident = new string(yytext);
+                                yylval.pupp_ident = new string(yytext);
                                 return IDENTIFIER;
                 }
 {space}         {

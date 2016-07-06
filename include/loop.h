@@ -1,5 +1,5 @@
-#ifndef _PUPPY_LOOP_H_
-#define _PUPPY_LOOP_H_
+#ifndef _PUPP_LOOP_H_
+#define _PUPP_LOOP_H_
 
 #include <list>
 #include "expression.h"
@@ -117,7 +117,7 @@ public:
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO
-                                cerr<<"puppy runtime error: Wrong data type in while expression - expect a boolean expression."<<endl;
+                                cerr<<"pupp runtime error: Wrong data type in while expression - expect a boolean expression."<<endl;
                                 return -1;
                         }
 
@@ -240,7 +240,7 @@ public:
 
                 if(keeper->GetType()!=Set)
                 {
-                        cerr<<"puppy runtime warning: FOREACH need a collection as input."<<endl;
+                        cerr<<"pupp runtime warning: FOREACH need a collection as input."<<endl;
                         context->ForeachCtx.push(NULL);
                         return true;
                 }

@@ -1,5 +1,5 @@
-#ifndef _PUPPY_IFELSE_H_
-#define _PUPPY_IFELSE_H_
+#ifndef _PUPP_IFELSE_H_
+#define _PUPP_IFELSE_H_
 
 #include <list>
 #include "expression.h"
@@ -101,7 +101,7 @@ class BranchNode :public ContainerNode
                         if(eva->GetType()!=Boolean)
                         {
                                 //TODO
-                                cerr<<"puppy runtime error: Wrong data type in if statement - expect a boolean expression."<<endl;
+                                cerr<<"pupp runtime error: Wrong data type in if statement - expect a boolean expression."<<endl;
                                 return EVA_ERROR;
                         }
 
