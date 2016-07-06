@@ -1,4 +1,6 @@
 all:
+	(cd 3rdparty/gmp;./configure;make)
+	(cd ..; cd ..)
 	(cd src;make)
 	@echo all done.
 

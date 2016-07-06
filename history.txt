@@ -2,6 +2,7 @@ Jul 6th 2016
 ------------------------
 1. Optimized grammar for CALL statement.
 2. Change project name to PUPP.
+3. Integrated libgmp source code into project.
 
 Jul 5th 2016
 ------------------------
