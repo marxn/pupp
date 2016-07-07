@@ -1786,43 +1786,12 @@ public:
                         StringValue * leftvalue = static_cast<StringValue*>(left);
                         StringValue * rightvalue = static_cast<StringValue*>(right);
 
-                        if(leftvalue->LooksLikeInteger() && rightvalue->LooksLikeInteger())
-                        {
-                                IntegerValue value1(leftvalue->toString());
-                                IntegerValue value2(rightvalue->toString());
-                                result = new BooleanValue(value1.GetValue() != value2.GetValue());
-                        }
-                        else if(leftvalue->LooksLikeInteger() && rightvalue->LooksLikeDecimal())
-                        {
-                                DecimalValue value1(leftvalue->toString());
-                                DecimalValue value2(rightvalue->toString());
-
-                                result = new BooleanValue(value1 != value2);
-                        }
-                        else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeInteger())
-                        {
-                                DecimalValue value1(leftvalue->toString());
-                                DecimalValue value2(rightvalue->toString());
-
-                                result = new BooleanValue(value1 != value2);
-                        }
-                        else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeDecimal())
-                        {
-                                DecimalValue value1(leftvalue->toString());
-                                DecimalValue value2(rightvalue->toString());
-
-                                result = new BooleanValue(value1 != value2);
-                        }
-                        else
-                        {
-                                result = new NullValue;
-                        }
+                        result = new BooleanValue(leftvalue->toString() != rightvalue->toString());
                 }
                 else
                 {
                         result = new NullValue;
                 }
-
 
                 return result;
         }

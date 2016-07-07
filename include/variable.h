@@ -175,6 +175,7 @@ public:
         {
                 Variable * ret = new Variable(this->VarName, this->VarType);
                 ret->SetSource(this);
+                ret->SetPrecision(this->VarPrec);
 
                 ConstValue * value = new NullValue;
                 ret->SetRef(value);

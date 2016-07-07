@@ -10,7 +10,7 @@ print "a=",a,", b=",b,", cashflow=",cashflow,NL;
 
 while(a["balance"]>0.00)
 {
-        transaction(a, b)//, cashflow)
+        transaction(a, b)
         {
                 if(a["balance"] < transferamount)
                 {

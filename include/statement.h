@@ -442,7 +442,7 @@ public:
                         return NODE_RET_ERROR;
                 }
                 
-                var->SetPrecision(this->VarType->GetPrecision());
+                //var->SetPrecision(this->VarType->GetPrecision());
 
                 if(this->VarType->GetVarType()==Array)
                 {

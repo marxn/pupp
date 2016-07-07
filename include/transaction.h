@@ -31,9 +31,12 @@ public:
                                 return NODE_RET_ERROR;
                         }
 
+                        //Copy the value of outer variable to local variable.
+                        //Note: var type must be given because any var type is determined in run-time.
                         ConstValue * value = origin->GetValue();
+                        DataType type = origin->GetVarType();
                         var->SetRef(value);
-                        //delete value;
+                        var->SetVarType(type);
                 }
 
                 list<Node*>::iterator i;
