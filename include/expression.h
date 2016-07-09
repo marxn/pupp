@@ -8,6 +8,7 @@
 #include <string>
 
 #include "constval.h"
+#include "operation.h"
 #include "variable.h"
 #include "node.h"
 #include "function.h"

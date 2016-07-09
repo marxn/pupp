@@ -1,5 +1,5 @@
 all:
-	(cd 3rdparty/gmp;./configure;make)
+	(cd 3rdparty/gmp; ./configure --enable-shared=no; make)
 	(cd ..; cd ..)
 	(cd src;make)
 	@echo all done.
