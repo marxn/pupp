@@ -470,6 +470,8 @@ public:
 
                         //Let's rock!
                         rtn = funcnode->Run(new_ctx);
+
+                        //Check the result of the function.
                         if(rtn==NODE_RET_NEEDRETURN)
                         {
                                 result = new_ctx->FunctionRet;
@@ -487,7 +489,6 @@ public:
                         }
 
                         delete new_ctx;
-//                        context->Rewind();
                 }
 
                 delete func;
@@ -748,9 +749,6 @@ public:
                 return Operation::NOTOperation(right_store);
         }
 };
-
-
-
 
 
 #endif

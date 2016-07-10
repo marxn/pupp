@@ -73,6 +73,99 @@ public:
 
 };
 
+class RollbackStatement: public StatementNode
+{
+public:
+        int Invoke(NodeContext * context)
+        {
+                return NODE_RET_NEEDROLLBACK;
+        }
+        bool Provision()
+        {
+                return true;
+        }
+        bool Check()
+        {
+                Node * node = this->ParentNode;
+                while(node!=NULL)
+                {
+                        if(node->Type==Transaction)
+                        {
+                                return true;
+                        }
+                        node = node->ParentNode;
+                }
+
+                cerr<<"pupp provision error: rollback statement must appear in a transaction."<<endl;
+                return false;
+        }
+
+};
+
+class CommitStatement: public StatementNode
+{
+public:
+        int Invoke(NodeContext * context)
+        {
+                return NODE_RET_NEEDCOMMIT;
+        }
+        bool Provision()
+        {
+                return true;
+        }
+        bool Check()
+        {
+                Node * node = this->ParentNode;
+                while(node!=NULL)
+                {
+                        if(node->Type==Transaction)
+                        {
+                                return true;
+                        }
+                        node = node->ParentNode;
+                }
+
+                cerr<<"pupp provision error: commit statement must appear in a transaction."<<endl;
+                return false;
+        }
+
+};
+
+class ReturnStatement: public StatementNode
+{
+public:
+        int Invoke(NodeContext * context)
+        {
+                ConstValue * value = this->Expr->Calculate(context);
+                if(value==NULL)
+                {
+                        return NODE_RET_ERROR;
+                }
+
+                context->FunctionRet = value->DupValue();
+
+                delete value;
+                return NODE_RET_NEEDRETURN;
+        }
+        void SetExpression(Expression * expr)
+        {
+                this->Expr = expr;
+        }
+        bool Provision()
+        {
+                this->Expr->SetParentNode(this->GetParentNode());
+                return this->Expr->Provision();
+        }
+        bool Check()
+        {
+                return this->Expr->Check();
+        }
+
+private:
+        Expression * Expr;
+
+};
+
 class LValue 
 {
 public:
@@ -641,99 +734,6 @@ public:
 
 private:
         Expression * Expr;
-};
-
-class ReturnStatement: public StatementNode
-{
-public:
-        int Invoke(NodeContext * context)
-        {
-                ConstValue * value = this->Expr->Calculate(context);
-                if(value==NULL)
-                {
-                        return NODE_RET_ERROR;
-                }
-
-                context->FunctionRet = value->DupValue();
-
-                delete value;
-                return NODE_RET_NEEDRETURN;
-        }
-        void SetExpression(Expression * expr)
-        {
-                this->Expr = expr;
-        }
-        bool Provision()
-        {
-                this->Expr->SetParentNode(this->GetParentNode());
-                return this->Expr->Provision();
-        }
-        bool Check()
-        {
-                return this->Expr->Check();
-        }
-
-private:
-        Expression * Expr;
-
-};
-
-class RollbackStatement: public StatementNode
-{
-public:
-        int Invoke(NodeContext * context)
-        {
-                return NODE_RET_NEEDROLLBACK;
-        }
-        bool Provision()
-        {
-                return true;
-        }
-        bool Check()
-        {
-                Node * node = this->ParentNode;
-                while(node!=NULL)
-                {
-                        if(node->Type==Transaction)
-                        {
-                                return true;
-                        }
-                        node = node->ParentNode;
-                }
-
-                cerr<<"pupp provision error: rollback statement must appear in a transaction."<<endl;
-                return false;
-        }
-
-};
-
-class CommitStatement: public StatementNode
-{
-public:
-        int Invoke(NodeContext * context)
-        {
-                return NODE_RET_NEEDCOMMIT;
-        }
-        bool Provision()
-        {
-                return true;
-        }
-        bool Check()
-        {
-                Node * node = this->ParentNode;
-                while(node!=NULL)
-                {
-                        if(node->Type==Transaction)
-                        {
-                                return true;
-                        }
-                        node = node->ParentNode;
-                }
-
-                cerr<<"pupp provision error: commit statement must appear in a transaction."<<endl;
-                return false;
-        }
-
 };
 
 class CallStatement: public StatementNode

@@ -46,12 +46,12 @@ int main(int argc, char * argv[])
                 IntegerValue * key = new IntegerValue(i);
                 StringValue * value = new StringValue(string(argv[i]));
 
-                ValueBox * vb = new ValueBox(value->DupValue());
-                KVValue * kv = new KVValue(key, new ValueBox(value->DupValue()));
+                ValueBox * vb = new ValueBox(value);
+                KVValue * kv = new KVValue(key, vb);
                 para->AddKV(kv);
 
-                delete vb;
                 delete kv;
+                delete vb;
                 delete value;
                 delete key;
         }

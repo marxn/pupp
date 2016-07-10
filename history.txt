@@ -1,6 +1,7 @@
 Jul 10th 2016
 ------------------------
 1. Fixed string comparing bugs.
+2. Code regulation.
 
 Jul 7th 2016
 ------------------------
