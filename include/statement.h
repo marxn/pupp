@@ -318,13 +318,15 @@ public:
                         {
                                 if(vref->GetVal()->GetType()==Null)
                                 {
-                                        ValueBox * stub = new ValueBox(new SetValue);
+                                        SetValue * value_stub = new SetValue();
+                                        ValueBox * stub = new ValueBox(value_stub);
 
                                         KVValue * kv = new KVValue(last_offset_value, stub);
                                         static_cast<SetValue*>(last_set->GetVal())->AddKV(kv);
 
                                         delete kv;
                                         delete stub;
+                                        delete value_stub;
 
                                         vref = static_cast<SetValue*>(last_set->GetVal())->FindByKey(last_offset_value->toString());
                                 }
@@ -355,7 +357,8 @@ public:
                         {
                                 if(listsize>1)
                                 {
-                                        ValueBox * stub = new ValueBox(new SetValue);
+                                        SetValue * value_stub = new SetValue();
+                                        ValueBox * stub = new ValueBox(value_stub);
                                         KVValue * kv = new KVValue(offset_value, stub);
                                         static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
 
@@ -364,6 +367,7 @@ public:
                                         delete kv;
                                         delete value;
                                         delete stub;
+                                        delete value_stub;
                                 }
                                 else
                                 {

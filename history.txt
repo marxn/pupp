@@ -1,7 +1,10 @@
+Jul 11th 2016
+1. Memory leak.
+
 Jul 10th 2016
 ------------------------
 1. Fixed string comparing bugs.
-2. Code regulation.
+2. Code optimization.
 
 Jul 7th 2016
 ------------------------
