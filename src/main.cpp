@@ -2,10 +2,10 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include "container.h"
-#include "constval.h"
-#include "expression.h"
-#include "statement.h"
+#include "parser/container.h"
+#include "parser/constval.h"
+#include "parser/expression.h"
+#include "parser/statement.h"
 
 extern ContainerNode * parse();
 extern FILE * yyin;

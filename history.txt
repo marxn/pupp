@@ -1,3 +1,8 @@
+Jul 22nd 2016
+------------------------
+1. Regular directory for headers.
+2. Introduce runtime headers.
+
 Jul 11th 2016
 1. Memory leak.
 
