@@ -1,11 +1,11 @@
 %{
     #include <stdlib.h>
-    #include "constval.h"
-    #include "expression.h"
-    #include "variable.h"
-    #include "node.h"
-    #include "statement.h"
-    #include "container.h"
+    #include "parser/constval.h"
+    #include "parser/expression.h"
+    #include "parser/variable.h"
+    #include "parser/node.h"
+    #include "parser/statement.h"
+    #include "parser/container.h"
     #include "pupp.hpp"
     
     int yyerror(char *);

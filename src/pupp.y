@@ -4,16 +4,16 @@
     #include <stdarg.h>
     #include <list>
 
-    #include "constval.h"
-    #include "expression.h"
-    #include "variable.h"
-    #include "node.h"
-    #include "statement.h"
-    #include "container.h"
-    #include "loop.h"
-    #include "ifelse.h"
-    #include "function.h"
-    #include "transaction.h"
+    #include "parser/constval.h"
+    #include "parser/expression.h"
+    #include "parser/variable.h"
+    #include "parser/node.h"
+    #include "parser/statement.h"
+    #include "parser/container.h"
+    #include "parser/loop.h"
+    #include "parser/ifelse.h"
+    #include "parser/function.h"
+    #include "parser/transaction.h"
 
     using namespace std;
     
