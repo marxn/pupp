@@ -6,8 +6,10 @@
     #include "parser/node.h"
     #include "parser/statement.h"
     #include "parser/container.h"
-    #include "pupp.hpp"
-    
+    #include "parser.hpp"
+   
+    using namespace std;
+ 
     int yyerror(char *);
     unsigned long parse_line = 1;
 %}

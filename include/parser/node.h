@@ -8,8 +8,7 @@
 #include <list>
 #include <string>
 #include "variable.h"
-
-using namespace std;
+#include "constval.h"
 
 #define NODE_RET_NORMAL       0
 #define NODE_RET_ERROR       -1
@@ -24,6 +23,8 @@ using namespace std;
 #define EVA_FALSE 0
 #define EVA_ERROR -1
 
+class VariableDef;
+class Variable;
 class NodeContext;
 
 enum NodeType
@@ -38,174 +39,56 @@ enum NodeType
 class Node
 {
 public:
-        Node():Type(Generic), ParentNode(NULL)
-        {
-        }
-        Node(NodeType type):Type(type), ParentNode(NULL)
-        {
-        }
-        virtual ~Node()
-        {
-        }
+        Node();
+        Node(NodeType type);
+        virtual ~Node();
 
-        int Execute(NodeContext * context)
-        {
-                int ret = this->Invoke(context);
-                this->Swipe(context);
-                return ret;
-        }
+        int Execute(NodeContext * context);
 
-        Node * GetParentNode()
-        {
-                return this->ParentNode;
-        }
-        void SetParentNode(Node * node)
-        {
-                this->ParentNode = node;
-        }
+        Node * GetParentNode();
+        void SetParentNode(Node * node);
+
         virtual bool Provision() = 0;
-        virtual bool Check()
-        {
-                return true;
-        }
+        virtual bool Check();
 
         virtual int Invoke(NodeContext * context) = 0;
         virtual void Swipe(NodeContext * context) = 0;
 
-        void AddVariable(VariableDef * var)
-        {
-                VariableDef * thevar = this->VariableDefTable[var->GetVarName()];
-                if(thevar != NULL)
-                {
-                        delete thevar;
-                        this->VariableDefTable.erase(var->GetVarName());
-                }
-                var->SetAttachedNode(this);
-                this->VariableDefTable[var->GetVarName()] = var;
-        }
-        VariableDef * FindVariable(string varname)
-        {
-                map<string, VariableDef*>::iterator i = this->VariableDefTable.find(varname);
-                if(i!=this->VariableDefTable.end())
-                {
-                        return i->second;
-                }
-                if(this->ParentNode!=NULL)
-                {
-                        VariableDef * result = this->ParentNode->FindVariable(varname);
-                        return result;
-                }
-
-                return NULL;
-        }
+        void AddVariable(VariableDef * var);
+        VariableDef * FindVariable(std::string varname);
         
         NodeType Type;
         Node * ParentNode;
-        map<string, VariableDef*> VariableDefTable;
+        std::map<std::string, VariableDef*> VariableDefTable;
 };
-
 
 struct ForeachLoopCtx 
 {
         ConstValue * Keeper;
-        map<string, ValueBox*> * SetValueHolder;
-        map<string, ValueBox*>::iterator ValueHandle;
+        std::map<std::string, ValueBox*> * SetValueHolder;
+        std::map<std::string, ValueBox*>::iterator ValueHandle;
 };
 
 class NodeContext
 {
 public:
-        NodeContext():FunctionRet(0) {}
-        ~NodeContext()
-        {
-                while(this->Frames.size()>0)
-                {
-                        this->PopFrame();
-                }
-        }
-        void AddFrame(Node * snapshot)
-        {
-                map<string, Variable*> * frame = new map<string, Variable*>;
+        NodeContext();
+        ~NodeContext();
 
-                map<string, VariableDef*>::iterator i;
-                for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
-                {
-                        string name = i->first;
-                        VariableDef * def = i->second;
-                        Variable * var = def->GetInstance();
-                        frame->insert(pair<string, Variable*>(name, var));
-                }
-                this->Frames.push_front(frame);
-        }
-        void PopFrame()
-        {
-                map<string, Variable*> * frame = this->Frames.front();
-                map<string, Variable*>::iterator i;
-                for(i = frame->begin(); i!=frame->end(); i++)
-                {
-                        delete i->second;
-                }
-                delete frame;
-                this->Frames.erase(this->Frames.begin());
-        }
-        void AddVariableToCurrentFrame(Variable * var)
-        {
-                map<string, Variable*> * frame = this->Frames.front();
-                if(frame==NULL)
-                {
-                    return;
-                }
+        void AddFrame(Node * snapshot);
 
-                map<string, Variable*>::iterator ex = frame->find(var->GetVarName());
+        void PopFrame();
+        void AddVariableToCurrentFrame(Variable * var);
 
-                if(ex != frame->end())
-                {
-                    delete ex->second;
-                    frame->erase(ex);
-                }
+        Variable * GetVariable(std::string name);
+        
+        Variable * GetVariableFromOuterLayer(std::string name);
 
-                frame->insert(pair<string, Variable*>(var->GetVarName(), var));
-        }
-
-        Variable * GetVariable(string name)
-        {
-                list<map<string, Variable*>* >::iterator i;
-                for(i=this->Frames.begin(); i!=this->Frames.end();i++)
-                {
-                        map<string, Variable*>::iterator j = (*i)->find(name);
-                        if(j!=(*i)->end())
-                        {
-                                return j->second;
-                        }
-                }
-
-                return NULL;
-        }
-        Variable * GetVariableFromOuterLayer(string name)
-        {
-                int count = 0;
-                list<map<string, Variable*>* >::iterator i;
-                for(i=this->Frames.begin(); i!=this->Frames.end();i++)
-                {
-                        if(count++==0)
-                        {
-                                continue;
-                        }
-                        map<string, Variable*>::iterator j = (*i)->find(name);
-                        if(j!=(*i)->end())
-                        {
-                                return j->second;
-                        }
-                }
-
-                return NULL;
-        }
-
-        stack<ForeachLoopCtx*> ForeachCtx;
+        std::stack<ForeachLoopCtx*> ForeachCtx;
         ConstValue * FunctionRet;
 
 private:
-        list<map<string, Variable*>* > Frames;
+        std::list<std::map<std::string, Variable*>* > Frames;
 };
 
 #endif

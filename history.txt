@@ -1,3 +1,7 @@
+Jul 29th 2016
+------------------------
+1. Devide source into .h and .cpp
+
 Jul 22nd 2016
 ------------------------
 1. Regular directory for headers.

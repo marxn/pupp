@@ -3,6 +3,7 @@
     #include <stdio.h>
     #include <stdarg.h>
     #include <list>
+    #include <string>
 
     #include "parser/constval.h"
     #include "parser/expression.h"
@@ -43,18 +44,18 @@
         VarExpression               * pupp_varexpr;
         FunctionExpression          * pupp_funcexpr;
         LambdaExpression            * pupp_lambda_expr;
-        string                      * pupp_ident;
+        std::string                 * pupp_ident;
         Node                        * pupp_node;
-        list<Node*>                 * pupp_nodelist;
-        list<string*>               * pupp_identlist;
-        list<Expression*>           * pupp_exprlist;
+        std::list<Node*>            * pupp_nodelist;
+        std::list<std::string*>     * pupp_identlist;
+        std::list<Expression*>      * pupp_exprlist;
         LValue                      * pupp_lvalue;
         StatementNode               * pupp_statement;
         FunctionNode                * pupp_function_node;
         FuncArgDef                  * pupp_function_argdef;
-        list<FuncArgDef*>           * pupp_function_arg_list;
+        std::list<FuncArgDef*>      * pupp_function_arg_list;
         ClosureVarDesc              * pupp_closure_var_desc;
-        list<ClosureVarDesc*>       * pupp_closure_var_list;
+        std::list<ClosureVarDesc*>  * pupp_closure_var_list;
         long                          pupp_opt_prec_desc;
         bool                          pupp_opt_function_key;
 }
