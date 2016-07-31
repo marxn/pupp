@@ -1,10 +1,10 @@
 all:
 	(cd 3rdparty/gmp; ./configure --enable-shared=no; make)
 	(cd ..; cd ..)
-	(cd src;make)
+	make -C src
 	@echo all done.
 
 clean:
-	(cd src;make clean)
+	make -C src clean
 	@echo clean done.
 
