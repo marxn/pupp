@@ -1,6 +1,10 @@
+Aug 1st 2016
+------------------------
+1. regular source directories.
+
 Jul 29th 2016
 ------------------------
-1. Devide source into .h and .cpp
+1. Divide source into .h and .cpp
 
 Jul 22nd 2016
 ------------------------
