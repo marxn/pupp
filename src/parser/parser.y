@@ -18,11 +18,11 @@
 
     using namespace std;
     
-    int yyerror(char *);
-    int yylex(void);
-    ContainerNode * final;
+    static int yyerror(char *);
+    static ContainerNode * final;
+    static unsigned long anonymous_func_seq = 0;
 
-    unsigned long anonymous_func_seq = 0;
+    extern int yylex(void);
     extern unsigned long parse_line;
 %}
 

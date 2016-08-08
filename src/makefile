@@ -6,12 +6,12 @@ all: pupp
 	@cp pupp ~/bin/
 	@echo all done.
 
-pupp: main.o
+pupp: pupp.o
 	make -C parser
-	g++ -o pupp main.o $(PARSER_LIB) $(COMMON_LIB)
+	g++ -o pupp pupp.o $(PARSER_LIB) $(COMMON_LIB)
 
-main.o: main.cpp
-	g++ -g -c $(INCLUDE) -o main.o main.cpp
+pupp.o: pupp.cpp
+	g++ -g -c $(INCLUDE) -o pupp.o pupp.cpp
 
 clean:
 	make -C parser clean

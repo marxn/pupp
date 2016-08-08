@@ -1,21 +1,22 @@
 Pupp
 ====
-pupp的全称为Platform for Universal Plastic Processing（通用弹性化处理平台）
+PUPP stands for Platform for Universal Plastic Processing.
 
-pupp语言是一种用于对分布式消息处理系统进行流程控制和数据描述的语言。它可以帮助基于消息处理的程序开发人员快速搭建可伸缩、易部署的服务。
+PUPP can be diveded into two parts in terms of functionallity - A programming language pupp-lang and a distributed messaging service platform.
 
-它的设计要点是：
+pupp-lang is a kind of language which can be used to describe the entire messaging-process unit. 
 
-· 在语法层面原生支持闭包、lambda表达式。
+pupp-lang featuers:
 
-· 语法层面原生支持事务处理（transaction）。
+· Support Closures and Lambda expressions natively. 
 
-· 数据类型方面，支持不限类型的集合类型和无限精度的decimal数据类型。
+· Introduced transactions statement. That means you can use commit/rollback to control all the changes of variables in any code block atomically.
 
-· 所有变量支持运行时动态绑定。语法灵活。
+· Introduced a universal set whose keys and values can be of different types.
 
-· 所有数据类型均可使用内部机制实现持久化和序列化。
+· Introduced a decimal type of unlimited precsion.
 
+· Introduced a total new variable type - 'Message'. It is the essential function of PUPP.
 
 
 

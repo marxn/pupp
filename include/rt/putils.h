@@ -15,6 +15,8 @@
 #include <poll.h>
 #include <signal.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <string.h>
 #include <queue>
 #include <map>
 #include <iostream>
@@ -24,8 +26,7 @@ using namespace std;
 class PThread
 {
     public:
-        PThread()
-            :isDetach(false), Interruptted(false), Started(false)
+        PThread():isDetach(false), Interruptted(false), Started(false)
         {
             pthread_mutex_init(&this->StartMutex, NULL);
             pthread_cond_init(&this->StartCond, NULL);
@@ -42,8 +43,7 @@ class PThread
         {
             if(pthread_create(&this->tid, NULL, ThreadWrapper, this) == 0)
             {
-                //we set a simple barrier to make sure the 
-                //initialization has been done by the actual thread routine.
+                //we setup a simple barrier to ensure the initialization has been done by the starting thread.
                 pthread_mutex_lock(&this->StartMutex);
                 while(this->Started == false)
                 {
@@ -67,8 +67,7 @@ class PThread
             
             if(pthread_create(&this->tid, &attr, ThreadWrapper, this) == 0)
             {
-                //we set a simple barrier to make sure the 
-                //initialization has been done by the actual thread routine.
+                //we setup a simple barrier to ensure the initialization has been done by the starting thread.
                 pthread_mutex_lock(&this->StartMutex);
                 
                 while(this->Started == false)
@@ -118,7 +117,7 @@ class PThread
             
             //initialize TLS variable. this must be done because
             //some kind of glibc use lazy-allocation of TLS that
-            //may be crash in async-signal-case.
+            //may crash in async-signal-case.
             theThread->self = theThread;
             
             //Disable useless signal.
@@ -177,6 +176,7 @@ class PThread
         //use TLS variable to save self pointer used by signal handler.
         static __thread PThread * self;
 };
+
 __thread PThread * PThread::self = NULL;
 
 class PThreadPool
