@@ -97,10 +97,12 @@ public:
         bool Check();
 
         void AddOffsetExpr(Expression * expr);
+        
 private:
         std::string VarName;
         VariableDef * VarDef;
         std::list<Expression*> ExprList;
+        unsigned long VarLayer;
 };
 
 class FunctionExpression: public Expression

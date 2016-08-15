@@ -1,0 +1,7 @@
+def a : decimal(2);
+def b : decimal(3);
+a=1.111;
+b=a;
+print a,NL;
+print b,NL;
+

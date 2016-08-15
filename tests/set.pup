@@ -4,3 +4,14 @@ a[0]=1;
 
 print a,NL;
 
+def fun = (&x : int)
+{
+	x = 2;
+};
+
+fun(a[0]);
+
+print a,NL;
+
+
+

@@ -4,6 +4,13 @@
 #include <list>
 #include "container.h"
 
+struct TransIdentDesc
+{
+        VariableDef * SrcVardef;
+        VariableDef * DstVarDef;
+        unsigned long SrcLayer;
+};
+
 class TransNode: public ContainerNode
 {
 public:
@@ -17,7 +24,7 @@ public:
 
 private:
         std::list<std::string*> * IdList;
-        std::list<VariableDef*> VarDefList;
+        std::list<TransIdentDesc> VarDefList;
 };
 
 #endif

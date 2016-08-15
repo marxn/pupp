@@ -1,3 +1,7 @@
+Aug15yh 2016
+------------------------
+1. Optimized variable access.
+
 Aug 1st 2016
 ------------------------
 1. regular source directories.

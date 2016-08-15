@@ -83,6 +83,7 @@ private:
         LValue * Reference;
         Expression * Expr;
         VariableDef * VarDef;
+        unsigned long VarLayer;
 };
 
 class VariableType

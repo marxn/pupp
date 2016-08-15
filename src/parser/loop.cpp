@@ -85,7 +85,7 @@ bool LoopNode::Provision()
                 return false;
         }
 
-        condition->SetParentNode(this->GetParentNode());
+        condition->SetParentNode(this);
         if(condition->Provision()==false)
         {
                 return false;
@@ -147,7 +147,10 @@ bool ForLoopNode::PreLoopStatement(NodeContext * context)
                 return true;
         }
 
+        context->AddFrame(this->PreLoop);
         int ret = this->PreLoop->Execute(context);
+        context->PopFrame();
+        
         if(ret!=NODE_RET_NORMAL)
         {
                 return false;
@@ -163,7 +166,10 @@ bool ForLoopNode::PerOnceStatement(NodeContext * context)
                 return true;
         }
 
+        context->AddFrame(this->PreLoop);
         int ret = this->PerOnce->Execute(context);
+        context->PopFrame();
+        
         if(ret!=NODE_RET_NORMAL)
         {
                 return false;
@@ -181,7 +187,7 @@ bool ForLoopNode::Provision()
 
         if(this->PreLoop)
         {
-                this->PreLoop->SetParentNode(this->GetParentNode());
+                this->PreLoop->SetParentNode(this);
                 if(this->PreLoop->Provision()!=true)
                 {
                         return false;
@@ -190,7 +196,7 @@ bool ForLoopNode::Provision()
 
         if(this->PerOnce)
         {
-                this->PerOnce->SetParentNode(this->GetParentNode());
+                this->PerOnce->SetParentNode(this);
                 if(this->PerOnce->Provision()!=true)
                 {
                         return false;
@@ -282,8 +288,8 @@ void ForeachLoopNode::ProvisionKV(NodeContext * context)
 {
         ForeachLoopCtx * ctx = context->ForeachCtx.top();
 
-        Variable * key = context->GetVariable(this->Key);
-        Variable * value = context->GetVariable(this->Value);
+        Variable * key = context->GetVariable(0, this->KeyIndex);
+        Variable * value = context->GetVariable(0, this->ValueIndex);
 
         ConstValue * tmpkey = new StringValue(ctx->ValueHandle->first);
         key->SetValue(tmpkey);
@@ -341,13 +347,16 @@ bool ForeachLoopNode::Provision()
 
         this->AddVariable(key);
         this->AddVariable(value);
-
+        
+        this->KeyIndex   = key->GetVarIndex();
+        this->ValueIndex = value->GetVarIndex();
+        
         if(ForLoopNode::Provision()!=true)
         {
                 return false;
         }
 
-        CollectionExpr->SetParentNode(this->GetParentNode());
+        CollectionExpr->SetParentNode(this);
         if(CollectionExpr->Provision()==false)
         {
                 return false;

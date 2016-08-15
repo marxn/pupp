@@ -1,0 +1,15 @@
+message bank
+{
+	status 'stable' on 'merge' accept('123','456);
+}
+
+def a = message{ID='CREATEUSER', TRANSTABLE=table, source=set{<'name','jack'>,<'balance',100.00>}};
+def b = message{id='createuser', action=table, source=set{<'name','rose'>,<'balance',20.00>}};
+def trans = message{id='transfer', 
+
+send a to console;
+
+get b from console;
+
+
+

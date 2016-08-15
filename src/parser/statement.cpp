@@ -143,7 +143,7 @@ void ReturnStatement::SetExpression(Expression * expr)
 
 bool ReturnStatement::Provision()
 {
-        this->Expr->SetParentNode(this->GetParentNode());
+        this->Expr->SetParentNode(this);
         return this->Expr->Provision();
 }
 
@@ -180,7 +180,7 @@ AssignStatement::AssignStatement(LValue * ref)
 
 int AssignStatement::Invoke(NodeContext * context)
 {
-        Variable * var = context->GetVariable(this->VarDef->GetVarName());
+        Variable * var = context->GetVariable(this->VarLayer, this->VarDef->GetVarIndex());
         if(var==NULL)
         {
                 cerr<<"pupp runtime error: cannot find variable: "<<this->VarDef->GetVarName()<<endl;
@@ -414,14 +414,14 @@ bool AssignStatement::Provision()
         list<Expression*>::iterator i;
         for(i=exprlist->begin(); i!=exprlist->end(); i++)
         {
-                (*i)->SetParentNode(this->GetParentNode());
+                (*i)->SetParentNode(this);
                 if((*i)->Provision()==false)
                 {
                         return false;
                 }
         }
 
-        this->Expr->SetParentNode(this->GetParentNode());
+        this->Expr->SetParentNode(this);
         if(this->Expr->Provision()==false)
         {
                 return false;
@@ -432,12 +432,18 @@ bool AssignStatement::Provision()
 
 bool AssignStatement::Check()
 {
-        this->VarDef = this->FindVariable(this->Reference->GetVarName());
+        unsigned long layer = 1;
+        
+        Node * parent = this->GetParentNode();
+        this->VarDef = parent->FindVariable(this->Reference->GetVarName(), &layer);
+        
         if(this->VarDef==NULL)
         {
                 cerr<<"pupp provision error: Variable "<<this->Reference->GetVarName()<<"has not defined"<<endl;
                 return false;
         }
+        
+        this->VarLayer = layer;
 
         list<Expression*>* exprlist = this->Reference->GetExpList();
 
@@ -517,7 +523,7 @@ VarDefinitionStatement::VarDefinitionStatement(string * ident, VariableType * va
 int VarDefinitionStatement::Invoke(NodeContext * context)
 {
         string name = *(this->Ident);
-        Variable * var = context->GetVariable(name);
+        Variable * var = context->GetVariable(1, this->VarDef->GetVarIndex());
 
         if(var==NULL)
         {
@@ -589,7 +595,7 @@ bool VarDefinitionStatement::Provision()
         if(parent)
         {
                 string varname = *(this->Ident);
-                if(parent->FindVariable(varname))
+                if(parent->FindVariable(varname, NULL))
                 {
                         cerr<<"pupp provision error: Duplicated variable: "<<varname<<endl;
                         return false;
@@ -610,7 +616,7 @@ bool VarDefinitionStatement::Provision()
 
         if(this->InitExpr)
         {
-                this->InitExpr->SetParentNode(parent);
+                this->InitExpr->SetParentNode(this);
                 return this->InitExpr->Provision();
         }
 
@@ -656,7 +662,7 @@ bool PrintStatement::Provision()
         list<Expression*>::iterator i;
         for(i = ExprList->begin(); i!= ExprList->end(); i++)
         {
-                (*i)->SetParentNode(this->GetParentNode());
+                (*i)->SetParentNode(this);
                 if((*i)->Provision()==false)
                 {
                         return false;
@@ -706,7 +712,7 @@ void SleepStatement::SetExpression(Expression * expr)
 
 bool SleepStatement::Provision()
 {
-        this->Expr->SetParentNode(this->GetParentNode());
+        this->Expr->SetParentNode(this);
         return this->Expr->Provision();
 }
 
@@ -744,7 +750,7 @@ void CallStatement::SetExpression(Expression * expr)
 
 bool CallStatement::Provision()
 {
-        this->Expr->SetParentNode(this->GetParentNode());
+        this->Expr->SetParentNode(this);
         return this->Expr->Provision();
 }
 

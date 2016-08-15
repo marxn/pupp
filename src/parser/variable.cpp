@@ -5,11 +5,11 @@ using namespace std;
 
 Variable::Variable(string name, DataType type)
 {
-        this->Source  = NULL;
-        this->VBox    = NULL;
-        this->VarName = name;
-        this->VarType = type;
-        this->Prec    = -1;
+        this->Source   = NULL;
+        this->VBox     = NULL;
+        this->VarName  = name;
+        this->VarType  = type;
+        this->Prec     = -1;
 }
 
 Variable::~Variable()
@@ -150,9 +150,10 @@ Variable * Variable::CreateVarRef()
 
 VariableDef::VariableDef(string varname)
 {
-        this->VarName = varname;
-        this->VarType = Null;
-        this->VarPrec = -1;
+        this->VarName       = varname;
+        this->VarType       = Null;
+        this->VarPrec       = -1;
+        this->needInstance  = true;
 }
 
 Variable * VariableDef::GetInstance()
@@ -197,4 +198,22 @@ Node * VariableDef::GetAttachedNode()
         return this->AttachedNode;
 }
 
+void VariableDef::SetVarIndex(unsigned long index)
+{
+        this->VarIndex = index;
+}
+        
+unsigned long VariableDef::GetVarIndex()
+{
+        return this->VarIndex;
+}
 
+bool VariableDef::NeedInstance()
+{
+        return this->needInstance;
+}
+
+void VariableDef::SetNeedInstance(bool b)
+{
+        this->needInstance = b;
+}

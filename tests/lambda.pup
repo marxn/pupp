@@ -1,15 +1,15 @@
-def buildcounter = () : function
+def buildcounter = (start : int) : function
 {
-        def x = 0;
+        def x = start;
         return () using(&x): int {x = x + 1; return x;};
 };
 
 def i : int;
 def counter : function;
 
-counter = buildcounter();
+counter = buildcounter(888);
 
-for(i=0;i<1000;i=i+1)
+for(i=0;i<100;i=i+1)
 {
         print counter(),NL;
 }

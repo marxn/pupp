@@ -8,26 +8,32 @@ TransNode::TransNode():ContainerNode(Transaction)
 
 int TransNode::Invoke(NodeContext * context)
 {
-        list<VariableDef*>::iterator vd;
+        list<TransIdentDesc>::iterator vd;
+                
         for(vd = this->VarDefList.begin(); vd!= this->VarDefList.end(); vd++)
         {
-                string varname = (*vd)->GetVarName();
-                Variable * var = context->GetVariable(varname);
+                string varname = vd->SrcVardef->GetVarName();
+                
+                unsigned long src_layer = vd->SrcLayer;
+                unsigned long src_index = vd->SrcVardef->GetVarIndex();
+                unsigned long dst_index = vd->DstVarDef->GetVarIndex();
+                
+                Variable * var = context->GetVariable(0, dst_index);
                 if(var==NULL)
                 {
                         cerr<<"pupp runtime error: cannot find variable "<<varname<<" in current context."<<endl;
                         return NODE_RET_ERROR;
                 }
-
-                Variable * origin = context->GetVariableFromOuterLayer(varname);
+                
+                Variable * origin = context->GetVariable(src_layer, src_index);
                 if(origin==NULL)
                 {
                         cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
                         return NODE_RET_ERROR;
                 }
 
-                //Copy the value of outer variable to local variable.
-                //Note: var type must be given because any var type is determined in run-time.
+                //Copy the value of source variable to local transaction variable.
+                //Note: var type must be figure out because any var type is determined in run-time.
                 ConstValue * value = origin->GetValue();
                 DataType type = origin->GetVarType();
                 var->SetRef(value);
@@ -47,18 +53,24 @@ int TransNode::Invoke(NodeContext * context)
                 }
                 else if(cond==NODE_RET_NEEDCOMMIT)
                 {
-                        list<VariableDef*>::iterator vd;
+                        list<TransIdentDesc>::iterator vd;
                         for(vd = this->VarDefList.begin(); vd!= this->VarDefList.end(); vd++)
                         {
-                                string varname = (*vd)->GetVarName();
-                                Variable * var = context->GetVariable(varname);
+                                string varname = vd->SrcVardef->GetVarName();
+                                
+                                unsigned long src_layer = vd->SrcLayer;
+                                unsigned long src_index = vd->SrcVardef->GetVarIndex();
+                                unsigned long dst_index = vd->DstVarDef->GetVarIndex();
+                
+                                Variable * var = context->GetVariable(0, dst_index);
+                                
                                 if(var==NULL)
                                 {
                                         cerr<<"pupp runtime error: cannot find variable "<<varname<<" in current context."<<endl;
                                         return NODE_RET_ERROR;
                                 }
 
-                                Variable * origin = context->GetVariableFromOuterLayer(varname);
+                                Variable * origin = context->GetVariable(src_layer, src_index);
                                 if(origin==NULL)
                                 {
                                         cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
@@ -94,18 +106,22 @@ bool TransNode::Provision()
 
         for(i = this->IdList->begin(); i!= this->IdList->end(); i++)
         {
-                VariableDef * vardef = parent->FindVariable(**i);
+                unsigned long layer = 1;
+                
+                VariableDef * vardef = parent->FindVariable(**i, &layer);
                 if(vardef==NULL)
                 {
                         cerr<<"pupp provision error: Variable "<<**i<<" has not been defined"<<endl;
                         return false;
                 }
 
-                this->VarDefList.push_back(vardef);
-
                 VariableDef * newvardef = new VariableDef(**i);
                 newvardef->SetVarType(vardef->GetVarType());
                 this->AddVariable(newvardef);
+                
+                TransIdentDesc desc = {vardef, newvardef, layer};
+
+                this->VarDefList.push_back(desc);
         }
 
         return ContainerNode::Provision();

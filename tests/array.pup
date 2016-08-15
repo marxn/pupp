@@ -1,3 +1,26 @@
+def test = (x : int[])
+{
+        x[0] = 123;
+};
+
+
+def test1 = (&x : int[])
+{
+        x[0] = 123;
+};
+
+
+def test2 = (x : int)
+{
+        x = 456;
+};
+
+
+def test3 = (&x : int)
+{
+        x = 456;
+};
+
 def func = (args : set) using(&test, &test1, &test2, &test3): int
 {
         def arr : int[10];
@@ -26,29 +49,6 @@ def func = (args : set) using(&test, &test1, &test2, &test3): int
                 sleep(1000000);
         }
         return 0;
-};
-
-def test = (x : int[])
-{
-        x[0] = 123;
-};
-
-
-def test1 = (&x : int[])
-{
-        x[0] = 123;
-};
-
-
-def test2 = (x : int)
-{
-        x = 456;
-};
-
-
-def test3 = (&x : int)
-{
-        x = 456;
 };
 
 return func(args);

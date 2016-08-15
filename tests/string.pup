@@ -1,0 +1,14 @@
+print "a"=="a",NL;
+print "a">="a",NL;
+print "a"<="a",NL;
+print "a"!="a",NL;
+print "a">"a",NL;
+print "a"<"a",NL;
+
+print "a"=="b",NL;
+print "a">"b",NL;
+print "a"<"b",NL;
+print "a">="b",NL;
+print "a"<="b",NL;
+print "a"!="b",NL;
+

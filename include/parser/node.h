@@ -55,11 +55,13 @@ public:
         virtual void Swipe(NodeContext * context) = 0;
 
         void AddVariable(VariableDef * var);
-        VariableDef * FindVariable(std::string varname);
+        VariableDef * FindVariable(std::string varname, unsigned long * layer);
         
         NodeType Type;
         Node * ParentNode;
+        
         std::map<std::string, VariableDef*> VariableDefTable;
+        std::vector<VariableDef*> VarDefArray;
 };
 
 struct ForeachLoopCtx 
@@ -78,9 +80,9 @@ public:
         void AddFrame(Node * snapshot);
 
         void PopFrame();
-        void AddVariableToCurrentFrame(Variable * var);
+        void ReplaceVariable(unsigned long start_index, std::list<Variable*> * list);
 
-        Variable * GetVariable(std::string name);
+        Variable * GetVariable(unsigned long layer, unsigned long index);
         
         Variable * GetVariableFromOuterLayer(std::string name);
 
@@ -88,7 +90,7 @@ public:
         ConstValue * FunctionRet;
 
 private:
-        std::list<std::map<std::string, Variable*>* > Frames;
+        std::vector<std::vector<Variable*> > VarTable;
 };
 
 #endif

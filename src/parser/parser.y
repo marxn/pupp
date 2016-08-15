@@ -649,6 +649,12 @@ literal_value:
                 {
                         $$ = $1;
                 }
+        | '-' DECIMAL
+                {
+                        DecimalValue * value = new DecimalValue(DecimalValue(0L) - *($2));
+                        delete $2;
+                        $$ = value;
+                }
         | STRING
                 {
                         $$ = $1;

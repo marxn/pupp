@@ -1,0 +1,5 @@
+while(true)
+{
+	def a : int[1000];
+	sleep 100000;
+}

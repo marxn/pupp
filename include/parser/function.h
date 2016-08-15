@@ -13,11 +13,14 @@ public:
         DataType GetType();
         void SetElementType(DataType type);
         DataType GetElementType();
+        void SetArgIndex(unsigned long index);
+        unsigned long GetArgIndex();
 private:
         std::string Name;
         DataType Type;
         DataType ElementType;
         bool isref;
+        unsigned long ArgIndex;
 };
 
 class ClosureVarDesc
@@ -27,9 +30,21 @@ public:
 
         std::string GetVarName();
         bool IsRef();
+        
+        void SetSrcLayer(unsigned long layer);
+        void SetSrcDef(VariableDef * def);
+        void SetDstDef(VariableDef * def);
+        
+        unsigned long GetSrcLayer();
+        VariableDef * GetSrcDef();
+        VariableDef * GetDstDef();
+        
 private:
         std::string Name;
         bool isRef;
+        VariableDef * SrcDef;
+        VariableDef * DstDef;
+        unsigned long SrcLayer;
 };
 
 class FunctionNode:public ContainerNode
@@ -47,6 +62,7 @@ public:
         std::string GetName();
         void SetName(std::string name);
         DataType GetRtnType();
+        unsigned long GetClosureVarStartIndex();
         bool Provision();
 
 private:
@@ -55,6 +71,7 @@ private:
         DataType RtnType;
         std::list<FuncArgDef*> * ArgList;
         std::list<ClosureVarDesc*> * CopyList;
+        unsigned long ClosureVarStartIndex;
 };
 
 #endif

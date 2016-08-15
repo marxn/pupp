@@ -41,7 +41,7 @@ bool Node::Check()
 }
 
 void Node::AddVariable(VariableDef * var)
-{
+{       
         VariableDef * thevar = this->VariableDefTable[var->GetVarName()];
         if(thevar != NULL)
         {
@@ -50,10 +50,13 @@ void Node::AddVariable(VariableDef * var)
         }
 
         var->SetAttachedNode(this);
+        var->SetVarIndex(this->VarDefArray.size());
+        
         this->VariableDefTable[var->GetVarName()] = var;
+        this->VarDefArray.push_back(var);
 }
 
-VariableDef * Node::FindVariable(string varname)
+VariableDef * Node::FindVariable(string varname, unsigned long * layer)
 {
         map<string, VariableDef*>::iterator i = this->VariableDefTable.find(varname);
         if(i!=this->VariableDefTable.end())
@@ -63,7 +66,12 @@ VariableDef * Node::FindVariable(string varname)
 
         if(this->ParentNode!=NULL)
         {
-                VariableDef * result = this->ParentNode->FindVariable(varname);
+                if(layer)
+                {
+                        (*layer)++;
+                }
+                
+                VariableDef * result = this->ParentNode->FindVariable(varname, layer);
                 return result;
         }
 
@@ -73,11 +81,12 @@ VariableDef * Node::FindVariable(string varname)
 NodeContext::NodeContext()
 {
         FunctionRet = 0;
+        this->VarTable.reserve(64);
 }
 
 NodeContext::~NodeContext()
 {
-        while(this->Frames.size()>0)
+        while(this->VarTable.size()>0)
         {
                 this->PopFrame();
         }
@@ -85,84 +94,67 @@ NodeContext::~NodeContext()
 
 void NodeContext::AddFrame(Node * snapshot)
 {
-        map<string, Variable*> * frame = new map<string, Variable*>;
+        vector<Variable*> frame;
 
-        map<string, VariableDef*>::iterator i;
-        for(i = snapshot->VariableDefTable.begin(); i!=snapshot->VariableDefTable.end(); i++)
+        vector<VariableDef*>::iterator i;
+        for(i = snapshot->VarDefArray.begin(); i!=snapshot->VarDefArray.end(); i++)
         {
-                string name = i->first;
-                VariableDef * def = i->second;
-                Variable * var = def->GetInstance();
-                frame->insert(pair<string, Variable*>(name, var));
+                VariableDef * def = *i;
+                if((*i)->NeedInstance())
+                {
+                        Variable * var = def->GetInstance();
+                        frame.push_back(var);
+                }
+                else
+                {
+                        frame.push_back(NULL);
+                }
         }
-        this->Frames.push_front(frame);
+        
+        this->VarTable.push_back(frame);
+        
 }
 
 void NodeContext::PopFrame()
 {
-        map<string, Variable*> * frame = this->Frames.front();
-        map<string, Variable*>::iterator i;
-        for(i = frame->begin(); i!=frame->end(); i++)
-        {
-                delete i->second;
-        }
-
-        delete frame;
-        this->Frames.erase(this->Frames.begin());
-}
-
-void NodeContext::AddVariableToCurrentFrame(Variable * var)
-{
-        map<string, Variable*> * frame = this->Frames.front();
-        if(frame==NULL)
+        if(this->VarTable.size()<=0)
         {
                 return;
         }
-
-        map<string, Variable*>::iterator ex = frame->find(var->GetVarName());
-
-        if(ex != frame->end())
+        
+        vector<Variable*>& frame = this->VarTable.back();
+        vector<Variable*>::iterator i;
+        	
+        for(i = frame.begin(); i!=frame.end(); i++)
         {
-                delete ex->second;
-                frame->erase(ex);
+                delete *i;
         }
 
-        frame->insert(pair<string, Variable*>(var->GetVarName(), var));
+        this->VarTable.pop_back();
 }
 
-Variable * NodeContext::GetVariable(string name)
+void NodeContext::ReplaceVariable(unsigned long start_index, list<Variable*> * closurevars)
 {
-        list<map<string, Variable*>* >::iterator i;
-        for(i=this->Frames.begin(); i!=this->Frames.end();i++)
+        int i = 0;
+        vector<Variable*>& frame = this->VarTable[this->VarTable.size() - 1];
+        
+        list<Variable*>::iterator closurevarindex;
+                
+        for(closurevarindex = closurevars->begin(); closurevarindex != closurevars->end(); closurevarindex++)
         {
-                map<string, Variable*>::iterator j = (*i)->find(name);
-                if(j!=(*i)->end())
-                {
-                        return j->second;
-                }
+                frame[start_index + i] = (*closurevarindex)->CreateVarRef();
+                i++;
         }
-
-        return NULL;
 }
 
-Variable * NodeContext::GetVariableFromOuterLayer(string name)
+Variable * NodeContext::GetVariable(unsigned long layer, unsigned long index)
 {
-        int count = 0;
-        list<map<string, Variable*>* >::iterator i;
-        for(i=this->Frames.begin(); i!=this->Frames.end();i++)
+        if(layer > this->VarTable.size() || index > this->VarTable[this->VarTable.size() - layer - 1].size())
         {
-                if(count++==0)
-                {
-                        continue;
-                }
-
-                map<string, Variable*>::iterator j = (*i)->find(name);
-                if(j!=(*i)->end())
-                {
-                        return j->second;
-                }
+                return NULL;
         }
-
-        return NULL;
+        
+        return this->VarTable[this->VarTable.size() - layer - 1][index];
 }
+
 

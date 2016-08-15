@@ -27,12 +27,22 @@ public:
         void SetAttachedNode(Node * node);
 
         Node * GetAttachedNode();
+        
+        void SetVarIndex(unsigned long index);
+        
+        unsigned long GetVarIndex();
+
+        bool NeedInstance();
+
+        void SetNeedInstance(bool b);
 
 private:
         std::string VarName;
         DataType VarType;
         long VarPrec;
         Node * AttachedNode;
+        unsigned long VarIndex;
+        bool needInstance;
 };
 
 class Variable

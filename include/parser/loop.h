@@ -65,6 +65,8 @@ public:
 private:
         std::string Key;
         std::string Value;
+        unsigned long KeyIndex;
+        unsigned long ValueIndex;        
         SetExpression * CollectionExpr;
 };
 

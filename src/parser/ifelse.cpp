@@ -52,13 +52,13 @@ void BranchNode::SetCondition(Expression * condition)
 
 bool BranchNode::Provision()
 {
-        condition->SetParentNode(this->GetParentNode());
+        condition->SetParentNode(this);
         if(condition->Provision()==false)
         {
                return false;
         }
 
-        this->ifnode->SetParentNode(this->GetParentNode());
+        this->ifnode->SetParentNode(this);
         if(this->ifnode->Provision()==false)
         {
                return false;
@@ -66,7 +66,7 @@ bool BranchNode::Provision()
 
         if(this->elsenode!=NULL)
         {
-               this->elsenode->SetParentNode(this->GetParentNode());
+               this->elsenode->SetParentNode(this);
                if(this->elsenode->Provision()==false)
                {
                         return false;

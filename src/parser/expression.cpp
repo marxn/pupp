@@ -196,13 +196,14 @@ bool SetExpression::Check()
 
 VarExpression::VarExpression(string * arg)
 {
-        this->VarName = *arg;
-        this->lValue = true;
+        this->VarName  = *arg;
+        this->lValue   = true;
+        this->VarLayer = 0;
 }
 
 ValueBox * VarExpression::GetVarRef(NodeContext * context)
 {
-        Variable * var = context->GetVariable(VarName);
+        Variable * var = context->GetVariable(this->VarLayer, this->VarDef->GetVarIndex());
 
         if(var==NULL)
         {
@@ -300,14 +301,17 @@ bool VarExpression::Provision()
 
 bool VarExpression::Check()
 {
-        VariableDef * vardef = this->ParentNode->FindVariable(this->VarName);
+        unsigned long layer = 0;
+        VariableDef * vardef = this->ParentNode->FindVariable(this->VarName, &layer);
         if(vardef==NULL)
         {
                 cerr<<"pupp provision error: Variable "<<this->VarName<<" has not been defined"<<endl;
                 return false;
         }
+        
         this->VarDef = vardef;
-
+        this->VarLayer = layer;
+        
         list<Expression*>::iterator i;
         for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
         {
@@ -386,7 +390,8 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
                         {
                                 VarExpression * exp = static_cast<VarExpression*>(*i);
                                 ValueBox * vbox = exp->GetVarRef(context);
-                                Variable * avatar = new_ctx->GetVariable((*j)->GetName());
+                                unsigned long index = (*j)->GetArgIndex();
+                                Variable * avatar = new_ctx->GetVariable(0, index);
 
                                 if(avatar)
                                 {
@@ -411,8 +416,7 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
                                         return NULL;
                                 }
 
-                                string argname = (*j)->GetName();
-                                Variable * localvar = new_ctx->GetVariable(argname);
+                                Variable * localvar = new_ctx->GetVariable(0, (*j)->GetArgIndex());
                                 if(localvar)
                                 {
                                         localvar->SetValue(value);
@@ -427,12 +431,7 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
                 if(closurevars!=NULL)
                 {
                         //Put closure variables into the new context.
-                        list<Variable*>::iterator closurevarindex;
-                        for(closurevarindex = closurevars->begin(); closurevarindex != closurevars->end(); closurevarindex++)
-                        {
-                                Variable * framevar = (*closurevarindex)->CreateVarRef();
-                                new_ctx->AddVariableToCurrentFrame(framevar);
-                        }
+                        new_ctx->ReplaceVariable(funcnode->GetClosureVarStartIndex(), closurevars);
                 }
 
                 //Let's rock!
@@ -520,10 +519,13 @@ ConstValue * LambdaExpression::Calculate(NodeContext * context)
             for(i = CopyVars->begin(); i != CopyVars->end(); i++)
             {
                 string varname = (*i)->GetVarName();
-                Variable * origin = context->GetVariableFromOuterLayer(varname);
+                unsigned long layer  = (*i)->GetSrcLayer();
+                VariableDef * srcdef = (*i)->GetSrcDef();
+                
+                Variable * origin = context->GetVariable(layer, srcdef->GetVarIndex());
                 if(origin==NULL)
                 {
-                    cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in outer context"<<endl;
+                    cerr<<"pupp runtime error: cannot find variable: "<<varname<<" in the context"<<endl;
                     return NULL;
                 }
 
