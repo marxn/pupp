@@ -1,4 +1,8 @@
-Aug15yh 2016
+Aug 16th 2016
+------------------------
+1. Implemented +=,-=,*=,/= operand.
+
+Aug 15th 2016
 ------------------------
 1. Optimized variable access.
 

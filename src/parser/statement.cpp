@@ -215,9 +215,9 @@ int AssignStatement::Invoke(NodeContext * context)
                         }
 
                 }
-
-                var->SetValue(value);
-                delete value;
+                
+                this->AdjustValue(var->GetVBox(), value, this->OperType);
+                
                 return NODE_RET_NORMAL;
         }
 
@@ -249,22 +249,34 @@ int AssignStatement::Invoke(NodeContext * context)
                 ArrayValue * val = static_cast<ArrayValue*>(var->GetVBox()->GetVal());
 
                 ConstValue * target_value = Expr->Calculate(context);
+
                 if(target_value==NULL)
                 {
                         return NODE_RET_ERROR;
                 }
+
                 if(val->GetElementType()!=target_value->GetType())
                 {
-                        cerr<<"pupp runtime error: data type mismatch for variable: "<<var->GetVarName()<<endl;
-                        return NODE_RET_ERROR;
+                        ConstValueCaster caster(target_value, val->GetElementType());
+                        ConstValue * thevalue = caster.Cast();
+                        delete target_value;
+                        target_value = thevalue;
+
+                        if(target_value==NULL)
+                        {
+                                cerr<<"pupp runtime error: cannot convert data type:"<<var->GetVarName()<<endl;
+                                return NODE_RET_ERROR;
+                        }
+                        
                 }
 
                 if(val->GetElementType()==Decimal && val->GetPrecision()!=-1)
                 {
                         static_cast<DecimalValue*>(target_value)->SetPrec(val->GetPrecision());
                 }
-
-                val->SetElementValue(desc, target_value);
+                
+                this->AdjustValue(val->GetElementBox(desc), target_value, this->OperType);
+                
                 return NODE_RET_NORMAL;
         }
 
@@ -354,19 +366,22 @@ int AssignStatement::Invoke(NodeContext * context)
                         }
                         else
                         {
-                                ConstValue * target_value = Expr->Calculate(context);
-                                if(target_value==NULL)
+                                if(this->OperType==0)
                                 {
-                                        return NODE_RET_ERROR;
+                                        ConstValue * target_value = Expr->Calculate(context);
+                                        if(target_value==NULL)
+                                        {
+                                                return NODE_RET_ERROR;
+                                        }
+
+                                        ValueBox * vb = new ValueBox(target_value);
+                                        KVValue * kv = new KVValue(offset_value, vb);
+                                        static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
+
+                                        delete vb;
+                                        delete kv;
+                                        delete target_value;
                                 }
-
-                                ValueBox * vb = new ValueBox(target_value);
-                                KVValue * kv = new KVValue(offset_value, vb);
-                                static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
-
-                                delete vb;
-                                delete kv;
-                                delete target_value;
                         }
                 }
                 else
@@ -386,13 +401,14 @@ int AssignStatement::Invoke(NodeContext * context)
                                         return NODE_RET_ERROR;
                                 }
 
-                                ValueBox * vb = new ValueBox(target_value);
-                                KVValue * kv = new KVValue(offset_value, vb);
-                                static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
+                                //ValueBox * vb = new ValueBox(target_value);
+                                this->AdjustValue(value, target_value, this->OperType);
+                                
+                                //KVValue * kv = new KVValue(offset_value, vb);
+                                //static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
 
-                                delete vb;
-                                delete kv;
-                                delete target_value;
+                                //delete vb;
+                                //delete kv;
                         }
                 }
                 
@@ -402,9 +418,43 @@ int AssignStatement::Invoke(NodeContext * context)
         return NODE_RET_NORMAL;
 }
 
+void AssignStatement::AdjustValue(ValueBox * vbox, ConstValue * ad, int oper)
+{
+        if(oper==0)
+        {
+                vbox->SetVal(ad);
+                return;
+        }
+        
+        ConstValue * holder = vbox->GetVal();
+        
+        switch(oper)
+        {
+                case 1:
+                        vbox->SetVal(Operation::AddOperation(holder, ad));
+                        break;
+                case 2:
+                        vbox->SetVal(Operation::SubOperation(holder, ad));
+                        break;
+                case 3:
+                        vbox->SetVal(Operation::MulOperation(holder, ad));
+                        break;
+                case 4:
+                        vbox->SetVal(Operation::DivOperation(holder, ad));
+                        break;
+        }
+        
+        delete ad;
+}
+
 void AssignStatement::SetExpression(Expression * expr)
 {
         this->Expr = expr;
+}
+
+void AssignStatement::SetOperType(int type)
+{
+        this->OperType = type;
 }
 
 bool AssignStatement::Provision()

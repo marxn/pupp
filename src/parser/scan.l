@@ -16,6 +16,10 @@
 
 comment    "//".*
 equal      "=="
+self_incr  "+="
+self_decr  "-="
+self_mul   "*="
+self_div   "/="
 not_equal  "!="|"<>"
 ge_op      ">="
 le_op      "<="
@@ -42,6 +46,21 @@ identifier [a-zA-Z_]+[0-9]*
 
 {le_op}                {
                                 return LE_OP;
+                }
+
+{self_incr}     {
+                                return SELF_INCR;
+                }
+{self_decr}     {
+                                return SELF_DECR;
+                }
+
+{self_mul}      {
+                                return SELF_MUL;
+                }
+
+{self_div}      {
+                                return SELF_DIV;
                 }
 
 {self}                {

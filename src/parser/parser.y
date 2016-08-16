@@ -63,7 +63,7 @@
 %left OR
 %left AND
 %left NOT
-%nonassoc '='
+%nonassoc '=' SELF_INCR SELF_DECR SELF_MUL SELF_DIV
 %nonassoc  '<' '>' EQUAL_OP GE_OP LE_OP NOT_EQUAL_OP
 %left '+' '-'
 %left '*' '/'
@@ -447,6 +447,35 @@ assign_statement:
         lvalue '=' expr
                 {
                         AssignStatement * stmt = new AssignStatement($1);
+                        stmt->SetExpression($3);
+                        stmt->SetOperType(0); // no operation.
+                        $$ = stmt;
+                }
+        | lvalue SELF_INCR expr
+                {
+                        AssignStatement * stmt = new AssignStatement($1);
+                        stmt->SetOperType(1);  //add to self
+                        stmt->SetExpression($3);
+                        $$ = stmt;
+                }
+        | lvalue SELF_DECR expr
+                {
+                        AssignStatement * stmt = new AssignStatement($1);
+                        stmt->SetOperType(2);  //sub from self
+                        stmt->SetExpression($3);
+                        $$ = stmt;
+                }
+        | lvalue SELF_MUL expr
+                {
+                        AssignStatement * stmt = new AssignStatement($1);
+                        stmt->SetOperType(3);  //multiple with self
+                        stmt->SetExpression($3);
+                        $$ = stmt;
+                }
+        | lvalue SELF_DIV expr
+                {
+                        AssignStatement * stmt = new AssignStatement($1);
+                        stmt->SetOperType(4);  //divide from self
                         stmt->SetExpression($3);
                         $$ = stmt;
                 }

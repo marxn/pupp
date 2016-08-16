@@ -79,7 +79,11 @@ public:
         void SetExpression(Expression * expr);
         bool Provision();
         bool Check();
+        void SetOperType(int type);
 private:
+        void AdjustValue(ValueBox * vbox, ConstValue * ad, int oper);
+private:
+        int OperType;
         LValue * Reference;
         Expression * Expr;
         VariableDef * VarDef;
