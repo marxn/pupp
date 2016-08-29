@@ -1,3 +1,8 @@
+Aug 29th 2016
+------------------------
+1. Add stub for the access of set value
+2. Check function return value.
+
 Aug 16th 2016
 ------------------------
 1. Implemented +=,-=,*=,/= operand.

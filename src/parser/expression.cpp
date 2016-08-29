@@ -262,12 +262,22 @@ ValueBox * VarExpression::GetVarRef(NodeContext * context)
                 ConstValue * key = (*i)->Calculate(context);
 
                 result = local->FindByKey(key->toString());
-                delete key;
 
                 if(result==NULL)
                 {
-                        return NULL;
+                        SetValue * value = new SetValue();
+                        ValueBox * vb = new ValueBox(value);
+                        KVValue * kv = new KVValue(key, vb);
+                        local->AddKV(kv);
+
+                        delete kv;
+                        delete vb;
+                        delete value;
+                        
+                        result = local->FindByKey(key->toString());
                 }
+                
+                delete key;
         }
 
         return result;
@@ -440,6 +450,12 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
                 //Check the result of the function.
                 if(rtn==NODE_RET_NEEDRETURN)
                 {
+                        if(funcnode->GetRtnType()==Null)
+                        {
+                                cerr<<"pupp runtime error: function does not have a return value."<<endl;
+                                return NULL;
+                        }
+                        
                         result = new_ctx->FunctionRet;
                         if(funcnode->GetRtnType()!=result->GetType())
                         {
