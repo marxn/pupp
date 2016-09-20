@@ -64,11 +64,11 @@ class LValue
 public:
         LValue(std::string * id);
         std::string GetVarName();
-        std::list<Expression*> * GetExpList();
-        void AddOffsetExpr(Expression * expr);
+        std::list<std::list<Expression*> *> * GetExpsList();
+        void AddOffsetExprList(std::list<Expression *> * expr_list);
 private:
         std::string Var;
-        std::list<Expression*> * ExpList;
+        std::list<std::list<Expression*> *> * ExpsList;
 };
 
 class AssignStatement: public StatementNode

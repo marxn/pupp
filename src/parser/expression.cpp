@@ -211,75 +211,87 @@ ValueBox * VarExpression::GetVarRef(NodeContext * context)
                 return NULL;
         }
 
-        if(this->ExprList.size()==0)
+        if(this->ExprsList.size()==0)
         {
                 return var->GetVBox();
         }
 
-        ValueBox * result = NULL;
+        ValueBox * result = var->GetVBox();
 
-        if(var->GetVarType()==Array)
+        for(list<list<Expression*>*>::iterator gitor = this->ExprsList.begin(); gitor!=this->ExprsList.end(); gitor++)
         {
-                if(static_cast<ArrayValue*>(var->GetVBox()->GetVal())->GetDimensionNum()!=this->ExprList.size())
-                {
-                        cerr<<"pupp runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
-                        return NULL;
-                }
+            if(result==NULL)
+            {
+                    return NULL;
+            }
+            list<Expression*> * ExprList = *gitor;
+            
+            if(result->GetVal()->GetType()==Array)
+            {
+                    if(static_cast<ArrayValue*>(result->GetVal())->GetDimensionNum()!=ExprList->size())
+                    {
+                            cerr<<"pupp runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
+                            return NULL;
+                    }
 
-                vector<long> desc;
-                list<Expression*>::iterator i;
-                for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
-                {
-                        ConstValue * value = (*i)->Calculate(context);
-                        if(value->GetType()!=Integer)
-                        {
-                                cerr<<"pupp runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
-                                delete value;
-                                return NULL;
-                        }
-                        desc.push_back(static_cast<IntegerValue*>(value)->GetValue());
-                        delete value;
-                }
+                    vector<long> desc;
+                    
+                    for(list<Expression*>::iterator i = ExprList->begin(); i!=ExprList->end(); i++)
+                    {
+                            ConstValue * value = (*i)->Calculate(context);
+                            if(value->GetType()!=Integer)
+                            {
+                                    cerr<<"pupp runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
+                                    delete value;
+                                    return NULL;
+                            }
+                            
+                            desc.push_back(static_cast<IntegerValue*>(value)->GetValue());
+                            delete value;
+                    }
 
-                ArrayValue * value = static_cast<ArrayValue*>(var->GetVBox()->GetVal());
-                result = value->GetElementBox(desc);
-                return result;
+                    ArrayValue * value = static_cast<ArrayValue*>(result->GetVal());
+                    result = value->GetElementBox(desc);
+            }
+            else if(result->GetVal()->GetType()==Set)
+            {
+                    for(list<Expression*>::iterator i = ExprList->begin(); i!=ExprList->end(); i++)
+                    {
+                            if(result->GetVal()->GetType()!=Set)
+                            {
+                                    cerr<<"pupp runtime error: Expect a collection."<<endl;
+                                    return NULL;
+                            }
+
+                            SetValue * local = static_cast<SetValue*>(result->GetVal());
+                            
+                            ConstValue * key = (*i)->Calculate(context);
+
+                            result = local->FindByKey(key->toString());
+
+                            if(result==NULL)
+                            {
+                                    SetValue * value = new SetValue();
+                                    ValueBox * vb = new ValueBox(value);
+                                    KVValue * kv = new KVValue(key, vb);
+                                    local->AddKV(kv);
+
+                                    delete kv;
+                                    delete vb;
+                                    delete value;
+                                    
+                                    result = local->FindByKey(key->toString());
+                            }
+                            
+                            delete key;
+                    }
+            }
+            else
+            {
+                    return NULL;
+            }
         }
-
-        result = var->GetVBox();
-
-        list<Expression*>::iterator i;
-        for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
-        {
-                if(result->GetVal()->GetType()!=Set)
-                {
-                        cerr<<"pupp runtime error: Expect a collection."<<endl;
-                        return NULL;
-                }
-
-                SetValue * local = static_cast<SetValue*>(result->GetVal());
-                
-                ConstValue * key = (*i)->Calculate(context);
-
-                result = local->FindByKey(key->toString());
-
-                if(result==NULL)
-                {
-                        SetValue * value = new SetValue();
-                        ValueBox * vb = new ValueBox(value);
-                        KVValue * kv = new KVValue(key, vb);
-                        local->AddKV(kv);
-
-                        delete kv;
-                        delete vb;
-                        delete value;
-                        
-                        result = local->FindByKey(key->toString());
-                }
-                
-                delete key;
-        }
-
+        
         return result;
 }
 
@@ -296,13 +308,17 @@ ConstValue * VarExpression::Calculate(NodeContext * context)
 
 bool VarExpression::Provision()
 {
-        list<Expression*>::iterator i;
-        for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
+        for(list<list<Expression*>*>::iterator gitor = this->ExprsList.begin(); gitor!=this->ExprsList.end(); gitor++)
         {
-                (*i)->SetParentNode(this->ParentNode);
-                if((*i)->Provision()!=true)
+                list<Expression*> * ExprList = *gitor;
+                
+                for(list<Expression*>::iterator i = ExprList->begin(); i!=ExprList->end(); i++)
                 {
-                        return false;
+                    (*i)->SetParentNode(this->ParentNode);
+                    if((*i)->Provision()!=true)
+                    {
+                            return false;
+                    }
                 }
         }
 
@@ -321,22 +337,26 @@ bool VarExpression::Check()
         
         this->VarDef = vardef;
         this->VarLayer = layer;
-        
-        list<Expression*>::iterator i;
-        for(i=this->ExprList.begin(); i!=this->ExprList.end(); i++)
+
+        for(list<list<Expression*>*>::iterator gitor = this->ExprsList.begin(); gitor!=this->ExprsList.end(); gitor++)
         {
-                if((*i)->Check()!=true)
+                list<Expression*> * ExprList = *gitor;
+                
+                for(list<Expression*>::iterator i = ExprList->begin(); i!=ExprList->end(); i++)
+                {
+                    if((*i)->Check()!=true)
                 {
                         return false;
                 }
+                }
         }
-
+        
         return Expression::Check();
 }
 
-void VarExpression::AddOffsetExpr(Expression * expr)
+void VarExpression::AddOffsetExprsList(list<Expression*> * exprlist)
 {
-        this->ExprList.push_back(expr);
+        this->ExprsList.push_back(exprlist);
 }
 
 FunctionExpression::FunctionExpression(Expression * object, list<Expression*> * exprlist)
@@ -472,7 +492,12 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
 
                 delete new_ctx;
         }
-
+        else
+        {
+                cerr<<"pupp runtime error: cannot call a null function"<<endl;
+                return NULL;
+        }
+        
         delete func;
         return result;
 }

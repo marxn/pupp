@@ -1,5 +1,6 @@
 #include "parser/constval.h"
 #include "parser/node.h"
+#include "parser/closure.h"
 
 using namespace std;
 
@@ -511,7 +512,10 @@ ConstValue * DefaultValueFactory::GetValue()
                         static_cast<DecimalValue*>(result)->SetPrec(this->Prec);
                 break;
                 case Set:
-                        result = new SetValue;
+                        result = new SetValue();
+                break;
+                case Func:
+                        result = new FuncValue(NULL, NULL);
                 break;
                 default:
                         result = new NullValue;
@@ -531,8 +535,15 @@ ArrayValue::ArrayValue(DataType type, vector<long>& desc, long size, long prec):
 
         for(int i = 0; i < size; i++)
         {
+                ConstValue * val = fac.GetValue();
+
+                if(val->GetType()==Decimal)
+                {
+                        static_cast<DecimalValue*>(val)->SetPrec(this->Prec);
+                }
+
                 this->Value[i] = new ValueBox;
-                this->Value[i]->SetVal(fac.GetValue());
+                this->Value[i]->SetVal(val);
         }
 }
 
@@ -667,11 +678,32 @@ ConstValue * ConstValueCaster::Cast()
                         return new DecimalValue(this->Value->toString());
                 break;
                 case Integer:
+                        {
+                                string s = this->Value->toString();
+                                long value = 0;
+                                if(sscanf(s.c_str(), "%ld", &value)==0)
+                                {
+                                        return NULL;
+                                }
+                        }
+                        
                         return new IntegerValue(this->Value->toString());
                 break;
                 case Boolean:
-                        return new BooleanValue(this->Value->toString());
+                        if(this->Value->GetType()!=Boolean)
+                        {
+                                string s = this->Value->toString();
+                                if(s=="0" || s=="")
+                                {
+                                        return new BooleanValue(false);
+                                }
+                                
+                                return new BooleanValue(true);
+                        }
+                        
+                        return this->Value->DupValue();
                 break;
         }
+        
         return NULL;
 }

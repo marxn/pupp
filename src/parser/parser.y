@@ -75,7 +75,7 @@
 
 %token <pupp_ident> IDENTIFIER 
 %token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
-%token DEF FUNCTION USING RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN CALL PRINT SLEEP 
+%token DEF FUNCTION USING RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
 %token NL
@@ -89,7 +89,7 @@
 
 %type  <pupp_kvexpr> kvexpr
 %type  <pupp_setexpr> set_expr
-%type  <pupp_varexpr> var_expr
+%type  <pupp_varexpr> var_expr 
 %type  <pupp_funcexpr> func_expr
 %type  <pupp_lambda_expr> lambda_expr
 
@@ -103,15 +103,15 @@
 
 %type  <pupp_identlist> identifier_list
 %type  <pupp_closure_var_list> closure_var_list opt_copy_clause
-%type  <pupp_exprlist>  expr_list
-%type  <pupp_exprlist>  opt_dimension_def
+%type  <pupp_exprlist>  expr_list 
+%type  <pupp_exprlist>  opt_dimension_def key_seeker
 %type  <pupp_opt_prec_desc> opt_prec_desc
 %type  <pupp_datatype>  data_type function_return_prototype
 %type  <pupp_vartype>  var_type func_arg_type
 %type  <pupp_lvalue> lvalue 
-%type  <pupp_statement> assign_statement print_statement break_statement continue_statement 
-%type  <pupp_statement> vardefstatement sleep_statement call_statement
-%type  <pupp_statement> returnstatement rollback_statement commit_statement
+%type  <pupp_statement> vardefstatement assign_statement call_statement print_statement
+%type  <pupp_statement> sleep_statement
+%type  <pupp_statement> break_statement continue_statement returnstatement rollback_statement commit_statement
 
 %%
 
@@ -427,24 +427,21 @@ lambda_expr:
                         $$ = new LambdaExpression($1);
                 }
         ;
-
+        
 lvalue:
-        IDENTIFIER opt_dimension_def
+        IDENTIFIER
                 {
                         $$ = new LValue($1);
-                        if($2!=NULL)
-                        {
-                                list<Expression*>::iterator i;
-                                for(i = $2->begin(); i!=$2->end(); i++)
-                                {
-                                        $$->AddOffsetExpr(*i);
-                                }
-                        }
+                }
+        | lvalue key_seeker
+                {
+                        $$ = $1;
+                        $$->AddOffsetExprList($2);
                 }
         ;
-
+        
 assign_statement:
-        lvalue '=' expr
+        lvalue '=' expr 
                 {
                         AssignStatement * stmt = new AssignStatement($1);
                         stmt->SetExpression($3);
@@ -607,10 +604,10 @@ returnstatement:
         ;
 
 call_statement:
-        func_expr
+        '@' func_expr
                 {
                         CallStatement * stmt = new CallStatement;
-                        stmt->SetExpression($1);
+                        stmt->SetExpression($2);
                         $$ = static_cast<StatementNode*>(stmt);
                 }
 
@@ -706,11 +703,11 @@ func_expr:
                 {
                         $$ = new FunctionExpression($1, $3);
                 }
-        | func_expr '(' expr_list ')'
+        | lambda_expr '(' expr_list ')'
                 {
                         $$ = new FunctionExpression($1, $3);
                 }
-        | lambda_expr '(' expr_list ')'
+        | func_expr '(' expr_list ')'
                 {
                         $$ = new FunctionExpression($1, $3);
                 }
@@ -784,20 +781,23 @@ kvexpr:
                 }
     ;
 
+key_seeker:
+    '[' expr_list ']'
+                {
+                        $$ = $2;
+                }
+    ;
+
 var_expr:
-    IDENTIFIER opt_dimension_def 
+    IDENTIFIER 
                 {
                         VarExpression * expr = new VarExpression($1);
-                        if($2!=NULL)
-                        {
-                                list<Expression*>::iterator i;
-                                for(i = $2->begin(); i!=$2->end(); i++)
-                                {
-                                        expr->AddOffsetExpr(*i);
-                                }
-                        }
-
                         $$ = expr;
+                }
+    | var_expr key_seeker
+                {
+                        $$ = $1;
+                        $$->AddOffsetExprsList($2);
                 }
     ;
 

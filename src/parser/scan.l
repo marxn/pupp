@@ -27,7 +27,7 @@ digit      [0-9]
 integer    {digit}+
 decimal    (({digit}*\.{digit}+)|({digit}+\.{digit}*))
 string     \"([^\\"]|\\.)*\"
-self       [-+\*\/();\:\=\#\&\{\}\[\]\<\>\.,]
+self       [-+\*\/();\:\=\#\&\{\}\[\]\<\>\.,@]
 space      [ \t\r\f\n]
 identifier [a-zA-Z_]+[0-9]*
 
@@ -115,8 +115,6 @@ identifier [a-zA-Z_]+[0-9]*
                                         return FOREACH;
                                 if(strcasecmp(yytext,"in")==0)
                                         return IN;
-                                if(strcasecmp(yytext,"call")==0)
-                                        return CALL;
                                 if(strcasecmp(yytext,"print")==0)
                                         return PRINT;
                                 if(strcasecmp(yytext,"sleep")==0)
@@ -133,6 +131,7 @@ identifier [a-zA-Z_]+[0-9]*
                                         return COMMIT;
                                 if(strcasecmp(yytext,"return")==0)
                                         return RETURN;
+
                                 //Variable Type
                                 if(strcasecmp(yytext,"int")==0)
                                         return TYPE_INTEGER;

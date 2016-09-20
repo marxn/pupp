@@ -23,6 +23,11 @@ FuncValue::~FuncValue()
 
 ConstValue * FuncValue::DupValue()
 {
+        if(this->FuncNode==NULL)
+        {
+                return new FuncValue(NULL, NULL);
+        }
+        
         list<Variable*> * cvs = new list<Variable*>;
         list<Variable*>::iterator i;
 

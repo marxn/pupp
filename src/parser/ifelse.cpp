@@ -109,9 +109,18 @@ int BranchNode::Evaluate(NodeContext * context)
 
         if(eva->GetType()!=Boolean)
         {
-                //TODO
-                cerr<<"pupp runtime error: Wrong data type in if statement - expect a boolean expression."<<endl;
-                return EVA_ERROR;
+                ConstValueCaster caster(eva, Boolean);
+                ConstValue * thevalue = caster.Cast();
+                
+                if(thevalue==NULL)
+                {
+                        cerr<<"pupp runtime error: Wrong data type in if statement - expect a boolean value."<<endl;
+                        return EVA_ERROR;
+                }
+                
+                delete eva;
+                eva = thevalue;
+                
         }
 
         bool ret = static_cast<BooleanValue*>(eva)->GetValue();

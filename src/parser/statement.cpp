@@ -155,7 +155,7 @@ bool ReturnStatement::Check()
 LValue::LValue(string * id)
 {
         this->Var = *id;
-        this->ExpList = new list<Expression*>;
+        this->ExpsList = new list<list<Expression*> *>;
 }
 
 string LValue::GetVarName()
@@ -163,14 +163,14 @@ string LValue::GetVarName()
         return this->Var;
 }
 
-list<Expression*> * LValue::GetExpList()
+list<list<Expression*> *> * LValue::GetExpsList()
 {
-        return this->ExpList;
+        return this->ExpsList;
 }
 
-void LValue::AddOffsetExpr(Expression * expr)
+void LValue::AddOffsetExprList(list<Expression *> * expr_list)
 {
-        this->ExpList->push_back(expr);
+        this->ExpsList->push_back(expr_list);
 }
 
 AssignStatement::AssignStatement(LValue * ref)
@@ -187,234 +187,136 @@ int AssignStatement::Invoke(NodeContext * context)
                 return NODE_RET_ERROR;
         }
 
-        if(this->Reference->GetExpList()->size()==0)
+        if(var->GetVarType()!=Array && var->GetVarType()!=Set && this->Reference->GetExpsList()->size()>0)
         {
-                if(var->GetVarType()==Array)
-                {
-                        cerr<<"pupp runtime error: invalid l-value:"<<var->GetVarName()<<endl;
-                        return NODE_RET_ERROR;
-                }
-
-                ConstValue * value = Expr->Calculate(context);
-                if(value==NULL)
-                {
-                        return NODE_RET_ERROR;
-                }
-
-                if(var->GetVarType()!=value->GetType())
-                {
-                        ConstValueCaster caster(value, var->GetVarType());
-                        ConstValue * thevalue = caster.Cast();
-                        delete value;
-                        value = thevalue;
-
-                        if(value==NULL)
-                        {
-                                cerr<<"pupp runtime error: cannot convert data type:"<<var->GetVarName()<<endl;
-                                return NODE_RET_ERROR;
-                        }
-
-                }
-                
-                this->AdjustValue(var->GetVBox(), value, this->OperType);
-                
-                return NODE_RET_NORMAL;
+                cerr<<"pupp runtime error: Variable "<<this->Reference->GetVarName()<<" is neither an array nor a set."<<endl;
+                return false;
         }
 
-        list<Expression*>* exprlist = this->Reference->GetExpList();
-
-        if(var->GetVarType()==Array)
+        ValueBox * result = var->GetVBox();
+        
+        if(this->Reference->GetExpsList()->size()==0 && var->GetVarType()==Array)
         {
-                if(static_cast<ArrayValue*>(var->GetVBox()->GetVal())->GetDimensionNum()!=exprlist->size())
+                cerr<<"pupp runtime error: cannot assign for an array"<<var->GetVarName()<<endl;
+                return NODE_RET_ERROR;
+        }
+        
+        bool need_convert = true;
+        list<list<Expression*>*> * exprslist = this->Reference->GetExpsList();
+        
+        for(list<list<Expression*>*>::iterator gitor = exprslist->begin(); gitor!=exprslist->end(); gitor++)
+        {
+                list<Expression*>* exprlist = *gitor;
+                
+                if(result==NULL)
                 {
-                        cerr<<"pupp runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
+                        cerr<<"pupp runtime error: cannot find key for variable "<<var->GetVarName()<<endl;
                         return NODE_RET_ERROR;
                 }
-
-                vector<long> desc;
-                list<Expression*>::iterator i;
-                for(i=exprlist->begin(); i!=exprlist->end(); i++)
+                else if(result->GetVal()->GetType()==Array)
                 {
-                        ConstValue * value = (*i)->Calculate(context);
-                        if(value->GetType()!=Integer)
+                        if(static_cast<ArrayValue*>(result->GetVal())->GetDimensionNum()!=exprlist->size())
                         {
-                                cerr<<"pupp runtime error: invalid index for variable: "<<var->GetVarName()<<endl;
-                                delete value;
+                                cerr<<"pupp runtime error: wrong dimension variable: "<<var->GetVarName()<<endl;
                                 return NODE_RET_ERROR;
                         }
-                        desc.push_back(static_cast<IntegerValue*>(value)->GetValue());
-                        delete value;
-                }
 
-                ArrayValue * val = static_cast<ArrayValue*>(var->GetVBox()->GetVal());
-
-                ConstValue * target_value = Expr->Calculate(context);
-
-                if(target_value==NULL)
-                {
-                        return NODE_RET_ERROR;
-                }
-
-                if(val->GetElementType()!=target_value->GetType())
-                {
-                        ConstValueCaster caster(target_value, val->GetElementType());
-                        ConstValue * thevalue = caster.Cast();
-                        delete target_value;
-                        target_value = thevalue;
-
-                        if(target_value==NULL)
+                        vector<long> desc;
+                        
+                        for(list<Expression*>::iterator i = exprlist->begin(); i!=exprlist->end(); i++)
                         {
-                                cerr<<"pupp runtime error: cannot convert data type:"<<var->GetVarName()<<endl;
+                                ConstValue * value = (*i)->Calculate(context);
+                                if(value->GetType()!=Integer)
+                                {
+                                        ConstValueCaster caster(value, Integer);
+                                        ConstValue * thevalue = caster.Cast();
+                                        delete value;
+
+                                        if(thevalue==NULL)
+                                        {
+                                                cerr<<"pupp runtime error: invalid index type for variable: "<<var->GetVarName()<<endl;
+                                                return NODE_RET_ERROR;
+                                        }
+                                        
+                                        value = thevalue;
+                                        
+                                }
+                                
+                                desc.push_back(static_cast<IntegerValue*>(value)->GetValue());
+                                delete value;
+                        }
+
+                        ArrayValue * val = static_cast<ArrayValue*>(result->GetVal());
+                        
+                        result = val->GetElementBox(desc);
+                }
+                else if(result->GetVal()->GetType()==Set)
+                {
+                        need_convert = false;
+                        
+                        if(exprlist->size() > 1)
+                        {
+                                cerr<<"pupp runtime error: invalid key list for a collection"<<endl;
                                 return NODE_RET_ERROR;
                         }
                         
-                }
-
-                if(val->GetElementType()==Decimal && val->GetPrecision()!=-1)
-                {
-                        static_cast<DecimalValue*>(target_value)->SetPrec(val->GetPrecision());
-                }
-                
-                this->AdjustValue(val->GetElementBox(desc), target_value, this->OperType);
-                
-                return NODE_RET_NORMAL;
-        }
-
-        if(var->GetVarType()!=Set)
-        {
-                cerr<<"pupp runtime error: cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
-                return NODE_RET_ERROR;
-        }
-
-        if(var->GetValueType()==Null)
-        {
-                var->SetValue(new SetValue);
-        }
-
-        ValueBox * vref = var->GetVBox();
-        int listsize = exprlist->size();
-
-        bool need_clear = false;
-        ValueBox * last_set = NULL;
-        ConstValue * last_offset_value = NULL;
-
-        list<Expression*>::iterator i;
-        for(i=exprlist->begin(); i!=exprlist->end(); i++, listsize--)
-        {
-                ConstValue * offset_value = (*i)->Calculate(context);
-                if(offset_value==NULL)
-                {
-                        return NODE_RET_ERROR;
-                }
-
-                string offstr = offset_value->toString();
-
-                if(vref->GetVal()->GetType()!=Set)
-                {
-                        if(vref->GetVal()->GetType()==Null)
+                        ConstValue * key = exprlist->front()->Calculate(context);
+                        if(key==NULL)
                         {
-                                SetValue * value_stub = new SetValue();
-                                ValueBox * stub = new ValueBox(value_stub);
-
-                                KVValue * kv = new KVValue(last_offset_value, stub);
-                                static_cast<SetValue*>(last_set->GetVal())->AddKV(kv);
+                                cerr<<"pupp runtime error: invalid key for a collection"<<endl;
+                                return NODE_RET_ERROR;
+                        }
+                        
+                        SetValue * val = static_cast<SetValue*>(result->GetVal());
+                        result = val->FindByKey(key->toString());
+                        
+                        if(result==NULL)
+                        {
+                                SetValue * value = new SetValue();
+                                ValueBox * vb = new ValueBox(value);
+                                KVValue * kv = new KVValue(key, vb);
+                                val->AddKV(kv);
 
                                 delete kv;
-                                delete stub;
-                                delete value_stub;
-
-                                vref = static_cast<SetValue*>(last_set->GetVal())->FindByKey(last_offset_value->toString());
-                        }
-                        else
-                        {
-                                cerr<<"pupp runtime warning: Cannot use a scalar value as a collection."<<endl;
-
-                                if(need_clear)
-                                {
-                                        delete last_offset_value;
-                                        need_clear = false;
-                                }
-
-                                delete offset_value;
-                                return NODE_RET_NORMAL;
-                        }
-                }
-
-                if(need_clear)
-                {
-                        delete last_offset_value;
-                        need_clear = false;
-                }
-
-                ValueBox * value = static_cast<SetValue*>(vref->GetVal())->FindByKey(offstr);
-
-                if(value==NULL)
-                {
-                        if(listsize>1)
-                        {
-                                SetValue * value_stub = new SetValue();
-                                ValueBox * stub = new ValueBox(value_stub);
-                                KVValue * kv = new KVValue(offset_value, stub);
-                                static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
-
-                                vref = static_cast<SetValue*>(vref->GetVal())->FindByKey(offstr);
-
-                                delete kv;
+                                delete vb;
                                 delete value;
-                                delete stub;
-                                delete value_stub;
+                                
+                                result = val->FindByKey(key->toString());
                         }
-                        else
-                        {
-                                if(this->OperType==0)
-                                {
-                                        ConstValue * target_value = Expr->Calculate(context);
-                                        if(target_value==NULL)
-                                        {
-                                                return NODE_RET_ERROR;
-                                        }
-
-                                        ValueBox * vb = new ValueBox(target_value);
-                                        KVValue * kv = new KVValue(offset_value, vb);
-                                        static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
-
-                                        delete vb;
-                                        delete kv;
-                                        delete target_value;
-                                }
-                        }
+                        
+                        delete key;
                 }
                 else
                 {
-                        if(listsize>1)
-                        {
-                                last_set = vref;
-                                last_offset_value = offset_value->DupValue();
-                                vref = value;
-                                need_clear = true;
-                        }
-                        else
-                        {
-                                ConstValue * target_value = Expr->Calculate(context);
-                                if(target_value==NULL)
-                                {
-                                        return NODE_RET_ERROR;
-                                }
-
-                                //ValueBox * vb = new ValueBox(target_value);
-                                this->AdjustValue(value, target_value, this->OperType);
-                                
-                                //KVValue * kv = new KVValue(offset_value, vb);
-                                //static_cast<SetValue*>(vref->GetVal())->AddKV(kv);
-
-                                //delete vb;
-                                //delete kv;
-                        }
+                        cerr<<"pupp runtime error: cannot accept a non-collection variable: "<<var->GetVarName()<<endl;
+                        return NODE_RET_ERROR;
                 }
-                
-                delete offset_value;
+        }
+        
+        ConstValue * value = Expr->Calculate(context);
+        
+        if(value==NULL)
+        {
+                cerr<<"pupp runtime error: cannot calculate the value for the expression"<<endl;
+                return NODE_RET_ERROR;
         }
 
+        if(result->GetVal()->GetType()!=value->GetType() && need_convert)
+        {
+                ConstValueCaster caster(value, var->GetVarType());
+                ConstValue * thevalue = caster.Cast();
+                delete value;
+                value = thevalue;
+
+                if(value==NULL)
+                {
+                        cerr<<"pupp runtime error: data type mismatch while assigning "<<endl;
+                        return NODE_RET_ERROR;
+                }
+        }
+        
+        this->AdjustValue(result, value, this->OperType);
+                
         return NODE_RET_NORMAL;
 }
 
@@ -459,15 +361,18 @@ void AssignStatement::SetOperType(int type)
 
 bool AssignStatement::Provision()
 {
-        list<Expression*>* exprlist = this->Reference->GetExpList();
+        list<list<Expression*>*>* exprslist = this->Reference->GetExpsList();
 
-        list<Expression*>::iterator i;
-        for(i=exprlist->begin(); i!=exprlist->end(); i++)
+        for(list<list<Expression*>*>::iterator gitor = exprslist->begin(); gitor!=exprslist->end(); gitor++)
         {
-                (*i)->SetParentNode(this);
-                if((*i)->Provision()==false)
+                list<Expression*>* exprlist = *gitor;
+                for(list<Expression*>::iterator i = exprlist->begin(); i!=exprlist->end(); i++)
                 {
-                        return false;
+                        (*i)->SetParentNode(this);
+                        if((*i)->Provision()==false)
+                        {
+                                return false;
+                        }
                 }
         }
 
@@ -494,18 +399,21 @@ bool AssignStatement::Check()
         }
         
         this->VarLayer = layer;
-
-        list<Expression*>* exprlist = this->Reference->GetExpList();
-
-        list<Expression*>::iterator i;
-        for(i=exprlist->begin(); i!=exprlist->end(); i++)
+        
+        list<list<Expression*>*>* exprslist = this->Reference->GetExpsList();
+        
+        for(list<list<Expression*>*>::iterator gitor = exprslist->begin(); gitor!=exprslist->end(); gitor++)
         {
-                if((*i)->Check()==false)
+                list<Expression*>* exprlist = *gitor;
+                for(list<Expression*>::iterator i = exprlist->begin(); i!=exprlist->end(); i++)
                 {
-                        return false;
+                        if((*i)->Check()==false)
+                        {
+                                return false;
+                        }
                 }
         }
-
+        
         if(this->Expr->Check()==false)
         {
                 return false;

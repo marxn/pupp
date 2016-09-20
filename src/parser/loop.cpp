@@ -114,20 +114,29 @@ int LoopNode::Evaluate(NodeContext * context)
         ConstValue * eva = this->condition->Calculate(context);
         if(eva==NULL)
         {
-                return -1;
+                return EVA_ERROR;
         }
 
         if(eva->GetType()!=Boolean)
         {
-                //TODO
-                cerr<<"pupp runtime error: Wrong data type in while expression - expect a boolean expression."<<endl;
-                return -1;
+                ConstValueCaster caster(eva, Boolean);
+                ConstValue * thevalue = caster.Cast();
+                
+                if(thevalue==NULL)
+                {
+                        cerr<<"pupp runtime error: Wrong data type in while/for statement - expect a boolean value."<<endl;
+                        return EVA_ERROR;
+                }
+                
+                delete eva;
+                eva = thevalue;
+                
         }
 
         bool ret = static_cast<BooleanValue*>(eva)->GetValue();
         delete eva;
 
-        return ret?1:0;
+        return ret?EVA_TRUE:EVA_FALSE;
 }
 
 void ForLoopNode::SetPreLoopStatement(Node * preloop)

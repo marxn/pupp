@@ -51,7 +51,7 @@ void Variable::SetRef(ConstValue * ref)
         {
                 this->VBox = new ValueBox;
         }
-
+                
         this->VBox->SetVal(ref);
 }
 
@@ -161,8 +161,9 @@ Variable * VariableDef::GetInstance()
         Variable * ret = new Variable(this->VarName, this->VarType);
         ret->SetSource(this);
         ret->SetPrecision(this->VarPrec);
-
-        ConstValue * value = new NullValue;
+        
+        DefaultValueFactory fac(this->VarType, this->VarPrec);
+        ConstValue * value = fac.GetValue();
         ret->SetRef(value);
 
         return ret;
