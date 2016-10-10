@@ -56,7 +56,6 @@
         std::list<FuncArgDef*>      * pupp_function_arg_list;
         ClosureVarDesc              * pupp_closure_var_desc;
         std::list<ClosureVarDesc*>  * pupp_closure_var_list;
-        long                          pupp_opt_prec_desc;
         bool                          pupp_opt_function_key;
 }
 
@@ -105,13 +104,13 @@
 %type  <pupp_closure_var_list> closure_var_list opt_copy_clause
 %type  <pupp_exprlist>  expr_list 
 %type  <pupp_exprlist>  opt_dimension_def key_seeker
-%type  <pupp_opt_prec_desc> opt_prec_desc
 %type  <pupp_datatype>  data_type function_return_prototype
 %type  <pupp_vartype>  var_type func_arg_type
 %type  <pupp_lvalue> lvalue 
 %type  <pupp_statement> vardefstatement assign_statement call_statement print_statement
 %type  <pupp_statement> sleep_statement
 %type  <pupp_statement> break_statement continue_statement returnstatement rollback_statement commit_statement
+%type  <pupp_const_integer> opt_thread_num
 
 %%
 
@@ -318,11 +317,11 @@ branch_node:
 func_arg_type:
         data_type
                 {
-                        $$ = new VariableType($1, $1, -1);
+                        $$ = new VariableType($1, $1);
                 }
         | data_type '[' ']'
                 {
-                        $$ = new VariableType(Array, $1, -1);
+                        $$ = new VariableType(Array, $1);
                 }
         ;
 
@@ -531,30 +530,19 @@ opt_dimension_def:
         ;
 
 var_type:
-        data_type opt_prec_desc opt_dimension_def
+        data_type opt_dimension_def
                 {
-                        $$ = new VariableType($1, $1, $2);
-                        if($3!=NULL)
+                        $$ = new VariableType($1, $1);
+                        if($2!=NULL)
                         {
                                 $$->SetVarType(Array);
 
                                 list<Expression*>::iterator i;
-                                for(i = $3->begin(); i!=$3->end(); i++)
+                                for(i = $2->begin(); i!=$2->end(); i++)
                                 {
                                         $$->AddDimention(*i);
                                 } 
                         }
-                }
-        ;
-
-opt_prec_desc:
-        '(' INTEGER ')'
-                {
-                        $$ = $2->GetValue();
-                }
-        | /*empty*/
-                {
-                        $$ = -1;
                 }
         ;
 
@@ -566,7 +554,7 @@ vardefstatement:
                 }
         | DEF IDENTIFIER '=' expr
                 {
-                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null, -1));
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null));
                         stmt->SetInitExpr($4);
                         $$ = stmt;
                 }
@@ -603,14 +591,32 @@ returnstatement:
                 }
         ;
 
+opt_thread_num:
+        ':' INTEGER
+                {
+                        $$ = $2;
+                }
+        | /*empty*/
+                {
+                        $$ = new IntegerValue(0);
+                }
+        ;
+
 call_statement:
         '@' func_expr
                 {
                         CallStatement * stmt = new CallStatement;
+                        $2->SetThreadNum(-1);
                         stmt->SetExpression($2);
                         $$ = static_cast<StatementNode*>(stmt);
                 }
-
+        | '[' func_expr ']' opt_thread_num
+                {
+                        CallStatement * stmt = new CallStatement;
+                        $2->SetThreadNum($4->GetValue());
+                        stmt->SetExpression($2);
+                        $$ = static_cast<StatementNode*>(stmt);
+                }
         ;
 
 expr_list:
@@ -692,9 +698,9 @@ literal_value:
         ;
 
 set_expr:
-        TYPE_SET '{' expr_list '}'
+        '[' expr_list ']'
                 {
-                        $$ = new SetExpression($3);
+                        $$ = new SetExpression($2);
                 }
         ;
 

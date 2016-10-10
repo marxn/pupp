@@ -145,20 +145,6 @@ bool StringValue::LooksLikeDecimal()
         return false;
 }
 
-int StringValue::GetNumPrec()
-{
-        char * str = strdup(this->Value.c_str());
-        char * p = strstr(str, ".");
-        if(p!=NULL)
-        {
-                int ret = strlen(p) - 1;
-                free(str);
-                return ret;
-        }
-        free(str);
-        return 0;
-}
-
 string StringValue::toString()
 {
         return this->Value;
@@ -202,7 +188,6 @@ string IntegerValue::toString()
 
 DecimalValue::DecimalValue():ConstValue(Decimal)
 {
-        this->Prec = 2;
         mpf_init_set_ui(this->Value,0);
 }
 
@@ -210,38 +195,32 @@ DecimalValue::DecimalValue(string valuestr):ConstValue(Decimal)
 {
         StringValue temp(valuestr);
         mpf_init_set_str(this->Value,valuestr.c_str(),10);
-        this->Prec = temp.GetNumPrec();
 }
 
 DecimalValue::DecimalValue(long value):ConstValue(Decimal)
 {
-        this->Prec = 2;
         mpf_init_set_si(this->Value,value);
 }
 
 DecimalValue::DecimalValue(IntegerValue * value):ConstValue(Decimal)
 {
-        this->Prec = 2;
         mpf_init_set_si(this->Value,value->GetValue());
 }
 
 DecimalValue::DecimalValue(const DecimalValue& value):ConstValue(Decimal)
 {
-        this->Prec = value.GetPrec();
         mpf_init(this->Value);
         mpf_set(this->Value, value.Value);
 }
 
 DecimalValue::DecimalValue(DecimalValue * value):ConstValue(Decimal)
 {
-        this->Prec = value->GetPrec();
         mpf_init(this->Value);
         mpf_set(this->Value, value->Value);
 }
 
 DecimalValue& DecimalValue::operator = (const DecimalValue& value)
 {
-        this->Prec = value.GetPrec();
         mpf_set(this->Value, value.Value);
 }
 
@@ -254,16 +233,6 @@ ConstValue * DecimalValue::DupValue()
 {
         ConstValue * result = new DecimalValue(this);
         return result;
-}
-
-void DecimalValue::SetPrec(long n)
-{
-        this->Prec = n;
-}
-
-int DecimalValue::GetPrec() const
-{
-        return this->Prec;
 }
 
 DecimalValue DecimalValue::operator + (DecimalValue& element)
@@ -327,7 +296,26 @@ bool DecimalValue::operator != (DecimalValue& element)
 string DecimalValue::toString()
 {
         char result[1024];
-        gmp_snprintf (result, sizeof(result), "%.*Ff", this->Prec, this->Value);
+        int prec = mpf_get_prec(this->Value);
+        gmp_snprintf (result, sizeof(result), "%.*Ff", prec, this->Value);
+        
+        char * p = strstr(result, ".");
+        if(p==NULL)
+        {
+            return result;
+        }
+        
+        int len = strlen(p) - 1;
+        
+        char * q = p + len;
+        
+        while(*q == '0' && *(q-1)!='.')
+        {
+            q--;
+        }
+        
+        *(q+1) = '\0';
+        
         return result;
 }
 
@@ -467,7 +455,7 @@ ConstValue * SetValue::DupValue()
 
 string SetValue::toString()
 {
-        string ret="{";
+        string ret="[";
 
         int size = this->Value.size();
         map<string, ValueBox*>::iterator i;
@@ -483,14 +471,13 @@ string SetValue::toString()
                         ret.append(",");
                 }
         }
-        ret.append("}");
+        ret.append("]");
         return ret;
 }
 
-DefaultValueFactory::DefaultValueFactory(DataType type, long prec)
+DefaultValueFactory::DefaultValueFactory(DataType type)
 {
         this->Type = type;
-        this->Prec = prec;
 }
 
 ConstValue * DefaultValueFactory::GetValue()
@@ -509,7 +496,6 @@ ConstValue * DefaultValueFactory::GetValue()
                 break;
                 case Decimal:
                         result = new DecimalValue("0");
-                        static_cast<DecimalValue*>(result)->SetPrec(this->Prec);
                 break;
                 case Set:
                         result = new SetValue();
@@ -523,25 +509,19 @@ ConstValue * DefaultValueFactory::GetValue()
         return result;
 }
 
-ArrayValue::ArrayValue(DataType type, vector<long>& desc, long size, long prec):ConstValue(Array)
+ArrayValue::ArrayValue(DataType type, vector<long>& desc, long size):ConstValue(Array)
 {
-        DefaultValueFactory fac(type, prec);
+        DefaultValueFactory fac(type);
 
         this->ElementType = type;
         this->Value = new ValueBox*[size];
         this->Dim = desc;
         this->Size = size;
-        this->Prec = prec;
 
         for(int i = 0; i < size; i++)
         {
                 ConstValue * val = fac.GetValue();
-
-                if(val->GetType()==Decimal)
-                {
-                        static_cast<DecimalValue*>(val)->SetPrec(this->Prec);
-                }
-
+                
                 this->Value[i] = new ValueBox;
                 this->Value[i]->SetVal(val);
         }
@@ -622,7 +602,7 @@ DataType ArrayValue::GetElementType()
 
 string ArrayValue::toString()
 {
-        string ret="{";
+        string ret="[";
 
         int size = this->Size;
         for(int i = 0; i < size; i++)
@@ -640,13 +620,13 @@ string ArrayValue::toString()
                         ret.append(",");
                 }
         }
-        ret.append("}");
+        ret.append("]");
         return ret;
 }
 
 ConstValue * ArrayValue::DupValue()
 {
-        ArrayValue * result = new ArrayValue(this->ElementType, this->Dim, this->Size, this->Prec);
+        ArrayValue * result = new ArrayValue(this->ElementType, this->Dim, this->Size);
         result->SetValue(this->Value);
         return result;
 }
@@ -654,11 +634,6 @@ ConstValue * ArrayValue::DupValue()
 long ArrayValue::GetDimensionNum()
 {
         return this->Dim.size();
-}
-
-long ArrayValue::GetPrecision()
-{
-        return this->Prec;
 }
 
 ConstValueCaster::ConstValueCaster(ConstValue * value, DataType type)

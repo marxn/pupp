@@ -109,13 +109,20 @@ class FunctionExpression: public Expression
 {
 public:
         FunctionExpression(Expression * object, std::list<Expression*> * exprlist);
+        ~FunctionExpression();
+        
         ConstValue * Calculate(NodeContext * context);
         bool Provision();
         bool Check();
+        void SetThreadNum(long n);
         
 private:
-        Expression *  FuncObj;
-        VariableDef * FuncDef;
+        long          ThreadNum;
+        long          ThreadCount;
+        
+        pthread_mutex_t  AccessLock;
+        Expression     * FuncObj;
+        VariableDef    * FuncDef;
         std::list<Expression*> * ExprList;
 };
 

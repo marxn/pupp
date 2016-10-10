@@ -5,6 +5,7 @@
 #include <iostream>
 #include "node.h"
 #include "expression.h"
+#include "rt/putils.h"
 
 class StatementNode :public Node
 {
@@ -93,7 +94,7 @@ private:
 class VariableType
 {
 public:
-        VariableType(DataType vartype, DataType elementtype, long prec);
+        VariableType(DataType vartype, DataType elementtype);
 
         void SetVarType(DataType type);
         DataType GetVarType();
@@ -101,13 +102,10 @@ public:
         void SetElementType(DataType type);
         void AddDimention(Expression * exp);
         std::list<Expression*> * GetDimentions();
-        void SetPrecision(long prec);
-        long GetPrecision();
 private:
         DataType VarType;
         DataType ElementType;
         std::list<Expression*> Dimentions;
-        long Prec;
 };
 
 class VarDefinitionStatement: public StatementNode
@@ -162,9 +160,13 @@ public:
         bool Check();
 
         ConstValue * GetRetVal();
+
+        void SetThreadNum(long n);
+        int WorkLoad(NodeContext * context);
 private:
-        ConstValue * RetVal;
-        Expression * Expr;
+        ConstValue  * RetVal;
+        Expression  * Expr;
+        long          ThreadNum;
 };
 
 #endif

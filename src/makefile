@@ -1,5 +1,5 @@
 INCLUDE = -I../include -I../3rdparty/gmp
-COMMON_LIB = -L../3rdparty/gmp/.libs -lgmp
+COMMON_LIB = -L../3rdparty/gmp/.libs -lgmp -lpthread
 PARSER_LIB = ./parser/parser.a
 
 all: pupp

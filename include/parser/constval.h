@@ -65,8 +65,6 @@ public:
 
         bool LooksLikeDecimal();
 
-        int GetNumPrec();
-
         std::string toString();
 
 protected:
@@ -100,8 +98,6 @@ public:
         DecimalValue& operator = (const DecimalValue& value);
         ~DecimalValue();
         ConstValue * DupValue();
-        void SetPrec(long n);
-        int GetPrec() const;
         DecimalValue operator + (DecimalValue& element);
         DecimalValue operator - (DecimalValue& element);
         DecimalValue operator * (DecimalValue& element);
@@ -117,8 +113,6 @@ public:
         std::string toString();
         mpf_t Value;
 
-protected:
-        long Prec;
 };
 
 class BooleanValue: public ConstValue
@@ -174,19 +168,18 @@ protected:
 class DefaultValueFactory
 {
 public:
-        DefaultValueFactory(DataType type, long prec);
+        DefaultValueFactory(DataType type);
 
         ConstValue * GetValue();
 
 private:
         DataType Type;
-        long Prec;
 };
 
 class ArrayValue: public ConstValue
 {
 public:
-        ArrayValue(DataType type, std::vector<long>& desc, long size, long prec);
+        ArrayValue(DataType type, std::vector<long>& desc, long size);
         ~ArrayValue();
         
         ValueBox * GetElementBox(std::vector<long>& keys);
@@ -198,13 +191,11 @@ public:
         std::string toString();
         ConstValue * DupValue();
         long GetDimensionNum();
-        long GetPrecision();
 private:
         DataType ElementType;
         ValueBox ** Value;
         std::vector<long> Dim;
         long Size;
-        long Prec;
 };
 
 class ConstValueCaster

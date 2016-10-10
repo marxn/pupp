@@ -13,28 +13,18 @@ ConstValue * Operation::AddOperation(ConstValue * left, ConstValue * right)
         {
                 DecimalValue leftvalue(static_cast<IntegerValue*>(left));
                 result = new DecimalValue(leftvalue + *static_cast<DecimalValue*>(right));
-                static_cast<DecimalValue*>(result)->SetPrec(static_cast<DecimalValue*>(right)->GetPrec());
         }
         else if(left->GetType()==Decimal && right->GetType()==Integer)
         {
                 DecimalValue rightvalue(static_cast<IntegerValue*>(right));
                 result = new DecimalValue(*static_cast<DecimalValue*>(left) + rightvalue);
-                static_cast<DecimalValue*>(result)->SetPrec(static_cast<DecimalValue*>(left)->GetPrec());
         }
         else if(left->GetType()==Decimal && right->GetType()==Decimal)
         {
                 DecimalValue * value1 = static_cast<DecimalValue*>(left);
                 DecimalValue * value2 = static_cast<DecimalValue*>(right);
 
-                int prec = value1->GetPrec();
-
-                if(static_cast<DecimalValue*>(right)->GetPrec() > prec)
-                {
-                        prec = static_cast<DecimalValue*>(right)->GetPrec();
-                }
-
                 result = new DecimalValue(*value1 + *value2);        
-                static_cast<DecimalValue*>(result)->SetPrec(prec);
         }
         else if(left->GetType()==Integer && right->GetType()==String)
         {
@@ -52,7 +42,6 @@ ConstValue * Operation::AddOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 + value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(rightvalue->GetNumPrec());
                 }
                 else
                 {
@@ -74,7 +63,6 @@ ConstValue * Operation::AddOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(static_cast<IntegerValue*>(right));
 
                         result = new DecimalValue(value1 + value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(leftvalue->GetNumPrec());
                 }
                 else
                 {
@@ -91,21 +79,13 @@ ConstValue * Operation::AddOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(right->toString());
 
                         result = new DecimalValue(*value1 + value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(value1->GetPrec());
                 }
                 else if(rightvalue->LooksLikeDecimal())
                 {
                         DecimalValue * value1 = static_cast<DecimalValue*>(left);
-                        int prec = value1->GetPrec();
-
-                        if(static_cast<StringValue*>(right)->GetNumPrec() > prec)
-                        {
-                                prec = static_cast<StringValue*>(right)->GetNumPrec();
-                        }
 
                         DecimalValue value2(right->toString());
                         result = new DecimalValue(*value1 + value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -122,22 +102,14 @@ ConstValue * Operation::AddOperation(ConstValue * left, ConstValue * right)
 
                         DecimalValue * value2 = static_cast<DecimalValue*>(right);
                         result = new DecimalValue(value1 + *value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(value2->GetPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal())
                 {
                         DecimalValue value1(leftvalue->toString());
 
-                        int prec = leftvalue->GetNumPrec();
-
                         DecimalValue * value2 = static_cast<DecimalValue*>(right);
-                        if(value2->GetPrec() > prec)
-                        {
-                                prec = value2->GetPrec();
-                        }
 
                         result = new DecimalValue(value1 + *value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -167,28 +139,18 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
         {
                 DecimalValue leftvalue(static_cast<IntegerValue*>(left));
                 result = new DecimalValue(leftvalue - *static_cast<DecimalValue*>(right));
-                static_cast<DecimalValue*>(result)->SetPrec(static_cast<DecimalValue*>(right)->GetPrec());
         }
         else if(left->GetType()==Decimal && right->GetType()==Integer)
         {
                 DecimalValue rightvalue(static_cast<IntegerValue*>(right));
                 result = new DecimalValue(*static_cast<DecimalValue*>(left) - rightvalue);
-                static_cast<DecimalValue*>(result)->SetPrec(static_cast<DecimalValue*>(left)->GetPrec());
         }
         else if(left->GetType()==Decimal && right->GetType()==Decimal)
         {
                 DecimalValue * value1 = static_cast<DecimalValue*>(left);
                 DecimalValue * value2 = static_cast<DecimalValue*>(right);
-
-                int prec = value1->GetPrec();
-
-                if(static_cast<DecimalValue*>(right)->GetPrec() > prec)
-                {
-                        prec = static_cast<DecimalValue*>(right)->GetPrec();
-                }
-
+                
                 result = new DecimalValue(*value1 - *value2);        
-                static_cast<DecimalValue*>(result)->SetPrec(prec);
         }
         else if(left->GetType()==Integer && right->GetType()==String)
         {
@@ -206,7 +168,6 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 - value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(rightvalue->GetNumPrec());
                 }
                 else
                 {
@@ -228,7 +189,6 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(static_cast<IntegerValue*>(right));
 
                         result = new DecimalValue(value1 - value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(leftvalue->GetNumPrec());
                 }
                 else
                 {
@@ -245,21 +205,13 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(right->toString());
 
                         result = new DecimalValue(*value1 - value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(value1->GetPrec());
                 }
                 else if(rightvalue->LooksLikeDecimal())
                 {
                         DecimalValue * value1 = static_cast<DecimalValue*>(left);
-                        int prec = value1->GetPrec();
-
-                        if(static_cast<StringValue*>(right)->GetNumPrec() > prec)
-                        {
-                                prec = static_cast<StringValue*>(right)->GetNumPrec();
-                        }
 
                         DecimalValue value2(right->toString());
                         result = new DecimalValue(*value1 - value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -276,22 +228,14 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
 
                         DecimalValue * value2 = static_cast<DecimalValue*>(right);
                         result = new DecimalValue(value1 - *value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(value2->GetPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal())
                 {
                         DecimalValue value1(leftvalue->toString());
 
-                        int prec = leftvalue->GetNumPrec();
-
                         DecimalValue * value2 = static_cast<DecimalValue*>(right);
-                        if(value2->GetPrec() > prec)
-                        {
-                                prec = value2->GetPrec();
-                        }
 
                         result = new DecimalValue(value1 - *value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -315,7 +259,6 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 - value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(rightvalue->GetNumPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeInteger())
                 {
@@ -323,7 +266,6 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 - value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(leftvalue->GetNumPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeDecimal())
                 {
@@ -331,13 +273,6 @@ ConstValue * Operation::SubOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 - value2);
-
-                        int prec = leftvalue->GetNumPrec();
-                        if(rightvalue->GetNumPrec() > prec)
-                        {
-                                prec = rightvalue->GetNumPrec();
-                        }
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -364,23 +299,18 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
         {
                 DecimalValue leftvalue(static_cast<IntegerValue*>(left));
                 result = new DecimalValue(leftvalue * *static_cast<DecimalValue*>(right));
-                static_cast<DecimalValue*>(result)->SetPrec(static_cast<DecimalValue*>(right)->GetPrec());
         }
         else if(left->GetType()==Decimal && right->GetType()==Integer)
         {
                 DecimalValue rightvalue(static_cast<IntegerValue*>(right));
                 result = new DecimalValue(*static_cast<DecimalValue*>(left) * rightvalue);
-                static_cast<DecimalValue*>(result)->SetPrec(static_cast<DecimalValue*>(left)->GetPrec());
         }
         else if(left->GetType()==Decimal && right->GetType()==Decimal)
         {
                 DecimalValue * value1 = static_cast<DecimalValue*>(left);
                 DecimalValue * value2 = static_cast<DecimalValue*>(right);
 
-                int prec = value1->GetPrec() + value2->GetPrec();
-
                 result = new DecimalValue(*value1 * *value2);        
-                static_cast<DecimalValue*>(result)->SetPrec(prec);
         }
         else if(left->GetType()==Integer && right->GetType()==String)
         {
@@ -398,7 +328,6 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 * value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(rightvalue->GetNumPrec());
                 }
                 else
                 {
@@ -420,7 +349,6 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(static_cast<IntegerValue*>(right));
 
                         result = new DecimalValue(value1 * value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(leftvalue->GetNumPrec());
                 }
                 else
                 {
@@ -437,16 +365,13 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(right->toString());
 
                         result = new DecimalValue(*value1 * value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(value1->GetPrec());
                 }
                 else if(rightvalue->LooksLikeDecimal())
                 {
                         DecimalValue * value1 = static_cast<DecimalValue*>(left);
-                        int prec = value1->GetPrec() + static_cast<StringValue*>(right)->GetNumPrec();
 
                         DecimalValue value2(right->toString());
                         result = new DecimalValue(*value1 * value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -463,17 +388,13 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
 
                         DecimalValue * value2 = static_cast<DecimalValue*>(right);
                         result = new DecimalValue(value1 * *value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(value2->GetPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal())
                 {
                         DecimalValue value1(leftvalue->toString());
                         DecimalValue * value2 = static_cast<DecimalValue*>(right);
 
-                        int prec = leftvalue->GetNumPrec() + value2->GetPrec();
-
                         result = new DecimalValue(value1 * *value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -497,7 +418,6 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 * value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(rightvalue->GetNumPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeInteger())
                 {
@@ -505,7 +425,6 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 * value2);
-                        static_cast<DecimalValue*>(result)->SetPrec(leftvalue->GetNumPrec());
                 }
                 else if(leftvalue->LooksLikeDecimal() && rightvalue->LooksLikeDecimal())
                 {
@@ -513,9 +432,6 @@ ConstValue * Operation::MulOperation(ConstValue * left, ConstValue * right)
                         DecimalValue value2(rightvalue->toString());
 
                         result = new DecimalValue(value1 * value2);
-
-                        int prec = leftvalue->GetNumPrec() + rightvalue->GetNumPrec();
-                        static_cast<DecimalValue*>(result)->SetPrec(prec);
                 }
                 else
                 {
@@ -539,7 +455,6 @@ ConstValue * Operation::DivOperation(ConstValue * left, ConstValue * right)
         DecimalValue value2(right->toString());
 
         result = new DecimalValue(value1 / value2);
-        result->SetPrec(15);
 
         return result;
 }

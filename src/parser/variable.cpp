@@ -9,7 +9,6 @@ Variable::Variable(string name, DataType type)
         this->VBox     = NULL;
         this->VarName  = name;
         this->VarType  = type;
-        this->Prec     = -1;
 }
 
 Variable::~Variable()
@@ -65,23 +64,12 @@ void Variable::SetValue(ConstValue * value)
         if(this->VarType==value->GetType())
         {
                 ConstValue * val = value->DupValue();
-
-                if(this->VarType==Decimal && this->Prec!=-1)
-                {
-                        static_cast<DecimalValue*>(val)->SetPrec(this->Prec);
-                }
-
                 this->VBox->SetVal(val);
         }
         else
         {
                 ConstValueCaster caster(value, this->VarType);
                 ConstValue * newvalue = caster.Cast();
-
-                if(this->VarType==Decimal && this->Prec!=-1)
-                {
-                        static_cast<DecimalValue*>(newvalue)->SetPrec(this->Prec);
-                }
 
                 this->VBox->SetVal(newvalue);
         }
@@ -94,7 +82,7 @@ ConstValue * Variable::GetValue()
         if(this->VBox==NULL)
         {
                 this->VBox = new ValueBox;
-                DefaultValueFactory defvalue(this->VarType, this->Prec);
+                DefaultValueFactory defvalue(this->VarType);
                 value = defvalue.GetValue();
                 this->VBox->SetVal(value);
         }
@@ -121,7 +109,7 @@ DataType Variable::GetValueType()
         if(this->VBox==NULL)
         {
                 this->VBox = new ValueBox;
-                DefaultValueFactory defvalue(this->VarType, this->Prec);
+                DefaultValueFactory defvalue(this->VarType);
                 ConstValue * value = defvalue.GetValue();
                 this->VBox->SetVal(value);
         }
@@ -129,16 +117,10 @@ DataType Variable::GetValueType()
         return this->VBox->GetVal()->GetType();
 }
 
-void Variable::SetPrecision(long prec)
-{
-        this->Prec = prec;
-}
-
 Variable * Variable::CreateVarRef()
 {
         Variable * ret = new Variable(this->VarName, this->VarType);
         ret->SetSource(this->Source);
-        ret->SetPrecision(this->Prec);
 
         if(this->VBox!=NULL)
         {
@@ -152,7 +134,6 @@ VariableDef::VariableDef(string varname)
 {
         this->VarName       = varname;
         this->VarType       = Null;
-        this->VarPrec       = -1;
         this->needInstance  = true;
 }
 
@@ -160,9 +141,8 @@ Variable * VariableDef::GetInstance()
 {
         Variable * ret = new Variable(this->VarName, this->VarType);
         ret->SetSource(this);
-        ret->SetPrecision(this->VarPrec);
         
-        DefaultValueFactory fac(this->VarType, this->VarPrec);
+        DefaultValueFactory fac(this->VarType);
         ConstValue * value = fac.GetValue();
         ret->SetRef(value);
 
@@ -172,11 +152,6 @@ Variable * VariableDef::GetInstance()
 void VariableDef::SetVarType(DataType type)
 {
         this->VarType = type;
-}
-
-void VariableDef::SetVarPrec(long prec)
-{
-        this->VarPrec = prec;
 }
 
 DataType VariableDef::GetVarType()

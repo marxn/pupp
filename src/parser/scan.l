@@ -80,7 +80,6 @@ identifier [a-zA-Z_]+[0-9]*
 {decimal}        {
                                 StringValue temp(yytext);
                                 yylval.pupp_const_decimal = new DecimalValue(temp.toString());
-                                yylval.pupp_const_decimal->SetPrec(temp.GetNumPrec());
                                 return DECIMAL;
                 }
 {identifier}        {

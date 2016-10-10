@@ -18,8 +18,6 @@ public:
 
         void SetVarType(DataType type);
 
-        void SetVarPrec(long prec);
-
         DataType GetVarType();
 
         std::string GetVarName();
@@ -39,7 +37,6 @@ public:
 private:
         std::string VarName;
         DataType VarType;
-        long VarPrec;
         Node * AttachedNode;
         unsigned long VarIndex;
         bool needInstance;
@@ -73,8 +70,6 @@ public:
 
         DataType GetValueType();
 
-        void SetPrecision(long prec);
-
         Variable * CreateVarRef();
 
 private:
@@ -82,7 +77,6 @@ private:
         DataType VarType;
         std::string VarName;
         ValueBox * VBox;
-        long Prec;
 };
 
 #endif

@@ -361,9 +361,56 @@ void VarExpression::AddOffsetExprsList(list<Expression*> * exprlist)
 
 FunctionExpression::FunctionExpression(Expression * object, list<Expression*> * exprlist)
 {
-        this->FuncObj = object;
-        this->ExprList = exprlist;
+        this->FuncObj     = object;
+        this->ExprList    = exprlist;
+        this->ThreadNum   = -1;
+        this->ThreadCount = 0;
+        pthread_mutex_init(&this->AccessLock, NULL);
 }
+
+FunctionExpression::~FunctionExpression()
+{
+        pthread_mutex_destroy(&this->AccessLock);
+}
+    
+void FunctionExpression::SetThreadNum(long n)
+{
+        this->ThreadNum = n;
+}
+
+class AsynFuncCallContext
+{
+public:
+        AsynFuncCallContext(FunctionNode * FuncNode, NodeContext  * Context):FuncNode(FuncNode), Context(Context)
+        {
+        }
+        ~AsynFuncCallContext()
+        {
+        }
+        int AsynCall()
+        {
+                pthread_t thid;
+                pthread_attr_t attr;
+
+                pthread_attr_init(&attr);
+                pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+                pthread_create(&thid, &attr, ThreadWrapper, this);
+                return 0;
+        }
+        
+        static void * ThreadWrapper(void * arg)
+        {
+                AsynFuncCallContext * ctx = static_cast<AsynFuncCallContext*>(arg);
+                
+                int rtn = ctx->FuncNode->Run(ctx->Context);
+                delete ctx->Context;
+                delete ctx;
+        }
+
+        FunctionNode * FuncNode;
+        NodeContext  * Context;
+};
 
 ConstValue * FunctionExpression::Calculate(NodeContext * context)
 {
@@ -463,34 +510,67 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
                         //Put closure variables into the new context.
                         new_ctx->ReplaceVariable(funcnode->GetClosureVarStartIndex(), closurevars);
                 }
-
-                //Let's rock!
-                rtn = funcnode->Run(new_ctx);
-
-                //Check the result of the function.
-                if(rtn==NODE_RET_NEEDRETURN)
+                
+                if(this->ThreadNum==-1)
                 {
-                        if(funcnode->GetRtnType()==Null)
+                        //Donot need to launch a new thread. Let's rock!
+                        rtn = funcnode->Run(new_ctx);
+
+                        //Check the result of the function.
+                        if(rtn==NODE_RET_NEEDRETURN)
                         {
-                                cerr<<"pupp runtime error: function does not have a return value."<<endl;
-                                return NULL;
+                                if(funcnode->GetRtnType()==Null)
+                                {
+                                        delete new_ctx;
+                                        cerr<<"pupp runtime error: function does not have a return value."<<endl;
+                                        return NULL;
+                                }
+                                
+                                result = new_ctx->FunctionRet;
+                                if(funcnode->GetRtnType()!=result->GetType())
+                                {
+                                        ConstValueCaster caster(result, funcnode->GetRtnType());
+                                        ConstValue * ret = caster.Cast();
+                                        delete result;
+                                        result = ret;
+                                }
                         }
-                        
-                        result = new_ctx->FunctionRet;
-                        if(funcnode->GetRtnType()!=result->GetType())
+                        else
                         {
-                                ConstValueCaster caster(result, funcnode->GetRtnType());
-                                ConstValue * ret = caster.Cast();
-                                delete result;
-                                result = ret;
+                                result = new NullValue;
                         }
+
+                        delete new_ctx;
+                }
+                else if(this->ThreadNum==0)
+                {
+                        AsynFuncCallContext * asyncallctx = new AsynFuncCallContext(funcnode, new_ctx);        
+                        if(asyncallctx)
+                        {
+                            asyncallctx->AsynCall();
+                        }
+                               
+                        result = new NullValue;
                 }
                 else
                 {
+                        pthread_mutex_lock(&this->AccessLock);
+                        
+                        if(this->ThreadCount < this->ThreadNum)
+                        {
+                                AsynFuncCallContext * asyncallctx = new AsynFuncCallContext(funcnode, new_ctx);
+                                
+                                if(asyncallctx)
+                                {
+                                    this->ThreadCount++;
+                                    asyncallctx->AsynCall();
+                                }
+                        }
+                        
+                        pthread_mutex_unlock(&this->AccessLock);
+                               
                         result = new NullValue;
                 }
-
-                delete new_ctx;
         }
         else
         {

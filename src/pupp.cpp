@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
                 fp = fopen(argv[1],"r");
                 if(fp==NULL)
                 {
-                        fprintf(stderr, "can not open file '%s'\n", argv[1]);
+                        fprintf(stderr, "Could not open file: '%s'\n", argv[1]);
                         return -1;
                 }
         }
@@ -57,7 +57,7 @@ int main(int argc, char * argv[])
         }
 
         string   para_name = "args";
-        VariableType para_type(Set, Null, -1);
+        VariableType para_type(Set, Null);
 
         VarDefinitionStatement * defstmt = new VarDefinitionStatement(&para_name, &para_type);
         defstmt->SetParentNode(bean);

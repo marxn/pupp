@@ -424,11 +424,10 @@ bool AssignStatement::Check()
 }
 
 
-VariableType::VariableType(DataType vartype, DataType elementtype, long prec)
+VariableType::VariableType(DataType vartype, DataType elementtype)
 {
         this->VarType     = vartype;
         this->ElementType = elementtype;
-        this->Prec        = prec;
 }
 
 void VariableType::SetVarType(DataType type)
@@ -461,16 +460,6 @@ list<Expression*> * VariableType::GetDimentions()
         return &Dimentions;
 }
 
-void VariableType::SetPrecision(long prec)
-{
-        this->Prec = prec;
-}
-
-long VariableType::GetPrecision()
-{
-        return this->Prec;
-}
-
 VarDefinitionStatement::VarDefinitionStatement(string * ident, VariableType * vartype)
 {
         this->Ident    = ident;
@@ -488,8 +477,6 @@ int VarDefinitionStatement::Invoke(NodeContext * context)
                 cerr<<"pupp runtime error: cannot find variable:"<<name<<endl;
                 return NODE_RET_ERROR;
         }
-        
-        //var->SetPrecision(this->VarType->GetPrecision());
 
         if(this->VarType->GetVarType()==Array)
         {
@@ -515,7 +502,7 @@ int VarDefinitionStatement::Invoke(NodeContext * context)
                         desc.push_back(n);
                 }
 
-                ArrayValue * val = new ArrayValue(this->VarType->GetElementType(), desc, size, this->VarType->GetPrecision());
+                ArrayValue * val = new ArrayValue(this->VarType->GetElementType(), desc, size);
                 var->SetRef(val);
                 return NODE_RET_NORMAL;
         }
@@ -561,7 +548,6 @@ bool VarDefinitionStatement::Provision()
 
                 this->VarDef = new VariableDef(varname);
                 this->VarDef->SetVarType(this->VarType->GetVarType());
-                this->VarDef->SetVarPrec(this->VarType->GetPrecision());
 
                 //Variable type has to be determined before Lambda expression defined.
                 if(this->InitExpr!=NULL && this->InitExpr->IsLambdaExp())
@@ -682,9 +668,9 @@ bool SleepStatement::Check()
 
 CallStatement::CallStatement()
 {
-        this->RetVal = NULL;
+        this->RetVal     = NULL;
 }
-
+        
 int CallStatement::Invoke(NodeContext * context)
 {
         this->RetVal = this->Expr->Calculate(context);
@@ -722,3 +708,7 @@ ConstValue * CallStatement::GetRetVal()
         return this->RetVal;
 }
 
+void CallStatement::SetThreadNum(long n)
+{
+        this->ThreadNum = n;
+}

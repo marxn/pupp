@@ -1,3 +1,8 @@
+Oct 10th 2016
+------------------------
+1. Asyn call!
+2. new format of set expr
+
 Sept 20th 2016
 ------------------------
 1. Totally new seeking method
