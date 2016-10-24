@@ -392,11 +392,11 @@ string KVValue::toString()
 }
 
 
-SetValue::SetValue():ConstValue(Set)
+MapValue::MapValue():ConstValue(Map)
 {
 }
 
-SetValue::SetValue(map<string, ValueBox*>& value):ConstValue(Set)
+MapValue::MapValue(map<string, ValueBox*>& value):ConstValue(Map)
 {
         map<string, ValueBox*>::iterator i;
         for(i=value.begin();i!=value.end();i++)
@@ -405,7 +405,7 @@ SetValue::SetValue(map<string, ValueBox*>& value):ConstValue(Set)
         }
 }
 
-SetValue::~SetValue()
+MapValue::~MapValue()
 {
         map<string, ValueBox*>::iterator i;
         for(i=this->Value.begin();i!=this->Value.end();i++)
@@ -415,7 +415,7 @@ SetValue::~SetValue()
         this->Value.clear();
 }
 
-void SetValue::AddKV(KVValue * kv)
+void MapValue::AddKV(KVValue * kv)
 {
         string key = kv->GetKey()->toString();
         map<string, ValueBox*>::iterator i = this->Value.find(key);
@@ -428,12 +428,12 @@ void SetValue::AddKV(KVValue * kv)
         this->Value.insert(pair<string, ValueBox*>(key, kv->GetValueBox()->Dup()));
 }
 
-void SetValue::RemoveKV(string key)
+void MapValue::RemoveKV(string key)
 {
         this->Value.erase(key);
 }
 
-ValueBox * SetValue::FindByKey(string key)
+ValueBox * MapValue::FindByKey(string key)
 {
         map<string, ValueBox*>::iterator i = this->Value.find(key);
         if(i!=this->Value.end())
@@ -443,17 +443,17 @@ ValueBox * SetValue::FindByKey(string key)
         return NULL;
 }
 
-map<string, ValueBox*> * SetValue::GetValue()
+map<string, ValueBox*> * MapValue::GetValue()
 {
         return &this->Value;
 }        
 
-ConstValue * SetValue::DupValue()
+ConstValue * MapValue::DupValue()
 {
-        return new SetValue(this->Value);
+        return new MapValue(this->Value);
 }
 
-string SetValue::toString()
+string MapValue::toString()
 {
         string ret="[";
 
@@ -497,8 +497,8 @@ ConstValue * DefaultValueFactory::GetValue()
                 case Decimal:
                         result = new DecimalValue("0");
                 break;
-                case Set:
-                        result = new SetValue();
+                case Map:
+                        result = new MapValue();
                 break;
                 case Func:
                         result = new FuncValue(NULL, NULL);
@@ -636,49 +636,44 @@ long ArrayValue::GetDimensionNum()
         return this->Dim.size();
 }
 
-ConstValueCaster::ConstValueCaster(ConstValue * value, DataType type)
+ConstValue * ConstValueCast(ConstValue * value, DataType dst_type)
 {
-        this->Value = value;
-        this->Type = type;
-}
-
-ConstValue * ConstValueCaster::Cast()
-{
-        switch(this->Type)
+        switch(dst_type)
         {
                 case String:
-                        return new StringValue(this->Value->toString());
+                        return new StringValue(value->toString());
                 break;
                 case Decimal:
-                        return new DecimalValue(this->Value->toString());
+                        return new DecimalValue(value->toString());
                 break;
                 case Integer:
                         {
-                                string s = this->Value->toString();
+                                string s = value->toString();
                                 long value = 0;
                                 if(sscanf(s.c_str(), "%ld", &value)==0)
                                 {
                                         return NULL;
                                 }
                         }
-                        
-                        return new IntegerValue(this->Value->toString());
+
+                        return new IntegerValue(value->toString());
                 break;
                 case Boolean:
-                        if(this->Value->GetType()!=Boolean)
+                        if(value->GetType()!=Boolean)
                         {
-                                string s = this->Value->toString();
+                                string s = value->toString();
                                 if(s=="0" || s=="")
                                 {
                                         return new BooleanValue(false);
                                 }
-                                
+
                                 return new BooleanValue(true);
                         }
-                        
-                        return this->Value->DupValue();
+
+                        value->DupValue();
                 break;
         }
-        
+
         return NULL;
 }
+

@@ -127,7 +127,7 @@ SetExpression::SetExpression(list<Expression*> * exp)
 ConstValue * SetExpression::Calculate(NodeContext * context)
 {
         long index = 0;
-        SetValue * result = new SetValue;
+        MapValue * result = new MapValue;
         list<KVValue*> tobedone;
 
         list<Expression*>::iterator i;
@@ -253,17 +253,17 @@ ValueBox * VarExpression::GetVarRef(NodeContext * context)
                     ArrayValue * value = static_cast<ArrayValue*>(result->GetVal());
                     result = value->GetElementBox(desc);
             }
-            else if(result->GetVal()->GetType()==Set)
+            else if(result->GetVal()->GetType()==Map)
             {
                     for(list<Expression*>::iterator i = ExprList->begin(); i!=ExprList->end(); i++)
                     {
-                            if(result->GetVal()->GetType()!=Set)
+                            if(result->GetVal()->GetType()!=Map)
                             {
                                     cerr<<"pupp runtime error: Expect a collection."<<endl;
                                     return NULL;
                             }
 
-                            SetValue * local = static_cast<SetValue*>(result->GetVal());
+                            MapValue * local = static_cast<MapValue*>(result->GetVal());
                             
                             ConstValue * key = (*i)->Calculate(context);
 
@@ -271,7 +271,7 @@ ValueBox * VarExpression::GetVarRef(NodeContext * context)
 
                             if(result==NULL)
                             {
-                                    SetValue * value = new SetValue();
+                                    MapValue * value = new MapValue();
                                     ValueBox * vb = new ValueBox(value);
                                     KVValue * kv = new KVValue(key, vb);
                                     local->AddKV(kv);
@@ -529,8 +529,7 @@ ConstValue * FunctionExpression::Calculate(NodeContext * context)
                                 result = new_ctx->FunctionRet;
                                 if(funcnode->GetRtnType()!=result->GetType())
                                 {
-                                        ConstValueCaster caster(result, funcnode->GetRtnType());
-                                        ConstValue * ret = caster.Cast();
+                                        ConstValue * ret = ConstValueCast(result, funcnode->GetRtnType());
                                         delete result;
                                         result = ret;
                                 }

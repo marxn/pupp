@@ -187,7 +187,7 @@ int AssignStatement::Invoke(NodeContext * context)
                 return NODE_RET_ERROR;
         }
 
-        if(var->GetVarType()!=Array && var->GetVarType()!=Set && this->Reference->GetExpsList()->size()>0)
+        if(var->GetVarType()!=Array && var->GetVarType()!=Map && this->Reference->GetExpsList()->size()>0)
         {
                 cerr<<"pupp runtime error: Variable "<<this->Reference->GetVarName()<<" is neither an array nor a set."<<endl;
                 return false;
@@ -228,8 +228,7 @@ int AssignStatement::Invoke(NodeContext * context)
                                 ConstValue * value = (*i)->Calculate(context);
                                 if(value->GetType()!=Integer)
                                 {
-                                        ConstValueCaster caster(value, Integer);
-                                        ConstValue * thevalue = caster.Cast();
+                                        ConstValue * thevalue = ConstValueCast(value, Integer);
                                         delete value;
 
                                         if(thevalue==NULL)
@@ -250,7 +249,7 @@ int AssignStatement::Invoke(NodeContext * context)
                         
                         result = val->GetElementBox(desc);
                 }
-                else if(result->GetVal()->GetType()==Set)
+                else if(result->GetVal()->GetType()==Map)
                 {
                         need_convert = false;
                         
@@ -267,12 +266,12 @@ int AssignStatement::Invoke(NodeContext * context)
                                 return NODE_RET_ERROR;
                         }
                         
-                        SetValue * val = static_cast<SetValue*>(result->GetVal());
+                        MapValue * val = static_cast<MapValue*>(result->GetVal());
                         result = val->FindByKey(key->toString());
                         
                         if(result==NULL)
                         {
-                                SetValue * value = new SetValue();
+                                MapValue * value = new MapValue();
                                 ValueBox * vb = new ValueBox(value);
                                 KVValue * kv = new KVValue(key, vb);
                                 val->AddKV(kv);
@@ -303,8 +302,7 @@ int AssignStatement::Invoke(NodeContext * context)
 
         if(result->GetVal()->GetType()!=value->GetType() && need_convert)
         {
-                ConstValueCaster caster(value, var->GetVarType());
-                ConstValue * thevalue = caster.Cast();
+                ConstValue * thevalue = ConstValueCast(value, var->GetVarType());
                 delete value;
                 value = thevalue;
 

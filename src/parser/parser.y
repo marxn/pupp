@@ -62,7 +62,7 @@
 %left OR
 %left AND
 %left NOT
-%nonassoc '=' SELF_INCR SELF_DECR SELF_MUL SELF_DIV
+%nonassoc INIT_OPER '=' SELF_INCR SELF_DECR SELF_MUL SELF_DIV
 %nonassoc  '<' '>' EQUAL_OP GE_OP LE_OP NOT_EQUAL_OP
 %left '+' '-'
 %left '*' '/'
@@ -73,7 +73,7 @@
 %token <pupp_const_string> STRING
 
 %token <pupp_ident> IDENTIFIER 
-%token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_SET
+%token TYPE_INTEGER TYPE_DECIMAL TYPE_STRING TYPE_BOOLEAN TYPE_MAP
 %token DEF FUNCTION USING RETURN IF ELSE WHILE BREAK CONTINUE FOR FOREACH IN PRINT SLEEP 
 %token TRANSACTION ROLLBACK COMMIT
 %token AND OR NOT
@@ -210,25 +210,25 @@ statement_node:
     ;
 
 while_loop:
-        WHILE '(' expr ')' program_node_block
+        WHILE expr program_node_block
                 {
                         WhileLoopNode * node = new WhileLoopNode;
 
-                        node->SetCondition($3);
-                        node->SetNodeList($5);
+                        node->SetCondition($2);
+                        node->SetNodeList($3);
 
                         $$ = static_cast<Node*>(node);
                 }
         ;
 
 for_loop:
-        FOR '(' statement_node ';' expr ';' statement_node ')' program_node_block 
+        FOR statement_node ';' expr ';' statement_node program_node_block 
                 {
                         ForLoopNode * node = new ForLoopNode;
-                        node->SetPreLoopStatement($3);
-                        node->SetCondition($5);
-                        node->SetPerOnceStatement($7);
-                        node->SetNodeList($9);
+                        node->SetPreLoopStatement($2);
+                        node->SetCondition($4);
+                        node->SetPerOnceStatement($6);
+                        node->SetNodeList($7);
 
                         $$ = static_cast<Node*>(node);
                 }
@@ -293,20 +293,20 @@ optional_else_block:
         ;
 
 branch_node:
-        IF '(' expr ')' program_node_block optional_else_block
+        IF expr program_node_block optional_else_block
                 {
                         BranchNode * node = new BranchNode;
                         
-                        node->SetCondition($3);
+                        node->SetCondition($2);
 
                         ContainerNode * ifnode = new ContainerNode;
-                        ifnode->SetNodeList($5);
+                        ifnode->SetNodeList($3);
                         node->SetIfNode(ifnode);
 
-                        if($6!=NULL)
+                        if($4!=NULL)
                         {
                                 ContainerNode * elsenode = new ContainerNode;
-                                elsenode->SetNodeList($6);
+                                elsenode->SetNodeList($4);
                                 node->SetElseNode(elsenode);
                         }
 
@@ -508,9 +508,9 @@ data_type:
                 { 
                         $$ = Boolean;
                 }
-        | TYPE_SET
+        | TYPE_MAP
                 {
-                        $$ = Set;
+                        $$ = Map;
                 }
         | FUNCTION
                 {
@@ -556,6 +556,12 @@ vardefstatement:
                 {
                         VarDefinitionStatement * stmt = new VarDefinitionStatement($2, new VariableType(Null, Null));
                         stmt->SetInitExpr($4);
+                        $$ = stmt;
+                }
+        | IDENTIFIER INIT_OPER expr
+                {
+                        VarDefinitionStatement * stmt = new VarDefinitionStatement($1, new VariableType(Null, Null));
+                        stmt->SetInitExpr($3);
                         $$ = stmt;
                 }
         ;

@@ -13,7 +13,7 @@
 
 enum DataType
 {
-        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Set, Array, Func
+        Null = 0, Integer, Decimal, Boolean, String, KeyValue, Map, Array, Func
 };
 
 class ConstValue
@@ -148,12 +148,12 @@ protected:
         ValueBox * Value;
 };
 
-class SetValue: public ConstValue
+class MapValue: public ConstValue
 {
 public:
-        SetValue();
-        SetValue(std::map<std::string, ValueBox*>& value);
-        ~SetValue();
+        MapValue();
+        MapValue(std::map<std::string, ValueBox*>& value);
+        ~MapValue();
         void AddKV(KVValue * kv);
         void RemoveKV(std::string key);
         ValueBox * FindByKey(std::string key);
@@ -198,14 +198,6 @@ private:
         long Size;
 };
 
-class ConstValueCaster
-{
-public:
-        ConstValueCaster(ConstValue * value, DataType type);
-        ConstValue * Cast();
-private:
-        ConstValue * Value;
-        DataType Type;
-};
+ConstValue * ConstValueCast(ConstValue * value, DataType dst_type);
 
 #endif

@@ -68,9 +68,7 @@ void Variable::SetValue(ConstValue * value)
         }
         else
         {
-                ConstValueCaster caster(value, this->VarType);
-                ConstValue * newvalue = caster.Cast();
-
+                ConstValue * newvalue = ConstValueCast(value, this->VarType);
                 this->VBox->SetVal(newvalue);
         }
 }

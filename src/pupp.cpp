@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
                 return -1;
         }
 
-        SetValue * para = new SetValue;
+        MapValue * para = new MapValue();
 
         for(int i = 0; i<argc; i++)
         {
@@ -57,7 +57,7 @@ int main(int argc, char * argv[])
         }
 
         string   para_name = "args";
-        VariableType para_type(Set, Null);
+        VariableType para_type(Map, Null);
 
         VarDefinitionStatement * defstmt = new VarDefinitionStatement(&para_name, &para_type);
         defstmt->SetParentNode(bean);

@@ -109,8 +109,7 @@ int BranchNode::Evaluate(NodeContext * context)
 
         if(eva->GetType()!=Boolean)
         {
-                ConstValueCaster caster(eva, Boolean);
-                ConstValue * thevalue = caster.Cast();
+                ConstValue * thevalue = ConstValueCast(eva, Boolean);
                 
                 if(thevalue==NULL)
                 {

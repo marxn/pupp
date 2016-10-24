@@ -119,8 +119,7 @@ int LoopNode::Evaluate(NodeContext * context)
 
         if(eva->GetType()!=Boolean)
         {
-                ConstValueCaster caster(eva, Boolean);
-                ConstValue * thevalue = caster.Cast();
+                ConstValue * thevalue = ConstValueCast(eva, Boolean);
                 
                 if(thevalue==NULL)
                 {
@@ -253,7 +252,7 @@ bool ForeachLoopNode::PreLoopStatement(NodeContext * context)
                 return false;
         }
 
-        if(keeper->GetType()!=Set)
+        if(keeper->GetType()!=Map)
         {
                 cerr<<"pupp runtime warning: FOREACH need a collection as input."<<endl;
                 context->ForeachCtx.push(NULL);
@@ -262,7 +261,7 @@ bool ForeachLoopNode::PreLoopStatement(NodeContext * context)
 
         ForeachLoopCtx * ctx = new ForeachLoopCtx;
         ctx->Keeper         = keeper;
-        ctx->SetValueHolder = static_cast<SetValue*>(keeper)->GetValue();
+        ctx->SetValueHolder = static_cast<MapValue*>(keeper)->GetValue();
         ctx->ValueHandle    = ctx->SetValueHolder->begin();
 
         context->ForeachCtx.push(ctx);

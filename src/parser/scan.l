@@ -15,6 +15,7 @@
 %}
 
 comment    "//".*
+init_oper  ":="
 equal      "=="
 self_incr  "+="
 self_decr  "-="
@@ -33,18 +34,21 @@ identifier [a-zA-Z_]+[0-9]*
 
 %%
 
-{equal}             {
+{init_oper}     {
+                                return INIT_OPER;
+                }
+{equal}         {
                                 return EQUAL_OP;
                 }
 
-{not_equal}        {
+{not_equal}     {
                                 return NOT_EQUAL_OP;
                 }
-{ge_op}                {
+{ge_op}         {
                                 return GE_OP;
                 }
 
-{le_op}                {
+{le_op}         {
                                 return LE_OP;
                 }
 
@@ -63,7 +67,7 @@ identifier [a-zA-Z_]+[0-9]*
                                 return SELF_DIV;
                 }
 
-{self}                {
+{self}          {
                                 return yytext[0];
                 }
 
@@ -73,16 +77,16 @@ identifier [a-zA-Z_]+[0-9]*
                                 return STRING;
                 }
                 
-{integer}        {
+{integer}       {
                                 yylval.pupp_const_integer = new IntegerValue(atol(yytext));
                                 return INTEGER;
                 }
-{decimal}        {
+{decimal}       {
                                 StringValue temp(yytext);
                                 yylval.pupp_const_decimal = new DecimalValue(temp.toString());
                                 return DECIMAL;
                 }
-{identifier}        {
+{identifier}    {
                                 //Boolean constant value
                                 if(strcasecmp(yytext, "true") == 0)
                                 {
@@ -140,8 +144,8 @@ identifier [a-zA-Z_]+[0-9]*
                                         return TYPE_STRING;
                                 if(strcasecmp(yytext,"bool")==0)
                                         return TYPE_BOOLEAN;
-                                if(strcasecmp(yytext,"set")==0)
-                                        return TYPE_SET;
+                                if(strcasecmp(yytext,"map")==0)
+                                        return TYPE_MAP;
 
                                 //Logical operation
                                 if(strcasecmp(yytext,"and")==0)
