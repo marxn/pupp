@@ -14,4 +14,11 @@ Pupp
 * Introduced a total new variable type - 'Message'. It is the essential function of PUPP.
 
 
-
+```C++
+a := [[1,2,3],4,5,6,(){}];
+def b : int[10,10];
+a[0][0] = 9;
+b[1,1]=1;
+print a,NL;
+print b,NL;
+```
