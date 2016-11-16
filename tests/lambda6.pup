@@ -1,4 +1,4 @@
-def CreateObject = (member1 : int, member2 : string) : set
+def CreateObject = (member1 : int, member2 : string) : map 
 {
         def method1 = () using(&member1, &member2) 
         {
@@ -14,11 +14,11 @@ def CreateObject = (member1 : int, member2 : string) : set
             print member1, member2,NL;
         };
 
-        return set{method1, method2};
+        return [method1, method2];
 };
 
 def fun = CreateObject(1, "abc");
 
-fun[0]();
+@fun[0]();
 
 return 0;

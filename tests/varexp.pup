@@ -1,0 +1,9 @@
+def a : map[10, 10];
+while true
+{
+	a[1,1] = ["a","b","c"];
+	print a,NL;
+	sleep 10000;
+}
+
+

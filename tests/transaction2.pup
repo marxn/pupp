@@ -1,14 +1,14 @@
 def cashflow = 0.00;
 
-def a = set { <"name",   "Jack">,   <"balance", 100.00> };
+def a = [ <"name",   "Jack">,   <"balance", 100.00> ];
 
-def b = set { <"name",   "Rose">,  <"balance",  0.00>  };
+def b = [ <"name",   "Rose">,  <"balance",  0.00>  ];
 
 def transferamount = 20.00;
 
 print "a=",a,", b=",b,", cashflow=",cashflow,NL;
 
-while(a["balance"]>0.00)
+while a["balance"]>0.00
 {
         transaction(a, b)
         {

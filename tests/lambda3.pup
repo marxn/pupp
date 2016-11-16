@@ -1,7 +1,7 @@
-        def t = set{<0, () : int{ return 10; }>,<1, () : int{return 11;}>};
+        def t = [<0, () : int{ return 10; }>,<1, () : int{return 11;}>];
         def i : int;
 
-        for(i = 0; i < 2; i = i + 1)
+        for i = 0; i < 2; i += 1
         {
                 print t[i](),NL;
         }
@@ -10,13 +10,14 @@
         r[0] = () using(&t): function {return t[0];};
         r[1] = () using(&t): function {return t[1];};
 
-        for(i = 0; i < 2; i = i + 1)
+        for i = 0; i < 2; i += 1
         {
                 def p : function;
                 p = r[i]();
                 print r[i]()(),NL;
         }
        
-        (){print 123,NL;}(); 
+        def fun = (){print 123,NL;}; 
+        @fun();
         return 0;
 

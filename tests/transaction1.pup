@@ -1,4 +1,4 @@
-def transfer = (&user1 : set, &user2 : set, amount : decimal) : bool
+def transfer = (&user1 : map, &user2 : map, amount : decimal) : bool
 {
         def ret = false;
 
@@ -19,27 +19,27 @@ def transfer = (&user1 : set, &user2 : set, amount : decimal) : bool
         return ret;
 };
 
-def build_trans_item = (&item : set[])
+def build_trans_item = (&item : map[])
 {
         def i : int;
-        for(i = 0; i < 10; i = i + 1)
+        for i = 0; i < 10; i = i + 1
         {
-                item[i] = set{<"seq_no", i>, <"amount", i*2>};
+                item[i] = [<"seq_no", i>, <"amount", i*2>];
         }
 };
 
-        def trans_list1 : set[10];
-        def trans_list2 : set[10];
+        def trans_list1 : map[10];
+        def trans_list2 : map[10];
 
         def result : bool;
 
-        build_trans_item(trans_list1);
-        build_trans_item(trans_list2);
+        @build_trans_item(trans_list1);
+        @build_trans_item(trans_list2);
 
-        while(true)
+        while true
         {
-                def a = set{<"name","Jack">,<"balance",100.00>,<"transaction_list", trans_list1>};
-                def b = set{<"name","Rose">,<"balance",0.00>,<"transaction_list", trans_list2>};
+                def a = [<"name","Jack">,<"balance",100.00>,<"transaction_list", trans_list1>];
+                def b = [<"name","Rose">,<"balance",0.00>,<"transaction_list", trans_list2>];
 
                 print a,b,NL;
                 result = transfer(a,b,20.00);

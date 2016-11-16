@@ -100,10 +100,14 @@ void TransNode::SetIdentList(list<string*> * idlist)
 
 bool TransNode::Provision()
 {
+        return ContainerNode::Provision();
+}
+
+bool TransNode::Check()
+{
         Node * parent = this->GetParentNode();
-
+        
         list<string*>::iterator i;
-
         for(i = this->IdList->begin(); i!= this->IdList->end(); i++)
         {
                 unsigned long layer = 1;
@@ -123,7 +127,6 @@ bool TransNode::Provision()
 
                 this->VarDefList.push_back(desc);
         }
-
-        return ContainerNode::Provision();
+        
+        return ContainerNode::Check();
 }
-

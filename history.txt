@@ -1,3 +1,8 @@
+Nov 16th 2016
+------------------------
+1. makefile debug entry
+2. bugfix
+
 Oct 24th 2016
 ------------------------
 1. grammar optimized.

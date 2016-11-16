@@ -1,9 +1,9 @@
-def object = (initvalue : int)  : set
+def object = (initvalue : int)  : map 
 {
         def value = initvalue;
 
-        return set
-        {
+        return
+        [
                <"set", (x : int) using(&value) 
                        {
                            value = x;
@@ -15,19 +15,19 @@ def object = (initvalue : int)  : set
                            return value;
                        }
                >
-        };
+        ];
 };
 
 def a = object(1);
 print a["get"](),NL;
 
-a["set"](10);
+@a["set"](10);
 print a["get"](),NL;
 
 def b = object(2);
 print b["get"](),NL;
 
-b["set"](12);
+@b["set"](12);
 print b["get"](),NL;
 
 return 0;

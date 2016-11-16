@@ -1,32 +1,32 @@
-def test = (x : int[])
+test := (x : int[])
 {
         x[0] = 123;
 };
 
 
-def test1 = (&x : int[])
+test1 := (&x : int[])
 {
         x[0] = 123;
 };
 
 
-def test2 = (x : int)
+test2 := (x : int)
 {
         x = 456;
 };
 
 
-def test3 = (&x : int)
+test3 := (&x : int)
 {
         x = 456;
 };
 
-def func = (args : set) using(&test, &test1, &test2, &test3): int
+func := (args : map) using(&test, &test1, &test2, &test3): int
 {
         def arr : int[10];
-        def i = 0;
+        i := 0;
 
-        for(i = 0; i < 10; i = i + 1)
+        for i = 0; i < 10; i += 1
         {
                 arr[i] = i;
         }
@@ -35,16 +35,16 @@ def func = (args : set) using(&test, &test1, &test2, &test3): int
 
         if(true)
         {
-                test(arr);
+                @test(arr);
                 print arr,NL;
 
-                test1(arr);
+                @test1(arr);
                 print arr,NL;
 
-                test2(arr[1]);
+                @test2(arr[1]);
                 print arr,NL;
         
-                test3(arr[1]);
+                @test3(arr[1]);
                 print arr,NL;
                 sleep(1000000);
         }

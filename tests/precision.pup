@@ -1,4 +1,4 @@
-        def a : decimal(5);
+        def a : decimal;
         def b = 1.1;
         a = 1.1;
         print a," ",b,NL;
@@ -7,7 +7,7 @@
         b=1.11;
         print a," ",b,NL;
 
-        def x : decimal(6)[10];
+        def x : decimal[10];
         print x,NL;
         return 0;
 

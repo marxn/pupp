@@ -21,7 +21,7 @@ public:
         void SetIdentList(std::list<std::string*> * idlist);
 
         bool Provision();
-
+        bool Check();
 private:
         std::list<std::string*> * IdList;
         std::list<TransIdentDesc> VarDefList;

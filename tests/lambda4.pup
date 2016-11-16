@@ -13,7 +13,7 @@ def c = () : function
         return () : int{return 10;};
 };
 
-while(true)
+while true
 {
 	def con = 10;
 	def f = a(con);

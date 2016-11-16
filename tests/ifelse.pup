@@ -1,0 +1,25 @@
+a := 0;
+b := 1;
+c := "false";
+d := "";
+
+if(a)
+{
+	print "1",NL;
+}
+
+if(b)
+{
+	print "2",NL;
+}
+
+if(c)
+{
+	print "3",NL;
+}
+
+if(d)
+{
+	print "4",NL;
+}
+

@@ -1,0 +1,14 @@
+        def fun_array : function[10];
+	def i : int;
+
+        for i = 0; i < 10; i+=1
+        {
+                fun_array[i] = () using(&i) : int {return i;};
+        }
+
+        for i = 0; i < 10; i+=1
+        {
+                print fun_array[i](),NL;
+        }
+
+        return 0;
