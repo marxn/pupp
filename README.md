@@ -1,10 +1,5 @@
 Pupp
 ====
-PUPP stands for Platform for Universal Plastic Processing.
-
-PUPP can be diveded into two parts in terms of functionallity - A programming language pupp-lang and a distributed messaging service platform.
-
-pupp-lang is a kind of language which can be used to describe the entire messaging-process unit. 
 
 ### pupp-lang featuers:
 
